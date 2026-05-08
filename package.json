@@ -85,6 +85,11 @@
     "access": "public"
   },
   "jest": {
+    "moduleNameMapper": {
+      "@/(.*)$": "<rootDir>/src/$1",
+      "^pdfjs-dist/legacy/build/pdf\\.mjs$": "<rootDir>/test/__mocks__/pdfjs-dist.ts",
+      "^jwks-rsa$": "<rootDir>/test/__mocks__/jwks-rsa.ts"
+    },
     "moduleFileExtensions": [
       "js",
       "json",
@@ -92,6 +97,9 @@
     ],
     "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/setup.ts"
+    ],
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
