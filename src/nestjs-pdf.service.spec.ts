@@ -1,10 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NestjsPdfService } from './nestjs-pdf.service';
 import { PuppeteerService } from './puppeteer/puppeteer.service';
+import { addSignatureFieldUsingAnchor } from '@/helpers/signature.helper';
+
+jest.mock('@/helpers/signature.helper', () => ({
+  addSignatureFieldUsingAnchor: jest.fn(),
+}));
 
 describe('NestjsPdfService', () => {
   let service: NestjsPdfService;
   let puppeteerService: jest.Mocked<PuppeteerService>;
+  let signatureHelper: jest.MockedFunction<typeof addSignatureFieldUsingAnchor>;
 
   const mockPuppeteerService = {
     generatePdfFromHtml: jest.fn(),
@@ -25,6 +31,7 @@ describe('NestjsPdfService', () => {
 
     service = module.get<NestjsPdfService>(NestjsPdfService);
     puppeteerService = module.get(PuppeteerService);
+    signatureHelper = jest.mocked(addSignatureFieldUsingAnchor);
   });
 
   afterEach(() => {
@@ -166,6 +173,52 @@ describe('NestjsPdfService', () => {
       await service.generatePdfFromTemplateFile(filePath, parameters, options);
 
       expect(spy).toHaveBeenCalledWith(filePath, parameters, options);
+    });
+  });
+
+  describe('addSignatureFieldSignatureDebtorRaw', () => {
+    it('should delegate to addSignatureFieldUsingAnchor with default parameters', async () => {
+      const pdf = new Uint8Array([21, 22, 23]);
+      const mockPdf = new Uint8Array([24, 25, 26]);
+      signatureHelper.mockResolvedValue(mockPdf);
+
+      await expect(
+        service.addSignatureFieldSignatureDebtorRaw(pdf),
+      ).resolves.toEqual(mockPdf);
+
+      expect(signatureHelper).toHaveBeenCalledWith(
+        pdf,
+        'SignatureDebtor',
+        '__SIG_DEBTOR_ANCHOR__',
+      );
+    });
+
+    it('should pass custom field name and anchor text', async () => {
+      const pdf = Buffer.from([27, 28, 29]);
+      const mockPdf = new Uint8Array([30, 31, 32]);
+      signatureHelper.mockResolvedValue(mockPdf);
+
+      await service.addSignatureFieldSignatureDebtorRaw(
+        pdf,
+        'CustomSignature',
+        '__CUSTOM_ANCHOR__',
+      );
+
+      expect(signatureHelper).toHaveBeenCalledWith(
+        pdf,
+        'CustomSignature',
+        '__CUSTOM_ANCHOR__',
+      );
+    });
+
+    it('should propagate errors from addSignatureFieldUsingAnchor', async () => {
+      const pdf = new Uint8Array([33, 34, 35]);
+      const error = new Error('Signature field creation failed');
+      signatureHelper.mockRejectedValue(error);
+
+      await expect(
+        service.addSignatureFieldSignatureDebtorRaw(pdf),
+      ).rejects.toThrow(error);
     });
   });
 });

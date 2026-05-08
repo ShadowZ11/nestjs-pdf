@@ -34,12 +34,16 @@ describe('NestJS PDF Library - Integration Tests', () => {
       expect(pdfService).toHaveProperty('generatePdfFromHtml');
       expect(pdfService).toHaveProperty('generatePdfFromTemplateString');
       expect(pdfService).toHaveProperty('generatePdfFromTemplateFile');
+      expect(pdfService).toHaveProperty('addSignatureFieldSignatureDebtorRaw');
     });
 
     it('should have all required methods', () => {
       expect(typeof pdfService.generatePdfFromHtml).toBe('function');
       expect(typeof pdfService.generatePdfFromTemplateString).toBe('function');
       expect(typeof pdfService.generatePdfFromTemplateFile).toBe('function');
+      expect(typeof pdfService.addSignatureFieldSignatureDebtorRaw).toBe(
+        'function',
+      );
     });
   });
 
@@ -69,6 +73,7 @@ describe('NestJS PDF Library - Integration Tests', () => {
     it('should successfully create module with async configuration', () => {
       expect(pdfService).toBeDefined();
       expect(pdfService).toHaveProperty('generatePdfFromHtml');
+      expect(pdfService).toHaveProperty('addSignatureFieldSignatureDebtorRaw');
     });
   });
 
