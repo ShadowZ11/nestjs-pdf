@@ -61,6 +61,57 @@ $ pnpm run test:cov
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
 
+### Automated npm publish (GitHub Actions)
+
+This repository includes a production-grade workflow in `.github/workflows/publish-npm.yml`.
+
+It publishes automatically to npm when a semantic version tag is pushed (`vX.Y.Z`) and can also be started manually from the Actions tab.
+
+### CI and release automation
+
+- CI quality gate: `.github/workflows/ci.yml`
+- Release PR and changelog automation: `.github/workflows/release-please.yml`
+- Release Please config: `release-please-config.json`
+- Release manifest: `.release-please-manifest.json`
+
+Use Conventional Commits to generate clean release notes:
+
+- `feat:` for new features (minor)
+- `fix:` for bug fixes (patch)
+- `feat!:` or `BREAKING CHANGE:` for breaking changes (major)
+
+#### Prerequisites
+
+- Configure npm trusted publishing for this GitHub repository **or** add `NPM_TOKEN` to repository secrets.
+- (Recommended) Protect the `npm-publish` environment in GitHub with reviewers.
+
+#### npm dist-tags policy
+
+- Stable versions (`1.2.3`) are published with tag `latest`.
+- Pre-release versions (`1.2.3-rc.1`, `1.2.3-beta.1`) are published with tag `next`.
+
+#### Branch protection (recommended)
+
+For `main`/`master`, configure branch protection rules requiring:
+
+- Status check `Lint, test and build`
+- Pull request review before merge
+- Up-to-date branch before merge
+- Linear history (optional, recommended)
+
+#### Release flow
+
+```bash
+# commit using Conventional Commits
+git commit -m "feat: add X"
+git push
+
+# Release Please opens/updates a release PR.
+# Merge the release PR to create the Git tag and GitHub release.
+```
+
+After the release tag is created, publish workflow validates lint/tests/build, checks that tag and `package.json` versions match, then publishes with npm provenance.
+
 If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
 
 ```bash
