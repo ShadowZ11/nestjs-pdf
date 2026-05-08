@@ -3,7 +3,7 @@ import { PuppeteerService } from './puppeteer/puppeteer.service';
 import { PuppeteerParameters } from './puppeteer/puppeteer-parameters.interface';
 
 @Injectable()
-export class PdfLibService {
+export class NestjsPdfService {
   constructor(private readonly puppeteerService: PuppeteerService) {}
 
   generatePdfFromHtml(html: string, options?: PuppeteerParameters) {

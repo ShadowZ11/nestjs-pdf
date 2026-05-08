@@ -1,5 +1,5 @@
 import { DynamicModule, Module, ModuleMetadata } from '@nestjs/common';
-import { PdfLibService } from './pdf-lib.service';
+import { NestjsPdfService } from './nestjs-pdf.service';
 import { PuppeteerModule } from './puppeteer/puppeteer.module';
 import { PuppeteerParameters } from './puppeteer/puppeteer-parameters.interface';
 
@@ -12,22 +12,22 @@ export interface PdfLibModuleAsyncOptions extends Pick<
 }
 
 @Module({})
-export class PdfLibModule {
+export class NestjsPdfModule {
   static forRoot(options: PuppeteerParameters): DynamicModule {
     return {
-      module: PdfLibModule,
+      module: NestjsPdfModule,
       imports: [PuppeteerModule.forRoot(options)],
-      providers: [PdfLibService],
-      exports: [PdfLibService],
+      providers: [NestjsPdfService],
+      exports: [NestjsPdfService],
     };
   }
 
   static forRootAsync(options: PdfLibModuleAsyncOptions): DynamicModule {
     return {
-      module: PdfLibModule,
+      module: NestjsPdfModule,
       imports: [PuppeteerModule.forRootAsync(options)],
-      providers: [PdfLibService],
-      exports: [PdfLibService],
+      providers: [NestjsPdfService],
+      exports: [NestjsPdfService],
     };
   }
 }
