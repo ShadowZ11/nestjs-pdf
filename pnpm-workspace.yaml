@@ -1,4 +1,6 @@
 allowBuilds:
   '@nestjs/core': true
+  '@swc/core': true
+  esbuild: true
   puppeteer: true
   unrs-resolver: false
