@@ -39,7 +39,7 @@ jobs:
         run: pnpm lint
 
       - name: Test
-        run: pnpm test -- --runInBand
+        run: pnpm exec -- jest --runInBand
 
       - name: Build
         run: pnpm build

@@ -30,7 +30,6 @@ export class PuppeteerService {
         Logger.warn(
           'Using `chromiumRevision` is no longer supported since the puppeteer update.',
         );
-        // chromiumRevision = this.options.chromiumRevision;
       }
 
       const headless: boolean | 'shell' =
