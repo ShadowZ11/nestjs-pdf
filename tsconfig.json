@@ -22,12 +22,7 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@app/pdf-lib": [
-        "libs/pdf-lib/src"
-      ],
-      "@app/pdf-lib/*": [
-        "libs/pdf-lib/src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   }
 }
