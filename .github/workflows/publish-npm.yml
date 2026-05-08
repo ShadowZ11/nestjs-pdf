@@ -106,11 +106,11 @@ jobs:
           fi
 
       - name: Publish to npm with trusted publishing
-        if: secrets.NPM_TOKEN == ''
+        if: "${{ secrets.NPM_TOKEN }}" == ''
         run: npm publish --access public --provenance --tag "${{ steps.dist_tag.outputs.npm_tag }}"
 
       - name: Publish to npm with provenance
-        if: secrets.NPM_TOKEN != ''
+        if: "${{ secrets.NPM_TOKEN }}" != ''
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public --provenance --tag "${{ steps.dist_tag.outputs.npm_tag }}"
