@@ -106,5 +106,14 @@ jobs:
             echo "npm_tag=latest" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Debug npm context
+        run: |
+          npm config get registry
+          npm view @shad0wz7/nestjs-pdf name version --registry=https://registry.npmjs.org/
+          node -p "require('./package.json').name"
+          node -p "require('./package.json').version"
+          echo "Workflow ref: $GITHUB_REF"
+          echo "Workflow ref name: $GITHUB_REF_NAME"
+
       - name: Publish to npm
         run: npm publish --access public --provenance --tag "${{ steps.dist_tag.outputs.npm_tag }}"
