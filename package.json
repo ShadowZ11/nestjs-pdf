@@ -68,7 +68,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "globals": "^17.6.0",
-    "jest": "^30.4.1",
+    "jest": "^30.4.2",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.7.284",
     "prettier": "^3.8.3",
@@ -87,7 +87,8 @@
     "@napi-rs/canvas": "^1.0.0"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "jest": {
     "moduleNameMapper": {
