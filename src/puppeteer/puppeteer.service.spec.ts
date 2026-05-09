@@ -127,7 +127,7 @@ describe('PuppeteerService', () => {
         close: jest.fn().mockResolvedValue(undefined),
       };
 
-      browserService.createContext.mockResolvedValue(mockContext as any);
+      browserService.createContext.mockResolvedValue(mockContext as never);
 
       const html = '<div>Test Content</div>';
       await service.generatePdfFromHtml(html);
@@ -152,7 +152,7 @@ describe('PuppeteerService', () => {
         close: jest.fn().mockResolvedValue(undefined),
       };
 
-      browserService.createContext.mockResolvedValue(mockContext as any);
+      browserService.createContext.mockResolvedValue(mockContext as never);
 
       const html = '<h1>PDF</h1>';
       const result = await service.generatePdfFromHtml(html);
@@ -203,7 +203,7 @@ describe('PuppeteerService', () => {
         close: jest.fn().mockResolvedValue(undefined),
       };
 
-      browserService.createContext.mockResolvedValue(mockContext as any);
+      browserService.createContext.mockResolvedValue(mockContext as never);
 
       const html = '<h1>Error</h1>';
 
@@ -295,7 +295,7 @@ describe('PuppeteerService', () => {
         close: jest.fn().mockResolvedValue(undefined),
       };
 
-      browserService.createContext.mockResolvedValue(mockContext as any);
+      browserService.createContext.mockResolvedValue(mockContext as never);
       handlebarsService.render.mockReturnValue('<p>Test</p>');
 
       const template = 'Template';
