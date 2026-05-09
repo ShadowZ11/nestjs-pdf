@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2](https://github.com/ShadowZ11/nestjs-pdf/compare/v1.0.1...v1.0.2) (2026-05-09)
+
+
+### Bug Fixes
+
+* disable false warning and puppeteer test ([97fe0e7](https://github.com/ShadowZ11/nestjs-pdf/commit/97fe0e755da8d7574e627328f4bf9e6e871cc127))
+* update jest version ([0d55096](https://github.com/ShadowZ11/nestjs-pdf/commit/0d55096cbbad9f3c9dffb61bf3d5970621933ac9))
+
 ## [1.0.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v1.0.0...v1.0.1) (2026-05-09)
 
 
