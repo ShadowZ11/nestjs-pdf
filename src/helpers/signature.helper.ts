@@ -6,11 +6,27 @@ import {
   PDFNumber,
   PDFString,
 } from 'pdf-lib';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { TextItem } from 'pdfjs-dist/types/src/display/api';
 
+async function loadPdfjs() {
+  try {
+    return await import('pdfjs-dist/legacy/build/pdf.mjs');
+  } catch (error) {
+    throw new Error(
+      [
+        'Failed to load pdfjs-dist.',
+        'If you use anchor-based signature placement in Node.js, make sure @napi-rs/canvas is installed.',
+        'Try: npm install @napi-rs/canvas',
+        '',
+        `Original error: ${error instanceof Error ? error.message : String(error)}`,
+      ].join('\n'),
+      { cause: error },
+    );
+  }
+}
+
 function toU8(input: Uint8Array | Buffer): Uint8Array {
-  return input instanceof Uint8Array ? input : new Uint8Array(input);
+  return new Uint8Array(input);
 }
 
 async function findAnchorPosition(
@@ -23,6 +39,7 @@ async function findAnchorPosition(
   pageWidth: number;
   pageHeight: number;
 }> {
+  const pdfjsLib = await loadPdfjs();
   const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
   const pdf = await loadingTask.promise;
 

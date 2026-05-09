@@ -1,6 +1,6 @@
 {
-  "name": "nestjs-pdf",
-  "version": "1.0.0",
+  "name": "@shad0wz7/nestjs-pdf",
+  "version": "1.0.1",
   "description": "A NestJS library for generating PDFs with Puppeteer and Handlebars.",
   "author": "Emmanuel Boisset",
   "license": "MIT",
@@ -82,6 +82,9 @@
     "tsup": "^8.5.1",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.59.2"
+  },
+  "optionalDependencies": {
+    "@napi-rs/canvas": "^1.0.0"
   },
   "publishConfig": {
     "access": "public"
