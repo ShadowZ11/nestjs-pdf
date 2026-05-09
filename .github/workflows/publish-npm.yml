@@ -13,6 +13,9 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  NPM_CONFIG_PROVENANCE: false
+
 jobs:
   validate:
     name: Validate before publish
@@ -116,4 +119,4 @@ jobs:
           echo "Workflow ref name: $GITHUB_REF_NAME"
 
       - name: Publish to npm
-        run: npm publish --access public --provenance --tag "${{ steps.dist_tag.outputs.npm_tag }}"
+        run: npm publish --access public --tag "${{ steps.dist_tag.outputs.npm_tag }}"
