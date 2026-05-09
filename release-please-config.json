@@ -5,6 +5,7 @@
       "release-type": "node",
       "package-name": "@shad0wz7/nestjs-pdf",
       "include-v-in-tag": true,
+      "include-component-in-tag": false,
       "changelog-path": "CHANGELOG.md"
     }
   }
