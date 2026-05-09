@@ -10,13 +10,17 @@ concurrency:
   group: npm-publish-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
+env:
+  NPM_CONFIG_PROVENANCE: true
+
 jobs:
   validate:
     name: Validate before publish
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      HAS_NPM_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
 
     steps:
       - name: Checkout repository
@@ -56,7 +60,8 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: npm-publish
+    environment: production
+
     permissions:
       contents: read
       id-token: write
@@ -107,14 +112,5 @@ jobs:
             echo "npm_tag=latest" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Publish to npm with trusted publishing
-        if: env.HAS_NPM_TOKEN == 'false'
+      - name: Publish to npm
         run: npm publish --access public --provenance --tag "${{ steps.dist_tag.outputs.npm_tag }}"
-
-      - name: Publish to npm with provenance
-        if: env.HAS_NPM_TOKEN == 'true'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public --provenance --tag "${{ steps.dist_tag.outputs.npm_tag }}"
-
-

@@ -6,23 +6,22 @@ Main features:
 - Generate PDFs from HTML or Handlebars templates
 - Concurrency limiting for Puppeteer jobs (p-limit)
 - Add signature fields based on a text anchor in an existing PDF
-- Simple API (module + service) to integrate easily into a Nest application
+- Simple API (module and service) to integrate easily into a Nest application
 
 > Note: this repository contains the library source. To use it in another project you can either install it from npm (if published) or import the local package from the source.
 
 ## Installation
 
-In this repository:
+To add the library inside your project :
 
 ```bash
-pnpm install
-```
+npm install @shad0wz7/nestjs-pdf
+# or
+pnpm add @shad0wz7/nestjs-pdf
+# or
+yarn add @shad0wz7/nestjs-pdf
 
-To add the library to another project (example):
-
-```bash
-pnpm add nestjs-pdf
-
+# If using the local source, from the other project:
 pnpm add ../path/to/nestjs-pdf
 ```
 
@@ -84,6 +83,8 @@ const modifiedPdf = await pdfService.addSignatureFieldSignatureDebtorRaw(
 ```
 
 If the anchor is not found, the signature field will be added at a default position.
+
+**Warning:** if you encounter issues like "Failed to load pdfjs-dist." Make sure to install `@napi-rs/canvas` as a dependency in your project, as it's required by the library for PDF manipulation.
 
 ## Options and configuration
 

@@ -3,7 +3,7 @@
   "packages": {
     ".": {
       "release-type": "node",
-      "package-name": "nestjs-pdf",
+      "package-name": "@shad0wz7/nestjs-pdf",
       "include-v-in-tag": true,
       "changelog-path": "CHANGELOG.md"
     }
