@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 import { PDF_PARAMETERS } from './helpers/tokens';
 import { BrowserService } from './browser.service';
-import { mergePuppeteerParameters } from './helpers/deepMergePdfparams';
+import { mergePuppeteerParameters } from '../helpers/deepMergePdfparams';
 import pLimit from 'p-limit';
 import { HandlebarsService } from '@gboutte/nestjs-hbs';
 import { PDFOptions } from 'puppeteer';

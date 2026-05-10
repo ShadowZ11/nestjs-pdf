@@ -1,5 +1,5 @@
 import { deepmerge } from 'deepmerge-ts';
-import { PuppeteerParameters } from '../puppeteer-parameters.interface';
+import { PuppeteerParameters } from '../puppeteer/puppeteer-parameters.interface';
 
 export function mergePuppeteerParameters(
   defaults: PuppeteerParameters,
