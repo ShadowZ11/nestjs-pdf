@@ -8,7 +8,7 @@ Main features:
 - Add signature fields based on a text anchor in an existing PDF
 - Simple API (module and service) to integrate easily into a Nest application
 
-> Note: this repository contains the library source. To use it in another project you can either install it from npm (if published) or import the local package from the source.
+> Note: this repository contains the library source. To use it in another project, you can either install it from npm or import the local package from the source.
 
 ## Installation
 
