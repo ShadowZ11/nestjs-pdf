@@ -24,4 +24,4 @@ jobs:
           path-to-signatures: signatures/cla.json
           path-to-document: https://github.com/ShadowZ11/nestjs-pdf/blob/main/CLA.md
           branch: cla-signatures
-          allowlist: ShadowZ11,Asma-B-M,bot*
+          allowlist: ShadowZ11,Asma-B-M,bot*,github-actions[bot],release-please[bot],dependabot[bot]
