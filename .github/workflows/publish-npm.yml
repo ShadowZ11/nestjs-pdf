@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 env:
-  NPM_CONFIG_PROVENANCE: false
+  NPM_CONFIG_PROVENANCE: true
 
 jobs:
   validate:
