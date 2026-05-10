@@ -86,6 +86,9 @@
   "optionalDependencies": {
     "@napi-rs/canvas": "^1.0.0"
   },
+  "repository": {
+    "url": "https://github.com/ShadowZ11/nestjs-pdf"
+  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
