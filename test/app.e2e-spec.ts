@@ -1,29 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
-import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+import { NestjsPdfModule } from '@/nestjs-pdf.module';
+import { NestjsPdfService } from '@/nestjs-pdf.service';
 
-describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+describe('NestjsPdfModule (e2e)', () => {
+  let moduleFixture: TestingModule;
 
   beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+    moduleFixture = await Test.createTestingModule({
+      imports: [
+        NestjsPdfModule.forRoot({
+          headless: true,
+        }),
+      ],
     }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  it('should resolve NestjsPdfService', () => {
+    const service = moduleFixture.get(NestjsPdfService);
+
+    expect(service).toBeDefined();
+    expect(service).toBeInstanceOf(NestjsPdfService);
   });
 
   afterEach(async () => {
-    await app.close();
+    await moduleFixture.close();
   });
 });
