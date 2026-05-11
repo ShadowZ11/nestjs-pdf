@@ -15,7 +15,7 @@
     "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
+    "rootDir": "./src",
     "incremental": false,
     "strict": true,
     "strictPropertyInitialization": false,
