@@ -3,7 +3,7 @@
 A small NestJS library to generate and manipulate PDFs using Puppeteer and Handlebars.
 
 Main features:
-- Generate PDFs from HTML or Handlebars templates
+- Generate PDFs from HTML, Handlebars, EJS, Pug or MJML templates
 - Concurrency limiting for Puppeteer jobs (p-limit)
 - Add signature fields based on a text anchor in an existing PDF
 - Simple API (module and service) to integrate easily into a Nest application

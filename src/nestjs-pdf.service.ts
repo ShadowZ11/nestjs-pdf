@@ -8,6 +8,16 @@ export class NestjsPdfService {
   constructor(private readonly puppeteerService: PuppeteerService) {}
 
   /**
+   * @param html HTML string to convert to PDF
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the provided HTML
+   * @description This method uses the Puppeteer service to generate a PDF from an HTML string. Generation options can be customized by passing a `PuppeteerParameters` object as the second argument. This allows you to control various aspects of PDF rendering, such as page size, margins, background display, etc. If no options are provided, the default parameters defined in the Puppeteer service will be used.
+   */
+  generatePdfFromHtml(html: string, options?: PuppeteerParameters) {
+    return this.puppeteerService.generatePdfFromHtml(html, options);
+  }
+
+  /**
    * @param template Handlebars template string
    * @param parameters Data parameters to inject into the template
    * @param options PDF generation options (optional)
