@@ -113,7 +113,7 @@ export class PuppeteerService {
     });
   }
 
-  async generatePdfFromTemplateString(
+  async generatePdfFromTemplateHbsString(
     template: string,
     parameters: any = {},
     options?: PuppeteerParameters,
@@ -122,7 +122,7 @@ export class PuppeteerService {
     return this.generatePdfFromHtml(html, options);
   }
 
-  async generatePdfFromTemplateFile(
+  async generatePdfFromTemplateHbsFile(
     file: string,
     parameters: any = {},
     options?: PuppeteerParameters,

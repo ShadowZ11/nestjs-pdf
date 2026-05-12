@@ -81,7 +81,6 @@ describe('EjsService', () => {
 
   describe('renderFile', () => {
     it('should render a file template', async () => {
-      // Create a mock file path for testing
       const filePath = './examples/sample-template.ejs';
       const data = {
         invoiceNumber: '2024-001',
@@ -95,7 +94,6 @@ describe('EjsService', () => {
         expect(result).toBeDefined();
         expect(typeof result).toBe('string');
       } catch (error) {
-        // File might not exist in test environment
         expect(error).toBeDefined();
       }
     });

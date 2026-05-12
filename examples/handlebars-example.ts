@@ -199,7 +199,7 @@ export class PdfController {
       };
 
       // Generate PDF from Handlebars template
-      const pdfBuffer = await this.pdfService.generatePdfFromTemplateString(
+      const pdfBuffer = await this.pdfService.generatePdfFromTemplateHbsString(
         handlebarsTemplate,
         invoiceData,
         {
@@ -270,7 +270,7 @@ export class PdfController {
       };
 
       // Generate PDF from Handlebars file
-      const pdfBuffer = await this.pdfService.generatePdfFromTemplateFile(
+      const pdfBuffer = await this.pdfService.generatePdfFromTemplateHbsFile(
         './templates/invoice.hbs',
         invoiceData,
         {
