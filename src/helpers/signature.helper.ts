@@ -6,7 +6,7 @@ import {
   PDFNumber,
   PDFString,
 } from 'pdf-lib';
-import { TextItem } from 'pdfjs-dist/types/src/display/api';
+import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
 async function loadPdfjs() {
   try {
@@ -45,7 +45,7 @@ async function findAnchorPosition(
 
   for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
     const page = await pdf.getPage(pageNum);
-    const viewport = page.getViewport({ scale: 1.0 });
+    const viewport = page.getViewport({ scale: 1 });
     const textContent = await page.getTextContent();
 
     for (const itemRaw of textContent.items) {
