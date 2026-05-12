@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v1.1.0...v1.1.1) (2026-05-12)
+
+
+### Bug Fixes
+
+* signature function fix ([f75b51d](https://github.com/ShadowZ11/nestjs-pdf/commit/f75b51d465dd620fe7380c964079117de0adfcf5))
+
 ## [1.1.0](https://github.com/ShadowZ11/nestjs-pdf/compare/nestjs-pdf-v1.0.2...nestjs-pdf-v1.1.0) (2026-05-10)
 
 
