@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NestjsPdfService } from './nestjs-pdf.service';
 import { PuppeteerService } from './puppeteer/puppeteer.service';
-import { addSignatureFieldUsingAnchor } from '@/helpers/signature.helper';
+import { addSignatureFieldUsingAnchor } from './helpers/signature.helper';
 
 jest.mock('@/helpers/signature.helper', () => ({
   addSignatureFieldUsingAnchor: jest.fn(),

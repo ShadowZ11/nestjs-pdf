@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PuppeteerService } from './puppeteer/puppeteer.service';
 import { PuppeteerParameters } from './puppeteer/puppeteer-parameters.interface';
-import { addSignatureFieldUsingAnchor } from '@/helpers/signature.helper';
+import { addSignatureFieldUsingAnchor } from './helpers/signature.helper';
 
 @Injectable()
 export class NestjsPdfService {
