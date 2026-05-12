@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PuppeteerService } from './puppeteer/puppeteer.service';
 import { PuppeteerParameters } from './puppeteer/puppeteer-parameters.interface';
 import { addSignatureFieldUsingAnchor } from './helpers/signature.helper';
+import { LocalsObject } from 'pug';
 
 @Injectable()
 export class NestjsPdfService {
@@ -73,6 +74,40 @@ export class NestjsPdfService {
    */
   generatePdfFromMjmlFile(file: string, options?: PuppeteerParameters) {
     return this.puppeteerService.generatePdfFromMjmlFile(file, options);
+  }
+
+  /**
+   * @param template Pug template string
+   * @param data Data to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the provided Pug template with data applied
+   * @description This method generates a PDF from a Pug template provided as a string. Pug is a clean, whitespace-sensitive syntax for writing HTML. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   */
+  generatePdfFromPugString(
+    template: string,
+    data: LocalsObject = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromPugString(
+      template,
+      data,
+      options,
+    );
+  }
+
+  /**
+   * @param file Path to the Pug template file
+   * @param data Data to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the Pug template at the provided file path with data applied
+   * @description This method generates a PDF from a Pug template located at the specified file path. The file path is passed as a string in the `file` parameter. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   */
+  generatePdfFromPugFile(
+    file: string,
+    data: LocalsObject = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromPugFile(file, data, options);
   }
 
   /**

@@ -4,4 +4,5 @@ export * from './puppeteer/puppeteer.module';
 export * from './puppeteer/puppeteer.service';
 export * from './puppeteer/puppeteer-parameters.interface';
 export * from './puppeteer/services/mjml.service';
+export * from './puppeteer/services/pug.service';
 export * from './helpers/getRelativePath.helper';

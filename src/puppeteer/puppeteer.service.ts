@@ -6,7 +6,9 @@ import { mergePuppeteerParameters } from '../helpers/deepMergePdfparams';
 import pLimit from 'p-limit';
 import { HandlebarsService } from '@gboutte/nestjs-hbs';
 import { MjmlService } from './services/mjml.service';
+import { PugService } from './services/pug.service';
 import { PDFOptions } from 'puppeteer';
+import { LocalsObject } from 'pug';
 
 @Injectable()
 export class PuppeteerService {
@@ -15,6 +17,7 @@ export class PuppeteerService {
     private readonly browserService: BrowserService,
     @Inject(PDF_PARAMETERS) private readonly options: PuppeteerParameters,
     @Optional() private readonly mjmlService?: MjmlService,
+    @Optional() private readonly pugService?: PugService,
   ) {}
 
   private readonly limit = pLimit(3);
@@ -154,6 +157,42 @@ export class PuppeteerService {
     const html = await this.mjmlService.renderFile(
       file,
       options?.mjmlOptions ?? this.options.mjmlOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromPugString(
+    template: string,
+    data: LocalsObject = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.pugService) {
+      throw new Error(
+        'Pug service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = this.pugService.render(
+      template,
+      data,
+      options?.pugOptions ?? this.options.pugOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromPugFile(
+    file: string,
+    data: LocalsObject = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.pugService) {
+      throw new Error(
+        'Pug service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = this.pugService.renderFile(
+      file,
+      data,
+      options?.pugOptions ?? this.options.pugOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
