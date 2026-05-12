@@ -8,21 +8,21 @@ export class NestjsPdfService {
   constructor(private readonly puppeteerService: PuppeteerService) {}
 
   /**
-   * @param html
-   * @param options
-   * @returns PDF généré à partir du HTML fourni
-   * @description Cette méthode utilise le service Puppeteer pour générer un PDF à partir d'une chaîne HTML. Les options de génération peuvent être personnalisées en passant un objet `PuppeteerParameters` en second argument. Cela permet de contrôler divers aspects du rendu du PDF, tels que la taille de la page, les marges, l'affichage des arrière-plans, etc. Si aucune option n'est fournie, les paramètres par défaut définis dans le service Puppeteer seront utilisés.
+   * @param html HTML string to convert to PDF
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the provided HTML
+   * @description This method uses the Puppeteer service to generate a PDF from an HTML string. Generation options can be customized by passing a `PuppeteerParameters` object as the second argument. This allows you to control various aspects of PDF rendering, such as page size, margins, background display, etc. If no options are provided, the default parameters defined in the Puppeteer service will be used.
    */
   generatePdfFromHtml(html: string, options?: PuppeteerParameters) {
     return this.puppeteerService.generatePdfFromHtml(html, options);
   }
 
   /**
-   * @param template
-   * @param parameters
-   * @param options
-   * @returns PDF généré à partir du template Handlebars fourni, avec les paramètres appliqués
-   * @description Cette méthode génère un PDF à partir d'un template Handlebars fourni sous forme de chaîne de caractères. Les paramètres à injecter dans le template sont passés dans l'objet `parameters`, qui est utilisé pour rendre le template avant de le convertir en PDF. Les options de génération du PDF peuvent également être personnalisées en passant un objet `PuppeteerParameters` en troisième argument. Cela permet de contrôler divers aspects du rendu du PDF, tels que la taille de la page, les marges, l'affichage des arrière-plans, etc. Si aucune option n'est fournie, les paramètres par défaut définis dans le service Puppeteer seront utilisés.
+   * @param template Handlebars template string
+   * @param parameters Data parameters to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the provided Handlebars template with parameters applied
+   * @description This method generates a PDF from a Handlebars template provided as a string. The parameters to inject into the template are passed in the `parameters` object, which is used to render the template before converting it to PDF. PDF generation options can also be customized by passing a `PuppeteerParameters` object as the third argument. This allows you to control various aspects of PDF rendering, such as page size, margins, background display, etc. If no options are provided, the default parameters defined in the Puppeteer service will be used.
    */
   generatePdfFromTemplateString(
     template: string,
@@ -37,11 +37,11 @@ export class NestjsPdfService {
   }
 
   /**
-   * @param file
-   * @param parameters
-   * @param options
-   * @returns PDF généré à partir du template Handlebars situé à l'emplacement de fichier fourni, avec les paramètres appliqués
-   * @description Cette méthode génère un PDF à partir d'un template Handlebars situé à l'emplacement de fichier spécifié. Le chemin du fichier est passé en tant que chaîne de caractères dans le paramètre `file`. Les paramètres à injecter dans le template sont passés dans l'objet `parameters`, qui est utilisé pour rendre le template avant de le convertir en PDF. Les options de génération du PDF peuvent également être personnalisées en passant un objet `PuppeteerParameters` en troisième argument. Cela permet de contrôler divers aspects du rendu du PDF, tels que la taille de la page, les marges, l'affichage des arrière-plans, etc. Si aucune option n'est fournie, les paramètres par défaut définis dans le service Puppeteer seront utilisés.
+   * @param file Path to the Handlebars template file
+   * @param parameters Data parameters to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the Handlebars template at the provided file path with parameters applied
+   * @description This method generates a PDF from a Handlebars template located at the specified file path. The file path is passed as a string in the `file` parameter. The parameters to inject into the template are passed in the `parameters` object, which is used to render the template before converting it to PDF. PDF generation options can also be customized by passing a `PuppeteerParameters` object as the third argument. This allows you to control various aspects of PDF rendering, such as page size, margins, background display, etc. If no options are provided, the default parameters defined in the Puppeteer service will be used.
    */
   generatePdfFromTemplateFile(
     file: string,
@@ -56,12 +56,13 @@ export class NestjsPdfService {
   }
 
   /**
-   * @param pdf
-   * @param fieldName
-   * @param anchorText
-   * @returns PDF modifié avec un champ de signature ajouté à la position de l'ancre
-   * @description Cette méthode ajoute un champ de signature à un PDF en utilisant une ancre textuelle comme référence pour la position du champ. Elle utilise la fonction `addSignatureFieldUsingAnchor` qui trouve l'ancre dans le PDF et insère un champ de signature à cet endroit. Le champ de signature est nommé selon le paramètre `fieldName` et l'ancre est définie par `anchorText`.
-   * Exemple d'utilisation :
+   * @param pdf The PDF bytes to modify
+   * @param fieldName The name of the signature field to add (default: 'SignatureDebtor')
+   * @param anchorText The text anchor to locate the signature field position (default: '__SIG_DEBTOR_ANCHOR__')
+   * @returns Modified PDF with a signature field added at the anchor position
+   * @description This method adds a signature field to a PDF using a text anchor as a reference for the field position. It uses the `addSignatureFieldUsingAnchor` function which finds the anchor in the PDF and inserts a signature field at that location. The signature field is named according to the `fieldName` parameter and the anchor is defined by `anchorText`.
+   *
+   * Usage example:
    * ```typescript
    * const modifiedPdf = await pdfService.addSignatureFieldSignatureDebtorRaw(
    *   originalPdfBytes,
@@ -69,9 +70,12 @@ export class NestjsPdfService {
    *   '__SIG_DEBTOR_ANCHOR__'
    * );
    * ```
-   * Dans cet exemple, `originalPdfBytes` est un tableau d'octets représentant le PDF original, `SignatureDebtor` est le nom du champ de signature à ajouter, et `__SIG_DEBTOR_ANCHOR__` est le texte d'ancre utilisé pour positionner le champ de signature dans le PDF.
-   * Si l'ancre n'est pas trouvée, le champ de signature sera ajouté à une position par défaut (centré en bas de la dernière page).
-   * Note : Assurez-vous que le PDF d'entrée contient l'ancre définie par `anchorText` pour que le champ de signature soit positionné correctement. Sinon, il sera ajouté à une position par défaut.
+   *
+   * In this example, `originalPdfBytes` is a byte array representing the original PDF, `SignatureDebtor` is the name of the signature field to add, and `__SIG_DEBTOR_ANCHOR__` is the anchor text used to position the signature field in the PDF.
+   *
+   * If the anchor is not found, the signature field will be added at a default position (centered at the bottom of the last page).
+   *
+   * Note: Ensure that the input PDF contains the anchor defined by `anchorText` for the signature field to be positioned correctly. Otherwise, it will be added at a default position.
    */
   async addSignatureFieldSignatureDebtorRaw(
     pdf: Uint8Array | Buffer,
