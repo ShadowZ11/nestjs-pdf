@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { PuppeteerService } from './puppeteer.service';
 import { BrowserService } from './browser.service';
+import { MjmlService } from './services/mjml.service';
 import { HANDLEBARS_PARAMETERS, PDF_PARAMETERS } from './helpers/tokens';
 import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 import { ConfigModule } from '@nestjs/config';
@@ -27,8 +28,8 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
 }
 
 @Module({
-  providers: [PuppeteerService, BrowserService],
-  exports: [PuppeteerService],
+  providers: [PuppeteerService, BrowserService, MjmlService],
+  exports: [PuppeteerService, MjmlService],
 })
 export class PuppeteerModule implements OnModuleInit {
   constructor(
@@ -51,15 +52,14 @@ export class PuppeteerModule implements OnModuleInit {
         useValue: pdfParameters.hbsOptions ?? {},
       },
       HandlebarsService,
+      MjmlService,
     ];
 
     return {
       module: PuppeteerModule,
-      imports: [
-        ConfigModule.forRoot(), // on importe le module (global) pour HandlebarsService
-      ],
+      imports: [ConfigModule.forRoot()],
       providers,
-      exports: [PuppeteerService],
+      exports: [PuppeteerService, MjmlService],
     };
   }
 
@@ -79,18 +79,16 @@ export class PuppeteerModule implements OnModuleInit {
 
     return {
       module: PuppeteerModule,
-      imports: [
-        ...(options.imports ?? []),
-        ConfigModule.forRoot(), // fournit HandlebarsService
-      ],
+      imports: [...(options.imports ?? []), ConfigModule.forRoot()],
       providers: [
         pdfParamsProvider,
         hbsParamsProvider,
         PuppeteerService,
         BrowserService,
         HandlebarsService,
+        MjmlService,
       ],
-      exports: [PuppeteerService],
+      exports: [PuppeteerService, MjmlService],
     };
   }
 }
