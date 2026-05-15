@@ -38,7 +38,6 @@ describe('BrowserService', () => {
       }
 
       // Access private property for testing (this is for testing purposes)
-
       const recycleRequested = (
         service as unknown as { recycleRequested: boolean }
       ).recycleRequested;
@@ -123,8 +122,7 @@ describe('BrowserService', () => {
       expect(service.activeJobs).toBe(2);
       expect(service.totalJobs).toBe(2);
 
-      // After finishing, active should decrease but total stays same
-      service.activeJobs = 0; // Simulate finishing
+      service.activeJobs = 0;
 
       expect(service.activeJobs).toBe(0);
       expect(service.totalJobs).toBe(2);

@@ -32,15 +32,17 @@ describe('NestJS PDF Library - Integration Tests', () => {
     it('should successfully create module with NestjsPdfService', () => {
       expect(pdfService).toBeDefined();
       expect(pdfService).toHaveProperty('generatePdfFromHtml');
-      expect(pdfService).toHaveProperty('generatePdfFromTemplateString');
-      expect(pdfService).toHaveProperty('generatePdfFromTemplateFile');
+      expect(pdfService).toHaveProperty('generatePdfFromTemplateHbsString');
+      expect(pdfService).toHaveProperty('generatePdfFromTemplateHbsFile');
       expect(pdfService).toHaveProperty('addSignatureFieldSignatureDebtorRaw');
     });
 
     it('should have all required methods', () => {
       expect(typeof pdfService.generatePdfFromHtml).toBe('function');
-      expect(typeof pdfService.generatePdfFromTemplateString).toBe('function');
-      expect(typeof pdfService.generatePdfFromTemplateFile).toBe('function');
+      expect(typeof pdfService.generatePdfFromTemplateHbsString).toBe(
+        'function',
+      );
+      expect(typeof pdfService.generatePdfFromTemplateHbsFile).toBe('function');
       expect(typeof pdfService.addSignatureFieldSignatureDebtorRaw).toBe(
         'function',
       );
@@ -94,7 +96,6 @@ describe('NestJS PDF Library - Integration Tests', () => {
     });
 
     it('should export NestjsPdfService for use in other modules', async () => {
-      // Create a module that imports NestjsPdfModule
       const consumerModule = await Test.createTestingModule({
         imports: [
           ConfigModule.forRoot(),

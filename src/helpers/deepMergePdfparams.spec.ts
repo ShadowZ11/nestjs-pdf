@@ -65,7 +65,6 @@ describe('mergePuppeteerParameters', () => {
       const result = mergePuppeteerParameters(defaults, overrides);
 
       expect(result.pdfOptions?.format).toBe('Letter');
-      // Deep merge should preserve margin
       expect(result.pdfOptions?.margin).toBeDefined();
     });
 
@@ -111,7 +110,6 @@ describe('mergePuppeteerParameters', () => {
 
       const result = mergePuppeteerParameters(defaults, overrides);
 
-      // deepmerge-ts merges arrays by concatenation
       expect(result.extraPuppeteerArgs).toContain('--disable-gpu');
       expect(result.extraPuppeteerArgs).toContain('--no-sandbox');
       expect(result.extraPuppeteerArgs).toContain('--headless=chrome');
@@ -242,7 +240,6 @@ describe('mergePuppeteerParameters', () => {
 
       const result = mergePuppeteerParameters(defaults, overrides);
 
-      // Check all properties are present
       expect(result.pdfOptions).toBeDefined();
       expect(result.hbsOptions).toBeDefined();
       expect(result.chromiumRevision).toBeDefined();

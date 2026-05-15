@@ -216,7 +216,7 @@ describe('PuppeteerService', () => {
     });
   });
 
-  describe('generatePdfFromTemplateString', () => {
+  describe('generatePdfFromTemplateHbsString', () => {
     it('should render template string to HTML', async () => {
       const mockPage = {
         setContent: jest.fn().mockResolvedValue(undefined),
@@ -241,7 +241,7 @@ describe('PuppeteerService', () => {
       const template = 'Hello {{name}}';
       const parameters = { name: 'World' };
 
-      await service.generatePdfFromTemplateString(template, parameters);
+      await service.generatePdfFromTemplateHbsString(template, parameters);
 
       expect(handlebarsService.render as jest.Mock).toHaveBeenCalledWith(
         template,
@@ -273,7 +273,7 @@ describe('PuppeteerService', () => {
 
       const template = '<p>Static</p>';
 
-      await service.generatePdfFromTemplateString(template);
+      await service.generatePdfFromTemplateHbsString(template);
 
       expect(handlebarsService.render as jest.Mock).toHaveBeenCalledWith(
         template,
@@ -302,7 +302,7 @@ describe('PuppeteerService', () => {
       const parameters = { key: 'value' };
       const options = { headless: false };
 
-      await service.generatePdfFromTemplateString(
+      await service.generatePdfFromTemplateHbsString(
         template,
         parameters,
         options,
@@ -315,7 +315,7 @@ describe('PuppeteerService', () => {
     });
   });
 
-  describe('generatePdfFromTemplateFile', () => {
+  describe('generatePdfFromTemplateHbsFile', () => {
     it('should render template file to HTML', async () => {
       const mockPage = {
         setContent: jest.fn().mockResolvedValue(undefined),
@@ -340,7 +340,7 @@ describe('PuppeteerService', () => {
       const filePath = '/templates/invoice.hbs';
       const parameters = { id: '123' };
 
-      await service.generatePdfFromTemplateFile(filePath, parameters);
+      await service.generatePdfFromTemplateHbsFile(filePath, parameters);
 
       expect(handlebarsService.renderFile as jest.Mock).toHaveBeenCalledWith(
         filePath,
@@ -377,7 +377,7 @@ describe('PuppeteerService', () => {
 
       const filePath = '/path/template.hbs';
 
-      await service.generatePdfFromTemplateFile(filePath);
+      await service.generatePdfFromTemplateHbsFile(filePath);
 
       expect(handlebarsService.renderFile as jest.Mock).toHaveBeenCalledWith(
         filePath,
