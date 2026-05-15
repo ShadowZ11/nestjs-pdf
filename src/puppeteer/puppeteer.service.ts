@@ -6,8 +6,11 @@ import { mergePuppeteerParameters } from '../helpers/deepMergePdfparams';
 import pLimit from 'p-limit';
 import { HandlebarsService } from '@gboutte/nestjs-hbs';
 import { MjmlService } from './services/mjml.service';
+import { PugService } from './services/pug.service';
 import { EjsService } from './services/ejs.service';
 import { PDFOptions } from 'puppeteer';
+import { LocalsObject } from 'pug';
+import { Data } from 'ejs';
 
 @Injectable()
 export class PuppeteerService {
@@ -16,6 +19,7 @@ export class PuppeteerService {
     private readonly browserService: BrowserService,
     @Inject(PDF_PARAMETERS) private readonly options: PuppeteerParameters,
     @Optional() private readonly mjmlService?: MjmlService,
+    @Optional() private readonly pugService?: PugService,
     @Optional() private readonly ejsService?: EjsService,
   ) {}
 
@@ -160,9 +164,45 @@ export class PuppeteerService {
     return this.generatePdfFromHtml(html, options);
   }
 
+  async generatePdfFromPugString(
+    template: string,
+    data: LocalsObject = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.pugService) {
+      throw new Error(
+        'Pug service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = this.pugService.render(
+      template,
+      data,
+      options?.pugOptions ?? this.options.pugOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromPugFile(
+    file: string,
+    data: LocalsObject = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.pugService) {
+      throw new Error(
+        'Pug service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = this.pugService.renderFile(
+      file,
+      data,
+      options?.pugOptions ?? this.options.pugOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
   async generatePdfFromEjsString(
     template: string,
-    data: any = {},
+    data: Data = {},
     options?: PuppeteerParameters,
   ) {
     if (!this.ejsService) {
@@ -180,7 +220,7 @@ export class PuppeteerService {
 
   async generatePdfFromEjsFile(
     file: string,
-    data: any = {},
+    data: Data = {},
     options?: PuppeteerParameters,
   ) {
     if (!this.ejsService) {
