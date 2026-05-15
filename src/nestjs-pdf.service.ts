@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PuppeteerService } from './puppeteer/puppeteer.service';
 import { PuppeteerParameters } from './puppeteer/puppeteer-parameters.interface';
-import { addSignatureFieldUsingAnchor } from '@/helpers/signature.helper';
+import { addSignatureFieldUsingAnchor } from './helpers/signature.helper';
 
 @Injectable()
 export class NestjsPdfService {
@@ -53,6 +53,26 @@ export class NestjsPdfService {
       parameters,
       options,
     );
+  }
+
+  /**
+   * @param template MJML template string
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the provided MJML template
+   * @description This method generates a PDF from an MJML template provided as a string. MJML (MJML Markup Language) is a markup language designed to reduce the pain of coding a responsive email. The template is first rendered to HTML using the MJML renderer, then converted to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the second argument.
+   */
+  generatePdfFromMjmlString(template: string, options?: PuppeteerParameters) {
+    return this.puppeteerService.generatePdfFromMjmlString(template, options);
+  }
+
+  /**
+   * @param file Path to the MJML template file
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the MJML template at the provided file path
+   * @description This method generates a PDF from an MJML template located at the specified file path. The file path is passed as a string in the `file` parameter. The template is first rendered to HTML using the MJML renderer, then converted to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the second argument.
+   */
+  generatePdfFromMjmlFile(file: string, options?: PuppeteerParameters) {
+    return this.puppeteerService.generatePdfFromMjmlFile(file, options);
   }
 
   /**

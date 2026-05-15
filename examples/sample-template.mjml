@@ -1,0 +1,80 @@
+<mjml>
+  <mj-head>
+    <mj-title>Email Template</mj-title>
+    <mj-preview>This is a sample MJML template</mj-preview>
+    <mj-style inline="inline">
+      .custom-text {
+        color: #1abc9c;
+        font-weight: bold;
+      }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#f4f4f4">
+    <!-- Header Section -->
+    <mj-section background-color="#1abc9c">
+      <mj-column>
+        <mj-text font-size="24px" color="white" font-weight="bold">
+          Welcome to Our Service
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Content Section -->
+    <mj-section background-color="white" padding="20px">
+      <mj-column>
+        <mj-text font-size="16px" color="#424242">
+          Hello there!
+        </mj-text>
+        <mj-text font-size="14px" color="#666">
+          This is a sample MJML template that can be converted to PDF using nestjs-pdf.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Features Section -->
+    <mj-section background-color="white" padding="20px">
+      <mj-column>
+        <mj-divider border-color="#1abc9c" width="100px"></mj-divider>
+        <mj-text font-size="18px" color="#1abc9c" font-weight="bold">
+          Key Features
+        </mj-text>
+        <mj-text font-size="14px" color="#666">
+          ✓ Responsive Design<br/>
+          ✓ Easy to Customize<br/>
+          ✓ Mobile Friendly<br/>
+          ✓ Professional Look
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- CTA Section -->
+    <mj-section background-color="#f4f4f4" padding="20px">
+      <mj-column>
+        <mj-button
+          background-color="#1abc9c"
+          href="https://example.com"
+          font-size="16px"
+          color="white"
+          padding="10px 25px"
+        >
+          Learn More
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer Section -->
+    <mj-section background-color="#333">
+      <mj-column>
+        <mj-text font-size="12px" color="white" align="center">
+          © 2024 Your Company. All rights reserved.
+        </mj-text>
+        <mj-social>
+          <mj-social-element name="facebook" href="https://facebook.com"></mj-social-element>
+          <mj-social-element name="twitter" href="https://twitter.com"></mj-social-element>
+          <mj-social-element name="linkedin" href="https://linkedin.com"></mj-social-element>
+        </mj-social>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
+

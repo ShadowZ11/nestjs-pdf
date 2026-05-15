@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #333;
+        line-height: 1.6;
+        background-color: #fff;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+        color: white;
+        padding: 30px 20px;
+        border-radius: 5px 5px 0 0;
+        margin-bottom: 20px;
+      }
+
+      .header h1 {
+        font-size: 28px;
+        margin-bottom: 5px;
+      }
+
+      .header p {
+        font-size: 14px;
+        opacity: 0.9;
+      }
+
+      .invoice-details {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+      }
+
+      .detail-box {
+        flex: 1;
+        min-width: 250px;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border-left: 4px solid #1abc9c;
+        margin-bottom: 15px;
+      }
+
+      .detail-box h3 {
+        color: #1abc9c;
+        font-size: 12px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        letter-spacing: 1px;
+      }
+
+      .detail-box p {
+        margin: 3px 0;
+        font-size: 13px;
+      }
+
+      .detail-box p strong {
+        display: block;
+        color: #333;
+        margin-bottom: 2px;
+      }
+
+      h2 {
+        color: #1abc9c;
+        font-size: 18px;
+        margin-top: 30px;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #1abc9c;
+        padding-bottom: 10px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+      }
+
+      th {
+        background-color: #1abc9c;
+        color: white;
+        padding: 12px;
+        text-align: left;
+        font-weight: bold;
+      }
+
+      td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+      }
+
+      tr:hover {
+        background-color: #f5f5f5;
+      }
+
+      .text-right {
+        text-align: right;
+      }
+
+      .currency {
+        font-weight: bold;
+        color: #1abc9c;
+      }
+
+      .summary-section {
+        margin-top: 20px;
+        padding: 20px;
+        background-color: #f0f0f0;
+        border-radius: 5px;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .summary-items {
+        width: 50%;
+      }
+
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .summary-row.total {
+        border-bottom: none;
+        padding-bottom: 5px;
+        margin-bottom: 0;
+        font-size: 18px;
+        font-weight: bold;
+        color: #1abc9c;
+      }
+
+      .notes-section {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border-left: 4px solid #1abc9c;
+        border-radius: 3px;
+      }
+
+      .notes-section h3 {
+        color: #1abc9c;
+        margin-bottom: 10px;
+        font-size: 14px;
+      }
+
+      .notes-section p {
+        font-size: 13px;
+        color: #555;
+        line-height: 1.5;
+      }
+
+      .footer {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #ddd;
+        text-align: center;
+        font-size: 12px;
+        color: #666;
+      }
+
+      .footer p {
+        margin: 5px 0;
+      }
+
+      .company-name {
+        font-weight: bold;
+        color: #1abc9c;
+      }
+
+      @media print {
+        body {
+          font-size: 12pt;
+        }
+        .no-print {
+          display: none;
+        }
+        .header {
+          border-radius: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>INVOICE</h1>
+        <p>Invoice #{{invoiceNumber}}</p>
+      </div>
+
+      <div class="invoice-details">
+        <div class="detail-box">
+          <h3>Bill To</h3>
+          <p>
+            <strong>{{customerName}}</strong>
+          </p>
+          <p>{{company}}</p>
+          <p>{{customerEmail}}</p>
+        </div>
+
+        <div class="detail-box">
+          <h3>Invoice Details</h3>
+          <p>
+            <strong>Invoice Date:</strong>
+            {{invoiceDate}}
+          </p>
+          <p>
+            <strong>Due Date:</strong>
+            {{dueDate}}
+          </p>
+          <p>
+            <strong>Status:</strong>
+            {{status}}
+          </p>
+        </div>
+      </div>
+
+      <h2>Line Items</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Description</th>
+            <th class="text-right">Qty</th>
+            <th class="text-right">Unit Price</th>
+            <th class="text-right">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each items}}
+          <tr>
+            <td>{{this.name}}</td>
+            <td>{{this.description}}</td>
+            <td class="text-right">{{this.quantity}}</td>
+            <td class="text-right"><span class="currency">${{this.price}}</span></td>
+            <td class="text-right"><span class="currency">${{this.total}}</span></td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+
+      <div class="summary-section">
+        <div class="summary-items">
+          <div class="summary-row">
+            <span>Subtotal:</span>
+            <span class="currency">${{subtotal}}.</span>
+          </div>
+          <div class="summary-row">
+            <span>Tax ({{taxRate}}%):</span>
+            <span class="currency">${{taxAmount}}</span>
+          </div>
+          <div class="summary-row total">
+            <span>TOTAL DUE:</span>
+            <span>${{totalAmount}}</span>
+          </div>
+        </div>
+      </div>
+
+      {{#if notes}}
+      <div class="notes-section">
+        <h3>Notes & Terms</h3>
+        <p>{{notes}}</p>
+      </div>
+      {{/if}}
+
+      <div class="footer">
+        <p><strong>Thank you for your business!</strong></p>
+        <p>For questions regarding this invoice, please contact us at support@example.com</p>
+        <p>Generated on {{generatedDate}}</p>
+      </div>
+    </div>
+  </body>
+</html>
+

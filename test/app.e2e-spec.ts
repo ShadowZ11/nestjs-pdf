@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NestjsPdfModule } from '@/nestjs-pdf.module';
-import { NestjsPdfService } from '@/nestjs-pdf.service';
+import { NestjsPdfModule, NestjsPdfService } from '../src';
 
 describe('NestjsPdfModule (e2e)', () => {
   let moduleFixture: TestingModule;
