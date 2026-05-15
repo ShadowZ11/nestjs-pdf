@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NestjsPdfService } from './nestjs-pdf.service';
 import { PuppeteerService } from './puppeteer/puppeteer.service';
-import { addSignatureFieldUsingAnchor } from '@/helpers/signature.helper';
+import { addSignatureFieldUsingAnchor } from './helpers/signature.helper';
 
 jest.mock('@/helpers/signature.helper', () => ({
   addSignatureFieldUsingAnchor: jest.fn(),
@@ -14,8 +14,8 @@ describe('NestjsPdfService', () => {
 
   const mockPuppeteerService = {
     generatePdfFromHtml: jest.fn(),
-    generatePdfFromTemplateString: jest.fn(),
-    generatePdfFromTemplateFile: jest.fn(),
+    generatePdfFromTemplateHbsString: jest.fn(),
+    generatePdfFromTemplateHbsFile: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -44,53 +44,50 @@ describe('NestjsPdfService', () => {
 
   describe('generatePdfFromHtml', () => {
     it('should delegate to puppeteerService.generatePdfFromHtml', async () => {
-      const html = '<h1>Test</h1>';
+      const html = '<p>Hello John!</p>';
+      const options = { pdfOptions: { format: 'A4' as const } };
       const mockPdf = new Uint8Array([1, 2, 3]);
       const spy = jest
         .spyOn(puppeteerService, 'generatePdfFromHtml')
         .mockResolvedValue(mockPdf);
-
-      const result = await service.generatePdfFromHtml(html);
-
-      expect(spy).toHaveBeenCalledWith(html, undefined);
-      expect(result).toEqual(mockPdf);
-    });
-
-    it('should pass options to puppeteerService', async () => {
-      const html = '<p>Content</p>';
-      const options = { headless: false };
-      const mockPdf = new Uint8Array([4, 5, 6]);
-      const spy = jest
-        .spyOn(puppeteerService, 'generatePdfFromHtml')
-        .mockResolvedValue(mockPdf);
-
       const result = await service.generatePdfFromHtml(html, options);
-
       expect(spy).toHaveBeenCalledWith(html, options);
       expect(result).toEqual(mockPdf);
     });
 
-    it('should propagate errors from puppeteerService', async () => {
-      const html = '<h1>Error</h1>';
+    it('should delegate to puppeteerService.generatePdfFromHtml with undefined options by default', async () => {
+      const html = '<p>Hello default!</p>';
+      const mockPdf = new Uint8Array([4, 5, 6]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromHtml')
+        .mockResolvedValue(mockPdf);
+      const result = await service.generatePdfFromHtml(html);
+      expect(spy).toHaveBeenCalledWith(html, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should propagate errors from puppeteerService.generatePdfFromHtml', async () => {
+      const html = '<p>Hello error!</p>';
       const error = new Error('PDF generation failed');
       jest
         .spyOn(puppeteerService, 'generatePdfFromHtml')
         .mockRejectedValue(error);
-
-      await expect(service.generatePdfFromHtml(html)).rejects.toThrow(error);
+      await expect(service.generatePdfFromHtml(html)).rejects.toThrow(
+        'PDF generation failed',
+      );
     });
   });
 
-  describe('generatePdfFromTemplateString', () => {
-    it('should delegate to puppeteerService.generatePdfFromTemplateString', async () => {
+  describe('generatePdfFromTemplateHbsString', () => {
+    it('should delegate to puppeteerService.generatePdfFromTemplateHbsString', async () => {
       const template = 'Hello {{name}}!';
       const parameters = { name: 'John' };
       const mockPdf = new Uint8Array([7, 8, 9]);
       const spy = jest
-        .spyOn(puppeteerService, 'generatePdfFromTemplateString')
+        .spyOn(puppeteerService, 'generatePdfFromTemplateHbsString')
         .mockResolvedValue(mockPdf);
 
-      const result = await service.generatePdfFromTemplateString(
+      const result = await service.generatePdfFromTemplateHbsString(
         template,
         parameters,
       );
@@ -103,10 +100,10 @@ describe('NestjsPdfService', () => {
       const template = 'Test';
       const mockPdf = new Uint8Array([10, 11]);
       const spy = jest
-        .spyOn(puppeteerService, 'generatePdfFromTemplateString')
+        .spyOn(puppeteerService, 'generatePdfFromTemplateHbsString')
         .mockResolvedValue(mockPdf);
 
-      const result = await service.generatePdfFromTemplateString(template);
+      const result = await service.generatePdfFromTemplateHbsString(template);
 
       expect(spy).toHaveBeenCalledWith(template, {}, undefined);
       expect(result).toEqual(mockPdf);
@@ -118,10 +115,10 @@ describe('NestjsPdfService', () => {
       const options = { pdfOptions: { format: 'A4' as const } };
       const mockPdf = new Uint8Array([12, 13]);
       const spy = jest
-        .spyOn(puppeteerService, 'generatePdfFromTemplateString')
+        .spyOn(puppeteerService, 'generatePdfFromTemplateHbsString')
         .mockResolvedValue(mockPdf);
 
-      await service.generatePdfFromTemplateString(
+      await service.generatePdfFromTemplateHbsString(
         template,
         parameters,
         options,
@@ -131,16 +128,16 @@ describe('NestjsPdfService', () => {
     });
   });
 
-  describe('generatePdfFromTemplateFile', () => {
-    it('should delegate to puppeteerService.generatePdfFromTemplateFile', async () => {
+  describe('generatePdfFromTemplateHbsFile', () => {
+    it('should delegate to puppeteerService.generatePdfFromTemplateHbsFile', async () => {
       const filePath = '/path/to/template.hbs';
       const parameters = { title: 'Document' };
       const mockPdf = new Uint8Array([14, 15, 16]);
       const spy = jest
-        .spyOn(puppeteerService, 'generatePdfFromTemplateFile')
+        .spyOn(puppeteerService, 'generatePdfFromTemplateHbsFile')
         .mockResolvedValue(mockPdf);
 
-      const result = await service.generatePdfFromTemplateFile(
+      const result = await service.generatePdfFromTemplateHbsFile(
         filePath,
         parameters,
       );
@@ -153,10 +150,10 @@ describe('NestjsPdfService', () => {
       const filePath = '/path/to/template.hbs';
       const mockPdf = new Uint8Array([17, 18]);
       const spy = jest
-        .spyOn(puppeteerService, 'generatePdfFromTemplateFile')
+        .spyOn(puppeteerService, 'generatePdfFromTemplateHbsFile')
         .mockResolvedValue(mockPdf);
 
-      await service.generatePdfFromTemplateFile(filePath);
+      await service.generatePdfFromTemplateHbsFile(filePath);
 
       expect(spy).toHaveBeenCalledWith(filePath, {}, undefined);
     });
@@ -167,10 +164,14 @@ describe('NestjsPdfService', () => {
       const options = { headless: true };
       const mockPdf = new Uint8Array([19, 20]);
       const spy = jest
-        .spyOn(puppeteerService, 'generatePdfFromTemplateFile')
+        .spyOn(puppeteerService, 'generatePdfFromTemplateHbsFile')
         .mockResolvedValue(mockPdf);
 
-      await service.generatePdfFromTemplateFile(filePath, parameters, options);
+      await service.generatePdfFromTemplateHbsFile(
+        filePath,
+        parameters,
+        options,
+      );
 
       expect(spy).toHaveBeenCalledWith(filePath, parameters, options);
     });

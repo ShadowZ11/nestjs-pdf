@@ -19,7 +19,6 @@ type JwksClientLike = {
     getSigningKey: (kid: string) => Promise<SigningKey>;
 };
 
-// callable (module.exports = fn)
 const jwksRsa = jest.fn((options: JwksRsaOptions = {}) => {
     const client: JwksClientLike = {
         getSigningKey: jest.fn(async (kid: string) => ({
@@ -33,7 +32,6 @@ const jwksRsa = jest.fn((options: JwksRsaOptions = {}) => {
     return client;
 });
 
-// bonus compat si parfois tu fais un default import ailleurs
 (jwksRsa as any).default = jwksRsa;
 
 export = jwksRsa;

@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PuppeteerService } from './puppeteer/puppeteer.service';
 import { PuppeteerParameters } from './puppeteer/puppeteer-parameters.interface';
-import { addSignatureFieldUsingAnchor } from '@/helpers/signature.helper';
+import { addSignatureFieldUsingAnchor } from './helpers/signature.helper';
+import { LocalsObject } from 'pug';
+import { Data } from 'ejs';
 
 @Injectable()
 export class NestjsPdfService {
@@ -18,6 +20,7 @@ export class NestjsPdfService {
   }
 
   /**
+   * @deprecated Use the new method generatePdfFromTemplateHbsString
    * @param template Handlebars template string
    * @param parameters Data parameters to inject into the template
    * @param options PDF generation options (optional)
@@ -29,7 +32,38 @@ export class NestjsPdfService {
     parameters: any = {},
     options?: PuppeteerParameters,
   ) {
-    return this.puppeteerService.generatePdfFromTemplateString(
+    return this.generatePdfFromTemplateHbsString(template, parameters, options);
+  }
+
+  /**
+   * @deprecated Use the new method generatePdfFromTemplateHbsFile
+   * @param file Path to the Handlebars template file
+   * @param parameters Data parameters to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the Handlebars template at the provided file path with parameters applied
+   * @description This method generates a PDF from a Handlebars template located at the specified file path. The file path is passed as a string in the `file` parameter. The parameters to inject into the template are passed in the `parameters` object, which is used to render the template before converting it to PDF. PDF generation options can also be customized by passing a `PuppeteerParameters` object as the third argument. This allows you to control various aspects of PDF rendering, such as page size, margins, background display, etc. If no options are provided, the default parameters defined in the Puppeteer service will be used.
+   */
+  generatePdfFromTemplateFile(
+    file: string,
+    parameters: any = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.generatePdfFromTemplateHbsFile(file, parameters, options);
+  }
+
+  /**
+   * @param template Handlebars template string
+   * @param parameters Data parameters to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the provided Handlebars template with parameters applied
+   * @description This method generates a PDF from a Handlebars template provided as a string. The parameters to inject into the template are passed in the `parameters` object, which is used to render the template before converting it to PDF. PDF generation options can also be customized by passing a `PuppeteerParameters` object as the third argument. This allows you to control various aspects of PDF rendering, such as page size, margins, background display, etc. If no options are provided, the default parameters defined in the Puppeteer service will be used.
+   */
+  generatePdfFromTemplateHbsString(
+    template: string,
+    parameters: any = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromTemplateHbsString(
       template,
       parameters,
       options,
@@ -43,16 +77,104 @@ export class NestjsPdfService {
    * @returns PDF generated from the Handlebars template at the provided file path with parameters applied
    * @description This method generates a PDF from a Handlebars template located at the specified file path. The file path is passed as a string in the `file` parameter. The parameters to inject into the template are passed in the `parameters` object, which is used to render the template before converting it to PDF. PDF generation options can also be customized by passing a `PuppeteerParameters` object as the third argument. This allows you to control various aspects of PDF rendering, such as page size, margins, background display, etc. If no options are provided, the default parameters defined in the Puppeteer service will be used.
    */
-  generatePdfFromTemplateFile(
+  generatePdfFromTemplateHbsFile(
     file: string,
     parameters: any = {},
     options?: PuppeteerParameters,
   ) {
-    return this.puppeteerService.generatePdfFromTemplateFile(
+    return this.puppeteerService.generatePdfFromTemplateHbsFile(
       file,
       parameters,
       options,
     );
+  }
+
+  /**
+   * @param template MJML template string
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the provided MJML template
+   * @description This method generates a PDF from an MJML template provided as a string. MJML (MJML Markup Language) is a markup language designed to reduce the pain of coding a responsive email. The template is first rendered to HTML using the MJML renderer, then converted to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the second argument.
+   */
+  generatePdfFromMjmlString(template: string, options?: PuppeteerParameters) {
+    return this.puppeteerService.generatePdfFromMjmlString(template, options);
+  }
+
+  /**
+   * @param file Path to the MJML template file
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the MJML template at the provided file path
+   * @description This method generates a PDF from an MJML template located at the specified file path. The file path is passed as a string in the `file` parameter. The template is first rendered to HTML using the MJML renderer, then converted to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the second argument.
+   */
+  generatePdfFromMjmlFile(file: string, options?: PuppeteerParameters) {
+    return this.puppeteerService.generatePdfFromMjmlFile(file, options);
+  }
+
+  /**
+   * @param template EJS template string
+   * @param data Data to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the provided EJS template with data applied
+   * @description This method generates a PDF from an EJS (Embedded JavaScript) template provided as a string. EJS is a templating language with a simple, straightforward syntax. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   */
+  generatePdfFromEjsString(
+    template: string,
+    data: Data = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromEjsString(
+      template,
+      data,
+      options,
+    );
+  }
+
+  /**
+   * @param file Path to the EJS template file
+   * @param data Data to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the EJS template at the provided file path with data applied
+   * @description This method generates a PDF from an EJS template located at the specified file path. The file path is passed as a string in the `file` parameter. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   */
+  generatePdfFromEjsFile(
+    file: string,
+    data: Data = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromEjsFile(file, data, options);
+  }
+
+  /**
+   * @param template Pug template string
+   * @param data Data to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the provided Pug template with data applied
+   * @description This method generates a PDF from a Pug template provided as a string. Pug is a clean, whitespace-sensitive syntax for writing HTML. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   */
+  generatePdfFromPugString(
+    template: string,
+    data: LocalsObject = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromPugString(
+      template,
+      data,
+      options,
+    );
+  }
+
+  /**
+   * @param file Path to the Pug template file
+   * @param data Data to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the Pug template at the provided file path with data applied
+   * @description This method generates a PDF from a Pug template located at the specified file path. The file path is passed as a string in the `file` parameter. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   */
+  generatePdfFromPugFile(
+    file: string,
+    data: LocalsObject = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromPugFile(file, data, options);
   }
 
   /**

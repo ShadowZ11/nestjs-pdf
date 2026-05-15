@@ -1,0 +1,251 @@
+doctype html
+html
+  head
+    meta(charset="UTF-8")
+    style
+      | * {
+      |   margin: 0;
+      |   padding: 0;
+      |   box-sizing: border-box;
+      | }
+      | body {
+      |   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      |   color: #333;
+      |   line-height: 1.6;
+      |   background-color: #fff;
+      | }
+      | .container {
+      |   max-width: 800px;
+      |   margin: 0 auto;
+      | }
+      | .header {
+      |   background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+      |   color: white;
+      |   padding: 30px 20px;
+      |   border-radius: 5px 5px 0 0;
+      |   margin-bottom: 20px;
+      | }
+      | .header h1 {
+      |   font-size: 28px;
+      |   margin-bottom: 5px;
+      | }
+      | .header p {
+      |   font-size: 14px;
+      |   opacity: 0.9;
+      | }
+      | .invoice-details {
+      |   display: flex;
+      |   justify-content: space-between;
+      |   margin-bottom: 30px;
+      |   flex-wrap: wrap;
+      | }
+      | .detail-box {
+      |   flex: 1;
+      |   min-width: 250px;
+      |   padding: 15px;
+      |   background-color: #f9f9f9;
+      |   border-left: 4px solid #1abc9c;
+      |   margin-bottom: 15px;
+      | }
+      | .detail-box h3 {
+      |   color: #1abc9c;
+      |   font-size: 12px;
+      |   text-transform: uppercase;
+      |   margin-bottom: 8px;
+      |   letter-spacing: 1px;
+      | }
+      | .detail-box p {
+      |   margin: 3px 0;
+      |   font-size: 13px;
+      | }
+      | .detail-box p strong {
+      |   display: block;
+      |   color: #333;
+      |   margin-bottom: 2px;
+      | }
+      | h2 {
+      |   color: #1abc9c;
+      |   font-size: 18px;
+      |   margin-top: 30px;
+      |   margin-bottom: 15px;
+      |   border-bottom: 2px solid #1abc9c;
+      |   padding-bottom: 10px;
+      | }
+      | table {
+      |   width: 100%;
+      |   border-collapse: collapse;
+      |   margin: 20px 0;
+      | }
+      | th {
+      |   background-color: #1abc9c;
+      |   color: white;
+      |   padding: 12px;
+      |   text-align: left;
+      |   font-weight: bold;
+      | }
+      | td {
+      |   padding: 12px;
+      |   border-bottom: 1px solid #ddd;
+      | }
+      | tr:hover {
+      |   background-color: #f5f5f5;
+      | }
+      | .text-right {
+      |   text-align: right;
+      | }
+      | .currency {
+      |   font-weight: bold;
+      |   color: #1abc9c;
+      | }
+      | .summary-section {
+      |   margin-top: 20px;
+      |   padding: 20px;
+      |   background-color: #f0f0f0;
+      |   border-radius: 5px;
+      |   display: flex;
+      |   justify-content: flex-end;
+      | }
+      | .summary-items {
+      |   width: 50%;
+      | }
+      | .summary-row {
+      |   display: flex;
+      |   justify-content: space-between;
+      |   margin-bottom: 10px;
+      |   padding-bottom: 10px;
+      |   border-bottom: 1px solid #ddd;
+      | }
+      | .summary-row.total {
+      |   border-bottom: none;
+      |   padding-bottom: 5px;
+      |   margin-bottom: 0;
+      |   font-size: 18px;
+      |   font-weight: bold;
+      |   color: #1abc9c;
+      | }
+      | .notes-section {
+      |   margin-top: 20px;
+      |   padding: 15px;
+      |   background-color: #f9f9f9;
+      |   border-left: 4px solid #1abc9c;
+      |   border-radius: 3px;
+      | }
+      | .notes-section h3 {
+      |   color: #1abc9c;
+      |   margin-bottom: 10px;
+      |   font-size: 14px;
+      | }
+      | .notes-section p {
+      |   font-size: 13px;
+      |   color: #555;
+      |   line-height: 1.5;
+      | }
+      | .footer {
+      |   margin-top: 30px;
+      |   padding-top: 20px;
+      |   border-top: 1px solid #ddd;
+      |   text-align: center;
+      |   font-size: 12px;
+      |   color: #666;
+      | }
+      | .footer p {
+      |   margin: 5px 0;
+      | }
+      | @media print {
+      |   body {
+      |     font-size: 12pt;
+      |   }
+      |   .no-print {
+      |     display: none;
+      |   }
+      |   .header {
+      |     border-radius: 0;
+      |   }
+      | }
+  body
+    .container
+      .header
+        h1 INVOICE
+        p(style="margin: 0;")
+          | Invoice ##{number}
+
+      .invoice-details
+        .detail-box
+          h3 Bill To
+          p
+            strong= customer
+          p= company
+          p= email
+
+        .detail-box
+          h3 Invoice Details
+          p
+            strong Invoice Date:
+            = invoiceDate
+          p
+            strong Due Date:
+            = dueDate
+          p
+            strong Status:
+            = status
+
+      h2 Line Items
+      table
+        thead
+          tr
+            th Item
+            th Description
+            th(class="text-right") Qty
+            th(class="text-right") Unit Price
+            th(class="text-right") Total
+        tbody
+          each item in items
+            tr
+              td= item.name
+              td= item.description
+              td(class="text-right")= item.quantity
+              td(class="text-right")
+                span(class="currency")
+                  | $#{item.price.toFixed(2)}
+              td(class="text-right")
+                span(class="currency")
+                  | $#{item.total.toFixed(2)}
+
+      -
+        const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+        const taxRate = 0.10;
+        const taxAmount = subtotal * taxRate;
+        const discountRate = discounted ? 0.15 : 0;
+        const discountAmount = subtotal * discountRate;
+        const finalTotal = subtotal + taxAmount - discountAmount;
+
+      .summary-section
+        .summary-items
+          .summary-row
+            span Subtotal:
+            span(class="currency")
+              | $#{subtotal.toFixed(2)}
+          .summary-row
+            span Tax (10%):
+            span(class="currency")
+              | $#{taxAmount.toFixed(2)}
+          if discounted
+            .summary-row
+              span Discount (15%):
+              span(class="currency")
+                | -$#{discountAmount.toFixed(2)}
+          .summary-row.total
+            span TOTAL DUE:
+            span $#{finalTotal.toFixed(2)}
+
+      if notes
+        .notes-section
+          h3 Notes & Terms
+          p= notes
+
+      .footer
+        p
+          strong Thank you for your business!
+        p For questions regarding this invoice, please contact us at support@example.com
+        p Generated on #{generatedDate}
+

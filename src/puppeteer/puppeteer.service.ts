@@ -1,11 +1,16 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 import { PDF_PARAMETERS } from './helpers/tokens';
 import { BrowserService } from './browser.service';
 import { mergePuppeteerParameters } from '../helpers/deepMergePdfparams';
 import pLimit from 'p-limit';
 import { HandlebarsService } from '@gboutte/nestjs-hbs';
+import { MjmlService } from './services/mjml.service';
+import { PugService } from './services/pug.service';
+import { EjsService } from './services/ejs.service';
 import { PDFOptions } from 'puppeteer';
+import { LocalsObject } from 'pug';
+import { Data } from 'ejs';
 
 @Injectable()
 export class PuppeteerService {
@@ -13,6 +18,9 @@ export class PuppeteerService {
     private readonly hbsService: HandlebarsService,
     private readonly browserService: BrowserService,
     @Inject(PDF_PARAMETERS) private readonly options: PuppeteerParameters,
+    @Optional() private readonly mjmlService?: MjmlService,
+    @Optional() private readonly pugService?: PugService,
+    @Optional() private readonly ejsService?: EjsService,
   ) {}
 
   private readonly limit = pLimit(3);
@@ -109,7 +117,7 @@ export class PuppeteerService {
     });
   }
 
-  async generatePdfFromTemplateString(
+  async generatePdfFromTemplateHbsString(
     template: string,
     parameters: any = {},
     options?: PuppeteerParameters,
@@ -118,12 +126,113 @@ export class PuppeteerService {
     return this.generatePdfFromHtml(html, options);
   }
 
-  async generatePdfFromTemplateFile(
+  async generatePdfFromTemplateHbsFile(
     file: string,
     parameters: any = {},
     options?: PuppeteerParameters,
   ) {
     const html = this.hbsService.renderFile(file, parameters);
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromMjmlString(
+    template: string,
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.mjmlService) {
+      throw new Error(
+        'MJML service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = await this.mjmlService.render(
+      template,
+      options?.mjmlOptions ?? this.options.mjmlOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromMjmlFile(file: string, options?: PuppeteerParameters) {
+    if (!this.mjmlService) {
+      throw new Error(
+        'MJML service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = await this.mjmlService.renderFile(
+      file,
+      options?.mjmlOptions ?? this.options.mjmlOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromPugString(
+    template: string,
+    data: LocalsObject = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.pugService) {
+      throw new Error(
+        'Pug service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = this.pugService.render(
+      template,
+      data,
+      options?.pugOptions ?? this.options.pugOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromPugFile(
+    file: string,
+    data: LocalsObject = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.pugService) {
+      throw new Error(
+        'Pug service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = this.pugService.renderFile(
+      file,
+      data,
+      options?.pugOptions ?? this.options.pugOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromEjsString(
+    template: string,
+    data: Data = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.ejsService) {
+      throw new Error(
+        'EJS service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = await this.ejsService.render(
+      template,
+      data,
+      options?.ejsOptions ?? this.options.ejsOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromEjsFile(
+    file: string,
+    data: Data = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.ejsService) {
+      throw new Error(
+        'EJS service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = await this.ejsService.renderFile(
+      file,
+      data,
+      options?.ejsOptions ?? this.options.ejsOptions,
+    );
     return this.generatePdfFromHtml(html, options);
   }
 }
