@@ -10,6 +10,7 @@ import { PugService } from './services/pug.service';
 import { EjsService } from './services/ejs.service';
 import { PDFOptions } from 'puppeteer';
 import { LocalsObject } from 'pug';
+import { Data } from 'ejs';
 
 @Injectable()
 export class PuppeteerService {
@@ -201,7 +202,7 @@ export class PuppeteerService {
 
   async generatePdfFromEjsString(
     template: string,
-    data: any = {},
+    data: Data = {},
     options?: PuppeteerParameters,
   ) {
     if (!this.ejsService) {
@@ -219,7 +220,7 @@ export class PuppeteerService {
 
   async generatePdfFromEjsFile(
     file: string,
-    data: any = {},
+    data: Data = {},
     options?: PuppeteerParameters,
   ) {
     if (!this.ejsService) {
