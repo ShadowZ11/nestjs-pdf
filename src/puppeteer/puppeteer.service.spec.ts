@@ -216,7 +216,7 @@ describe('PuppeteerService', () => {
     });
   });
 
-  describe('generatePdfFromTemplateString', () => {
+  describe('generatePdfFromTemplateHbsString', () => {
     it('should render template string to HTML', async () => {
       const mockPage = {
         setContent: jest.fn().mockResolvedValue(undefined),
@@ -315,7 +315,7 @@ describe('PuppeteerService', () => {
     });
   });
 
-  describe('generatePdfFromTemplateFile', () => {
+  describe('generatePdfFromTemplateHbsFile', () => {
     it('should render template file to HTML', async () => {
       const mockPage = {
         setContent: jest.fn().mockResolvedValue(undefined),

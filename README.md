@@ -1,6 +1,6 @@
 # nestjs-pdf
 
-A small NestJS library to generate and manipulate PDFs using Puppeteer and Handlebars.
+A small NestJS library to generate and manipulate PDFs using Puppeteer and multiple template engines, including Handlebars, EJS, Pug, and MJML.
 
 Main features:
 - Generate PDFs from HTML, Handlebars, EJS, Pug or MJML templates
@@ -72,8 +72,7 @@ const pdf = await pdfService.generatePdfFromTemplateHbsString(template, { title:
 ```
 
 ```ts
-const file = readFileSync(filePath, 'utf-8');
-const pdf = await pdfService.generatePdfFromTemplateHbsFile(file, { title: 'T', content: '...' });
+const pdf = await pdfService.generatePdfFromTemplateHbsFile(filePath, { title: 'T', content: '...' });
 ```
 
 Add a signature field to an existing PDF (anchor-based):
