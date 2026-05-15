@@ -54,6 +54,28 @@ describe('NestjsPdfService', () => {
       expect(spy).toHaveBeenCalledWith(html, options);
       expect(result).toEqual(mockPdf);
     });
+
+    it('should delegate to puppeteerService.generatePdfFromHtml with undefined options by default', async () => {
+      const html = '<p>Hello default!</p>';
+      const mockPdf = new Uint8Array([4, 5, 6]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromHtml')
+        .mockResolvedValue(mockPdf);
+      const result = await service.generatePdfFromHtml(html);
+      expect(spy).toHaveBeenCalledWith(html, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should propagate errors from puppeteerService.generatePdfFromHtml', async () => {
+      const html = '<p>Hello error!</p>';
+      const error = new Error('PDF generation failed');
+      jest
+        .spyOn(puppeteerService, 'generatePdfFromHtml')
+        .mockRejectedValue(error);
+      await expect(service.generatePdfFromHtml(html)).rejects.toThrow(
+        'PDF generation failed',
+      );
+    });
   });
 
   describe('generatePdfFromTemplateHbsString', () => {
