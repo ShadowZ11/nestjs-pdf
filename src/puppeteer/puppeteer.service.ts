@@ -7,6 +7,7 @@ import pLimit from 'p-limit';
 import { HandlebarsService } from '@gboutte/nestjs-hbs';
 import { MjmlService } from './services/mjml.service';
 import { PugService } from './services/pug.service';
+import { EjsService } from './services/ejs.service';
 import { PDFOptions } from 'puppeteer';
 import { LocalsObject } from 'pug';
 
@@ -18,6 +19,7 @@ export class PuppeteerService {
     @Inject(PDF_PARAMETERS) private readonly options: PuppeteerParameters,
     @Optional() private readonly mjmlService?: MjmlService,
     @Optional() private readonly pugService?: PugService,
+    @Optional() private readonly ejsService?: EjsService,
   ) {}
 
   private readonly limit = pLimit(3);
@@ -193,6 +195,42 @@ export class PuppeteerService {
       file,
       data,
       options?.pugOptions ?? this.options.pugOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromEjsString(
+    template: string,
+    data: any = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.ejsService) {
+      throw new Error(
+        'EJS service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = await this.ejsService.render(
+      template,
+      data,
+      options?.ejsOptions ?? this.options.ejsOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromEjsFile(
+    file: string,
+    data: any = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.ejsService) {
+      throw new Error(
+        'EJS service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = await this.ejsService.renderFile(
+      file,
+      data,
+      options?.ejsOptions ?? this.options.ejsOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
