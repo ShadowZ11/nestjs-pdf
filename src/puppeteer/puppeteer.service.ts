@@ -6,6 +6,7 @@ import { mergePuppeteerParameters } from '../helpers/deepMergePdfparams';
 import pLimit from 'p-limit';
 import { HandlebarsService } from '@gboutte/nestjs-hbs';
 import { MjmlService } from './services/mjml.service';
+import { EjsService } from './services/ejs.service';
 import { PDFOptions } from 'puppeteer';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class PuppeteerService {
     private readonly browserService: BrowserService,
     @Inject(PDF_PARAMETERS) private readonly options: PuppeteerParameters,
     @Optional() private readonly mjmlService?: MjmlService,
+    @Optional() private readonly ejsService?: EjsService,
   ) {}
 
   private readonly limit = pLimit(3);
@@ -154,6 +156,42 @@ export class PuppeteerService {
     const html = await this.mjmlService.renderFile(
       file,
       options?.mjmlOptions ?? this.options.mjmlOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromEjsString(
+    template: string,
+    data: any = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.ejsService) {
+      throw new Error(
+        'EJS service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = await this.ejsService.render(
+      template,
+      data,
+      options?.ejsOptions ?? this.options.ejsOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromEjsFile(
+    file: string,
+    data: any = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.ejsService) {
+      throw new Error(
+        'EJS service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = await this.ejsService.renderFile(
+      file,
+      data,
+      options?.ejsOptions ?? this.options.ejsOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }

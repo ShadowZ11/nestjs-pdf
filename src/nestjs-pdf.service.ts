@@ -76,6 +76,40 @@ export class NestjsPdfService {
   }
 
   /**
+   * @param template EJS template string
+   * @param data Data to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the provided EJS template with data applied
+   * @description This method generates a PDF from an EJS (Embedded JavaScript) template provided as a string. EJS is a templating language with a simple, straightforward syntax. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   */
+  generatePdfFromEjsString(
+    template: string,
+    data: any = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromEjsString(
+      template,
+      data,
+      options,
+    );
+  }
+
+  /**
+   * @param file Path to the EJS template file
+   * @param data Data to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the EJS template at the provided file path with data applied
+   * @description This method generates a PDF from an EJS template located at the specified file path. The file path is passed as a string in the `file` parameter. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   */
+  generatePdfFromEjsFile(
+    file: string,
+    data: any = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromEjsFile(file, data, options);
+  }
+
+  /**
    * @param pdf The PDF bytes to modify
    * @param fieldName The name of the signature field to add (default: 'SignatureDebtor')
    * @param anchorText The text anchor to locate the signature field position (default: '__SIG_DEBTOR_ANCHOR__')

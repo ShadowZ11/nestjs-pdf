@@ -11,6 +11,7 @@ import {
 import { PuppeteerService } from './puppeteer.service';
 import { BrowserService } from './browser.service';
 import { MjmlService } from './services/mjml.service';
+import { EjsService } from './services/ejs.service';
 import { HANDLEBARS_PARAMETERS, PDF_PARAMETERS } from './helpers/tokens';
 import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 import { ConfigModule } from '@nestjs/config';
@@ -28,8 +29,8 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
 }
 
 @Module({
-  providers: [PuppeteerService, BrowserService, MjmlService],
-  exports: [PuppeteerService, MjmlService],
+  providers: [PuppeteerService, BrowserService, MjmlService, EjsService],
+  exports: [PuppeteerService, MjmlService, EjsService],
 })
 export class PuppeteerModule implements OnModuleInit {
   constructor(
@@ -53,13 +54,14 @@ export class PuppeteerModule implements OnModuleInit {
       },
       HandlebarsService,
       MjmlService,
+      EjsService,
     ];
 
     return {
       module: PuppeteerModule,
       imports: [ConfigModule.forRoot()],
       providers,
-      exports: [PuppeteerService, MjmlService],
+      exports: [PuppeteerService, MjmlService, EjsService],
     };
   }
 
@@ -87,8 +89,9 @@ export class PuppeteerModule implements OnModuleInit {
         BrowserService,
         HandlebarsService,
         MjmlService,
+        EjsService,
       ],
-      exports: [PuppeteerService, MjmlService],
+      exports: [PuppeteerService, MjmlService, EjsService],
     };
   }
 }
