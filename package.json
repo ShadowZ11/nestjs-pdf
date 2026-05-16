@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@gboutte/nestjs-hbs": "^0.2.0",
-    "@puppeteer/browsers": "^2.13.2",
+    "@puppeteer/browsers": "^3.0.2",
     "deepmerge-ts": "^7.1.5",
     "ejs": "^5.0.2",
     "mjml": "^5.2.1",
@@ -52,7 +52,7 @@
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.7.284",
     "pug": "^3.0.3",
-    "puppeteer": "^24.43.1"
+    "puppeteer": "^25.0.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
