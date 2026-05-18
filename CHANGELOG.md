@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.0.0...v2.0.1) (2026-05-18)
+
+
+### Miscellaneous Chores
+
+* release 2.0.1 ([b6792ef](https://github.com/ShadowZ11/nestjs-pdf/commit/b6792ef5694b8180dd4e307eb2231c599057930e))
+
 ## [2.0.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v1.1.1...v2.0.0) (2026-05-15)
 
 
