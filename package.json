@@ -35,7 +35,12 @@
     "pdf",
     "puppeteer",
     "handlebars",
-    "hbs"
+    "hbs",
+    "ejs",
+    "mjml",
+    "pug",
+    "pdf-lib",
+    "pdfjs-dist"
   ],
   "peerDependencies": {
     "@nestjs/common": "^11.0.0",
