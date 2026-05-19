@@ -30,7 +30,13 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
 }
 
 @Module({
-  providers: [PuppeteerService, BrowserService, MjmlService, PugService, EjsService],
+  providers: [
+    PuppeteerService,
+    BrowserService,
+    MjmlService,
+    PugService,
+    EjsService,
+  ],
   exports: [PuppeteerService, MjmlService, PugService, EjsService],
 })
 export class PuppeteerModule implements OnModuleInit {
