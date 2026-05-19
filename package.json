@@ -100,7 +100,7 @@
     "@napi-rs/canvas": "^1.0.0"
   },
   "repository": {
-    "url": "https://github.com/ShadowZ11/nestjs-pdf"
+    "url": "git+https://github.com/ShadowZ11/nestjs-pdf.git"
   },
   "publishConfig": {
     "access": "public",
