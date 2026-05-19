@@ -36,6 +36,7 @@
     "puppeteer",
     "handlebars",
     "hbs",
+    "nunjucks",
     "ejs",
     "mjml",
     "pug",
