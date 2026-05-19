@@ -3,12 +3,11 @@
 A small NestJS library to generate and manipulate PDFs using Puppeteer and multiple template engines, including Handlebars, EJS, Pug, and MJML.
 
 Main features:
+
 - Generate PDFs from HTML, Handlebars, EJS, Pug or MJML templates
 - Concurrency limiting for Puppeteer jobs (p-limit)
 - Add signature fields based on a text anchor in an existing PDF
 - Simple API (module and service) to integrate easily into a Nest application
-
-> Note: this repository contains the library source. To use it in another project, you can either install it from npm or import the local package from the source.
 
 ## Installation
 
@@ -76,11 +75,17 @@ Use a Handlebars template (string or file):
 
 ```ts
 const template = '<h1>{{title}}</h1><p>{{content}}</p>';
-const pdf = await pdfService.generatePdfFromTemplateHbsString(template, { title: 'T', content: '...' });
+const pdf = await pdfService.generatePdfFromTemplateHbsString(template, {
+  title: 'T',
+  content: '...',
+});
 ```
 
 ```ts
-const pdf = await pdfService.generatePdfFromTemplateHbsFile(filePath, { title: 'T', content: '...' });
+const pdf = await pdfService.generatePdfFromTemplateHbsFile(filePath, {
+  title: 'T',
+  content: '...',
+});
 ```
 
 Add a signature field to an existing PDF (anchor-based):
@@ -102,9 +107,65 @@ If the anchor is not found, the signature field will be added at a default posit
 
 The library exposes Puppeteer options via the `PuppeteerParameters` interface (see `src/puppeteer/puppeteer-parameters.interface.ts`). You can configure:
 
-- `headless` (boolean | 'shell')
-- `pdfOptions` (native Puppeteer options for `page.pdf`)
-- `extraPuppeteerArgs` (launch arguments for Chromium)
+
+|                             | Description                                                                                                                                                                                                                                                                                    |
+|-----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `pdfOptions`                | The pdf options can be found on: https://pptr.dev/api/puppeteer.pdfoptions. Native Puppeteer options for `page.pdf`                                                                                                                                                                            |
+| `hbsOptions`                | The handlebars can be found on [@gboutte/nestjs-hbs](https://github.com/gboutte/nestjs-hbs) as it use a peer dependency and not handlebars directly                                                                                                                                            |
+| `ejsOptions`                | The ejs options can be found on [EJS documentation](https://ejs.co/#options)                                                                                                                                                                                                                   |
+| `pugOptions`                | The pug options can be found on [Pug documentation](https://pugjs.org/api/reference.html#options)                                                                                                                                                                                              |
+| `mjmlOptions`               | The mjml options can be found on [MJML documentation](https://mjml.io/documentation/#options)                                                                                                                                                                                                  |
+| `nunjucksOptions`           | The nunjucks options can be found on [Nunjucks documentation](https://mozilla.github.io/nunjucks/api.html#configure)                                                                                                                                                                           |
+| `browser`                   | The browser to use for the PDF generation. By default: `Browser.CHROMIUM`. Allowed values `Browser.CHROMIUM`, `Browser.CHROMEHEADLESSSHELL`, `Browser.CHROME`, `Browser.FIREFOX`, `Browser.CHROMEDRIVER` ([Official documentation of Browser](https://pptr.dev/browsers-api/browsers.browser)) |
+| `browserTag`                | The version of the browser to use for the PDF generation. By default: `BrowserTag.LATEST` if Browser is **CHROMIUM** else `BrowserTag.STABLE`. Allowed values `BrowserTag.STABLE`, `BrowserTag.LATEST`, `BrowserTag.BETA`, `BrowserTag.DEV`, `BrowserTag.CANARY`                               |
+| `browserInstallBaseUrl`     | The baseUrl used for the installation of the browser. This baseUrl is passed to the [`install`](https://pptr.dev/browsers-api/browsers.install) method of `@puppeteer/browsers`                                                                                                                |
+| `headless`                  | Define if you want to use chromium headless or not, or the old headless version (`shell`). By default it's `true`. Allowed values: `true`,`false`,`"shell"`                                                                                                                                    |
+| `useLockedBrowser`          | Define if you want to use the locked version of the browser. By default it's `false`. Allowed values: `true`,`false`                                                                                                                                                                           |
+| `buildId`                   | You can force the build id. Should be `string`                                                                                                                                                                                                                                                 |
+| `cleanupBrowserCacheOnExit` | Define if you want to clean up the browser cache folder on exit. By default it's `true`. Allowed values: `true`,`false`                                                                                                                                                                        |
+| `extraPuppeteerArgs`        | It passes some extra arguments to Puppeteer's launch method. You can check the default args at bellow. Should be `string[]`                                                                                                                                                                    |
+
+these are the default extra arguments passed to Puppeteer:
+```ts
+[
+  '--autoplay-policy=user-gesture-required',
+  '--disable-background-networking',
+  '--disable-background-timer-throttling',
+  '--disable-backgrounding-occluded-windows',
+  '--disable-breakpad',
+  '--disable-client-side-phishing-detection',
+  '--disable-component-update',
+  '--disable-default-apps',
+  '--disable-dev-shm-usage',
+  '--disable-domain-reliability',
+  '--disable-extensions',
+  '--disable-features=AudioServiceOutOfProcess',
+  '--disable-hang-monitor',
+  '--disable-ipc-flooding-protection',
+  '--disable-notifications',
+  '--disable-offer-store-unmasked-wallet-cards',
+  '--disable-popup-blocking',
+  '--disable-print-preview',
+  '--disable-prompt-on-repost',
+  '--disable-renderer-backgrounding',
+  '--disable-setuid-sandbox',
+  '--disable-speech-api',
+  '--disable-sync',
+  '--hide-scrollbars',
+  '--ignore-gpu-blacklist',
+  '--metrics-recording-only',
+  '--mute-audio',
+  '--no-default-browser-check',
+  '--no-first-run',
+  '--no-pings',
+  '--password-store=basic',
+  '--use-gl=swiftshader',
+  '--use-mock-keychain',
+  '--disable-accelerated-2d-canvas',
+  '--no-zygote',
+  '--disable-gpu',
+];
+```
 
 You can use `forRootAsync(...)` if you need to provide configuration asynchronously.
 
