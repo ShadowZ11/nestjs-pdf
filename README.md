@@ -29,6 +29,14 @@ pnpm add ../path/to/nestjs-pdf
 
 Import the module and configure it in your Nest application:
 
+To use a template engine, you need to install the corresponding package as a dependency in your project:
+
+- For Handlebars: `npm install @gboutte/nestjs-hbs`
+- For EJS: `npm install ejs`
+- For Pug: `npm install pug`
+- For MJML: `npm install mjml`
+- For Nunjucks: `npm install nunjucks`
+
 ```ts
 import { Module } from '@nestjs/common';
 import { NestjsPdfModule } from 'nestjs-pdf';
