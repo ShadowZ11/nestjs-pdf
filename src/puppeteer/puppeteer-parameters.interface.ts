@@ -9,6 +9,7 @@ import { NunjucksOptions } from './services/nunjucks.service';
 
 export interface PuppeteerParameters {
   pdfOptions?: PDFOptions;
+  //'hbsOptions' has to be used in the module initialization
   hbsOptions?: HandlebarsOptions;
   mjmlOptions?: MJMLParsingOptions;
   pugOptions?: PugOptions;
