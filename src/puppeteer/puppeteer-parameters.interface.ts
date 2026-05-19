@@ -8,6 +8,7 @@ import { EjsOptions } from './services/ejs.service';
 
 export interface PuppeteerParameters {
   pdfOptions?: PDFOptions;
+  //'hbsOptions' has to be used in the module initialization
   hbsOptions?: HandlebarsOptions;
   mjmlOptions?: MJMLParsingOptions;
   pugOptions?: PugOptions;

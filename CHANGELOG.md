@@ -1,5 +1,37 @@
 # Changelog
 
+## [2.0.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.0.0...v2.0.1) (2026-05-18)
+
+
+### Miscellaneous Chores
+
+* release 2.0.1 ([b6792ef](https://github.com/ShadowZ11/nestjs-pdf/commit/b6792ef5694b8180dd4e307eb2231c599057930e))
+
+## [2.0.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v1.1.1...v2.0.0) (2026-05-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* renaming of the specific method:
+    - `generatePdfFromTemplateString()` -> `generatePdfFromTemplateHbsString()`
+    - `generatePdfFromTemplateFile()` -> `generatePdfFromTemplateHbsFile()`
+* add EJS template support for PDF generation
+* add PUG template support for PDF generation
+
+### Features
+
+* add EJS template support for PDF generation ([21bc771](https://github.com/ShadowZ11/nestjs-pdf/commit/21bc771655954f9ebd721d8044ec49e972e37ddd))
+* add PUG template support for PDF generation ([b936e48](https://github.com/ShadowZ11/nestjs-pdf/commit/b936e4886b8a0997995de17689bd68125eea75f1))
+* implement mjml support ([98d68f0](https://github.com/ShadowZ11/nestjs-pdf/commit/98d68f0fbf7ddedea09bfba57f33690ff99fbf9c))
+* renaming original service method to hbs ([3bcc678](https://github.com/ShadowZ11/nestjs-pdf/commit/3bcc6786d75f8f9a63b6ea47340fa93ad216d372))
+
+## [1.1.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v1.1.0...v1.1.1) (2026-05-12)
+
+
+### Bug Fixes
+
+* signature function fix ([f75b51d](https://github.com/ShadowZ11/nestjs-pdf/commit/f75b51d465dd620fe7380c964079117de0adfcf5))
+
 ## [1.1.0](https://github.com/ShadowZ11/nestjs-pdf/compare/nestjs-pdf-v1.0.2...nestjs-pdf-v1.1.0) (2026-05-10)
 
 
