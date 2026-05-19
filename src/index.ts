@@ -6,4 +6,5 @@ export * from './puppeteer/puppeteer-parameters.interface';
 export * from './puppeteer/services/mjml.service';
 export * from './puppeteer/services/pug.service';
 export * from './puppeteer/services/ejs.service';
+export * from './puppeteer/services/nunjucks.service';
 export * from './helpers/getRelativePath.helper';

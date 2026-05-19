@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice - #{{ invoiceNumber }}</title>
+  <style>
+    @page {
+      margin: 20px;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      color: #333;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      background: linear-gradient(to right, #3498db, #2c3e50);
+      color: white;
+      padding: 40px;
+      text-align: center;
+      border-radius: 8px;
+      margin-bottom: 40px;
+    }
+    .header h1 {
+      margin: 0 0 10px 0;
+      font-size: 32px;
+      letter-spacing: 1px;
+    }
+    .header .subtitle {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .invoice-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 40px;
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .meta-item label {
+      display: block;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #3498db;
+      margin-bottom: 5px;
+    }
+    .meta-item p {
+      margin: 0;
+      font-size: 16px;
+      color: #2c3e50;
+    }
+    .billing-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+    .billing-section h3 {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #3498db;
+      margin: 0 0 15px 0;
+    }
+    .billing-section p {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+    table thead {
+      background-color: #ecf0f1;
+      border-bottom: 3px solid #3498db;
+    }
+    table th {
+      padding: 15px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 13px;
+      text-transform: uppercase;
+      color: #2c3e50;
+    }
+    table tbody tr {
+      border-bottom: 1px solid #ecf0f1;
+    }
+    table tbody tr:hover {
+      background-color: #f9fafb;
+    }
+    table td {
+      padding: 15px;
+      font-size: 14px;
+    }
+    table td.amount {
+      text-align: right;
+      font-weight: 600;
+    }
+    .summary {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 40px;
+    }
+    .summary-box {
+      width: 300px;
+      background: #ecf0f1;
+      padding: 25px;
+      border-radius: 8px;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .summary-row.total {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 2px solid #3498db;
+      font-weight: 700;
+      font-size: 18px;
+      color: #3498db;
+    }
+    .notes {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 20px;
+      border-radius: 4px;
+      margin-bottom: 30px;
+    }
+    .notes h3 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: #856404;
+    }
+    .notes p {
+      margin: 0;
+      font-size: 13px;
+      color: #4b3120;
+      line-height: 1.5;
+    }
+    .footer {
+      text-align: center;
+      padding-top: 30px;
+      border-top: 1px solid #ecf0f1;
+      font-size: 12px;
+      color: #7f8c8d;
+    }
+    .footer p {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>Invoice</h1>
+      <div class="subtitle">Your Company Name</div>
+    </div>
+
+    <!-- Invoice Metadata -->
+    <div class="invoice-meta">
+      <div class="meta-item">
+        <label>Invoice Number</label>
+        <p>#{{ invoiceNumber }}</p>
+      </div>
+      <div class="meta-item">
+        <label>Invoice Date</label>
+        <p>{{ date }}</p>
+      </div>
+      <div class="meta-item">
+        <label>Due Date</label>
+        <p>{{ dueDate }}</p>
+      </div>
+    </div>
+
+    <!-- Billing Information -->
+    <div class="billing-info">
+      <div class="billing-section">
+        <h3>Bill To</h3>
+        <p><strong>{{ customerName }}</strong></p>
+        <p>{{ customerEmail }}</p>
+        <p>{{ customerPhone }}</p>
+      </div>
+      <div class="billing-section">
+        <h3>From</h3>
+        <p><strong>Your Company</strong></p>
+        <p>info@yourcompany.com</p>
+        <p>+1 (555) 000-0000</p>
+      </div>
+    </div>
+
+    <!-- Items Table -->
+    <table>
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Quantity</th>
+          <th>Unit Price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+          <tr>
+            <td>{{ item.name }}</td>
+            <td style="text-align: center;">{{ item.quantity }}</td>
+            <td class="amount">${{ item.price }}</td>
+            <td class="amount">${{ item.total }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Summary -->
+    <div class="summary">
+      <div class="summary-box">
+        <div class="summary-row">
+          <span>Subtotal:</span>
+          <span>${{ subtotal }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Tax ({{ taxRate }}%):</span>
+          <span>${{ tax }}</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total Amount:</span>
+          <span>${{ totalAmount }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    {% if notes %}
+      <div class="notes">
+        <h3>Notes</h3>
+        <p>{{ notes }}</p>
+      </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>Thank you for your business!</p>
+      <p>For inquiries, please contact us at support@yourcompany.com</p>
+    </div>
+  </div>
+</body>
+</html>
+

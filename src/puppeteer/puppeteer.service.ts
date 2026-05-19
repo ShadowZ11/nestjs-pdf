@@ -8,6 +8,7 @@ import { HandlebarsService } from '@gboutte/nestjs-hbs';
 import { MjmlService } from './services/mjml.service';
 import { PugService } from './services/pug.service';
 import { EjsService } from './services/ejs.service';
+import { NunjucksService } from './services/nunjucks.service';
 import { PDFOptions } from 'puppeteer';
 import { LocalsObject } from 'pug';
 import { Data } from 'ejs';
@@ -21,6 +22,7 @@ export class PuppeteerService {
     @Optional() private readonly mjmlService?: MjmlService,
     @Optional() private readonly pugService?: PugService,
     @Optional() private readonly ejsService?: EjsService,
+    @Optional() private readonly nunjucksService?: NunjucksService,
   ) {}
 
   private readonly limit = pLimit(3);
@@ -232,6 +234,42 @@ export class PuppeteerService {
       file,
       data,
       options?.ejsOptions ?? this.options.ejsOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromNunjucksString(
+    template: string,
+    data: Record<string, unknown> = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.nunjucksService) {
+      throw new Error(
+        'Nunjucks service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = this.nunjucksService.render(
+      template,
+      data,
+      options?.nunjucksOptions ?? this.options.nunjucksOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromNunjucksFile(
+    file: string,
+    data: Record<string, unknown> = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.nunjucksService) {
+      throw new Error(
+        'Nunjucks service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = this.nunjucksService.renderFile(
+      file,
+      data,
+      options?.nunjucksOptions ?? this.options.nunjucksOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
