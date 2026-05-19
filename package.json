@@ -21,7 +21,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --clean --external pdfjs-dist --external pdf-lib --external @napi-rs/canvas",
+    "build": "tsup",
     "prepublishOnly": "pnpm lint && pnpm test && pnpm build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
