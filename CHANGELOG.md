@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.1.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.0.1...v2.1.0) (2026-05-20)
+
+
+### Features
+
+* implementation of nunjucks template engine ([a93d244](https://github.com/ShadowZ11/nestjs-pdf/commit/a93d24446d2fe5de9b23855d660556ead1a1d739))
+* passing template engine to optional dependencies ([03f13c9](https://github.com/ShadowZ11/nestjs-pdf/commit/03f13c90cf97c90fcc59e6ef3e14c6a5c1ad7bcf))
+
+### Refactor
+
+* remove deprecated method **'generatePdfFromTemplateString'** and **'generatePdfFromTemplateFile'** ([efb222a](https://github.com/ShadowZ11/nestjs-pdf/commit/efb222a8fe12f131e60242bcd62354ca84d943fc))
+
+Update dependencies and other optimizations
+
 ## [2.0.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.0.0...v2.0.1) (2026-05-18)
 
 
