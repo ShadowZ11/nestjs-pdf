@@ -13,6 +13,7 @@ import { BrowserService } from './browser.service';
 import { MjmlService } from './services/mjml.service';
 import { PugService } from './services/pug.service';
 import { EjsService } from './services/ejs.service';
+import { NunjucksService } from './services/nunjucks.service';
 import { HANDLEBARS_PARAMETERS, PDF_PARAMETERS } from './helpers/tokens';
 import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 import { ConfigModule } from '@nestjs/config';
@@ -30,8 +31,21 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
 }
 
 @Module({
-  providers: [PuppeteerService, BrowserService, MjmlService, PugService, EjsService],
-  exports: [PuppeteerService, MjmlService, PugService, EjsService],
+  providers: [
+    PuppeteerService,
+    BrowserService,
+    MjmlService,
+    PugService,
+    EjsService,
+    NunjucksService,
+  ],
+  exports: [
+    PuppeteerService,
+    MjmlService,
+    PugService,
+    EjsService,
+    NunjucksService,
+  ],
 })
 export class PuppeteerModule implements OnModuleInit {
   constructor(
@@ -57,13 +71,20 @@ export class PuppeteerModule implements OnModuleInit {
       MjmlService,
       PugService,
       EjsService,
+      NunjucksService,
     ];
 
     return {
       module: PuppeteerModule,
       imports: [ConfigModule.forRoot()],
       providers,
-      exports: [PuppeteerService, MjmlService, PugService, EjsService],
+      exports: [
+        PuppeteerService,
+        MjmlService,
+        PugService,
+        EjsService,
+        NunjucksService,
+      ],
     };
   }
 
@@ -93,8 +114,15 @@ export class PuppeteerModule implements OnModuleInit {
         MjmlService,
         PugService,
         EjsService,
+        NunjucksService,
       ],
-      exports: [PuppeteerService, MjmlService, PugService, EjsService],
+      exports: [
+        PuppeteerService,
+        MjmlService,
+        PugService,
+        EjsService,
+        NunjucksService,
+      ],
     };
   }
 }

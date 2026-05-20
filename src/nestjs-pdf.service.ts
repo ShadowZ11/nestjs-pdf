@@ -20,38 +20,6 @@ export class NestjsPdfService {
   }
 
   /**
-   * @deprecated Use the new method generatePdfFromTemplateHbsString
-   * @param template Handlebars template string
-   * @param parameters Data parameters to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the provided Handlebars template with parameters applied
-   * @description This method generates a PDF from a Handlebars template provided as a string. The parameters to inject into the template are passed in the `parameters` object, which is used to render the template before converting it to PDF. PDF generation options can also be customized by passing a `PuppeteerParameters` object as the third argument. This allows you to control various aspects of PDF rendering, such as page size, margins, background display, etc. If no options are provided, the default parameters defined in the Puppeteer service will be used.
-   */
-  generatePdfFromTemplateString(
-    template: string,
-    parameters: any = {},
-    options?: PuppeteerParameters,
-  ) {
-    return this.generatePdfFromTemplateHbsString(template, parameters, options);
-  }
-
-  /**
-   * @deprecated Use the new method generatePdfFromTemplateHbsFile
-   * @param file Path to the Handlebars template file
-   * @param parameters Data parameters to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the Handlebars template at the provided file path with parameters applied
-   * @description This method generates a PDF from a Handlebars template located at the specified file path. The file path is passed as a string in the `file` parameter. The parameters to inject into the template are passed in the `parameters` object, which is used to render the template before converting it to PDF. PDF generation options can also be customized by passing a `PuppeteerParameters` object as the third argument. This allows you to control various aspects of PDF rendering, such as page size, margins, background display, etc. If no options are provided, the default parameters defined in the Puppeteer service will be used.
-   */
-  generatePdfFromTemplateFile(
-    file: string,
-    parameters: any = {},
-    options?: PuppeteerParameters,
-  ) {
-    return this.generatePdfFromTemplateHbsFile(file, parameters, options);
-  }
-
-  /**
    * @param template Handlebars template string
    * @param parameters Data parameters to inject into the template
    * @param options PDF generation options (optional)
@@ -175,6 +143,44 @@ export class NestjsPdfService {
     options?: PuppeteerParameters,
   ) {
     return this.puppeteerService.generatePdfFromPugFile(file, data, options);
+  }
+
+  /**
+   * @param template Nunjucks template string
+   * @param data Data to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the provided Nunjucks template with data applied
+   * @description This method generates a PDF from a Nunjucks template provided as a string. Nunjucks is a powerful templating language with support for inheritance, macros, and filters. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   */
+  generatePdfFromNunjucksString(
+    template: string,
+    data: Record<string, unknown> = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromNunjucksString(
+      template,
+      data,
+      options,
+    );
+  }
+
+  /**
+   * @param file Path to the Nunjucks template file
+   * @param data Data to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the Nunjucks template at the provided file path with data applied
+   * @description This method generates a PDF from a Nunjucks template located at the specified file path. The file path is passed as a string in the `file` parameter. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   */
+  generatePdfFromNunjucksFile(
+    file: string,
+    data: Record<string, unknown> = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromNunjucksFile(
+      file,
+      data,
+      options,
+    );
   }
 
   /**
