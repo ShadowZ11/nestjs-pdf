@@ -5,6 +5,7 @@ import { BrowserTag } from './browser.service';
 import { MJMLParsingOptions } from 'mjml-core';
 import { PugOptions } from './services/pug.service';
 import { EjsOptions } from './services/ejs.service';
+import { NunjucksOptions } from './services/nunjucks.service';
 
 export interface PuppeteerParameters {
   pdfOptions?: PDFOptions;
@@ -13,6 +14,7 @@ export interface PuppeteerParameters {
   mjmlOptions?: MJMLParsingOptions;
   pugOptions?: PugOptions;
   ejsOptions?: EjsOptions;
+  nunjucksOptions?: NunjucksOptions;
   chromiumRevision?: string;
   buildId?: string;
   headless?: boolean | 'shell';
