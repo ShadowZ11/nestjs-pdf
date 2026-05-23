@@ -15,6 +15,7 @@ permissions:
 
 env:
   NPM_CONFIG_PROVENANCE: true
+  HUSKY: 0
 
 jobs:
   validate:
