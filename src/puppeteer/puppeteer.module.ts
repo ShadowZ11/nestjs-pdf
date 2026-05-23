@@ -14,6 +14,7 @@ import { MjmlService } from './engines/mjml/mjml.service';
 import { PugService } from './engines/pug/pug.service';
 import { EjsService } from './engines/ejs/ejs.service';
 import { NunjucksService } from './engines/nunjucks/nunjucks.service';
+import { MustacheService } from './engines/mustache/mustache.service';
 import { HANDLEBARS_PARAMETERS, PDF_PARAMETERS } from './helpers/tokens';
 import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 import { ConfigModule } from '@nestjs/config';
@@ -38,6 +39,7 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
     PugService,
     EjsService,
     NunjucksService,
+    MustacheService,
   ],
   exports: [
     PuppeteerService,
@@ -45,6 +47,7 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
     PugService,
     EjsService,
     NunjucksService,
+    MustacheService,
   ],
 })
 export class PuppeteerModule implements OnModuleInit {
@@ -72,6 +75,7 @@ export class PuppeteerModule implements OnModuleInit {
       PugService,
       EjsService,
       NunjucksService,
+      MustacheService,
     ];
 
     return {
@@ -84,6 +88,7 @@ export class PuppeteerModule implements OnModuleInit {
         PugService,
         EjsService,
         NunjucksService,
+        MustacheService,
       ],
     };
   }
@@ -115,6 +120,7 @@ export class PuppeteerModule implements OnModuleInit {
         PugService,
         EjsService,
         NunjucksService,
+        MustacheService,
       ],
       exports: [
         PuppeteerService,
@@ -122,6 +128,7 @@ export class PuppeteerModule implements OnModuleInit {
         PugService,
         EjsService,
         NunjucksService,
+        MustacheService,
       ],
     };
   }

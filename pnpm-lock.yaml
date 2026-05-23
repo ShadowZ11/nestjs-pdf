@@ -75,6 +75,9 @@ importers:
       '@types/mjml-core':
         specifier: ^5.0.0
         version: 5.0.0
+      '@types/mustache':
+        specifier: ^4.2.5
+        version: 4.2.6
       '@types/node':
         specifier: ^25.6.2
         version: 25.9.0
@@ -148,6 +151,9 @@ importers:
       mjml:
         specifier: ^5.2.1
         version: 5.2.1(svgo@4.0.1)(terser@5.47.1)(typescript@6.0.3)
+      mustache:
+        specifier: ^4.2.0
+        version: 4.2.0
       nunjucks:
         specifier: ^3.2.4
         version: 3.2.4(chokidar@4.0.3)
@@ -1476,6 +1482,9 @@ packages:
 
   '@types/mjml@5.0.0':
     resolution: {integrity: sha512-z6P0yjEOVOz6cZVyD3vkPSifzVH0fa9M8BFM8Jl9HtpeFkBJyCZHRLPx1uFnkZijgAYmtO/JfSbp4EF1fNwsXQ==}
+
+  '@types/mustache@4.2.6':
+    resolution: {integrity: sha512-t+8/QWTAhOFlrF1IVZqKnMRJi84EgkIK5Kh0p2JV4OLywUvCwJPFxbJAl7XAow7DVIHsF+xW9f1MVzg0L6Szjw==}
 
   '@types/node@25.9.0':
     resolution: {integrity: sha512-AOQwYUNolgy3VosiRqXrACUXTN8nJUtPl7FJXMqZVyxiiCLhQuG3jXKvCS1ALr+Y2OmZhzzLVlYPEqJaiqkaJQ==}
@@ -3553,6 +3562,10 @@ packages:
   multer@2.1.1:
     resolution: {integrity: sha512-mo+QTzKlx8R7E5ylSXxWzGoXoZbOsRMpyitcht8By2KHvMbf3tjwosZ/Mu/XYU6UuJ3VZnODIrak5ZrPiPyB6A==}
     engines: {node: '>= 10.16.0'}
+
+  mustache@4.2.0:
+    resolution: {integrity: sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==}
+    hasBin: true
 
   mute-stream@2.0.0:
     resolution: {integrity: sha512-WWdIxpyjEn+FhQJQQv9aQAYlHoNVdzIzUySNV1gHUPDSdZJ3yZn7pAAbQcV7B56Mvu881q9FZV+0Vx2xC44VWA==}
@@ -6093,6 +6106,8 @@ snapshots:
   '@types/mjml@5.0.0':
     dependencies:
       '@types/mjml-core': 5.0.0
+
+  '@types/mustache@4.2.6': {}
 
   '@types/node@25.9.0':
     dependencies:
@@ -8889,6 +8904,9 @@ snapshots:
       busboy: 1.6.0
       concat-stream: 2.0.0
       type-is: 1.6.18
+
+  mustache@4.2.0:
+    optional: true
 
   mute-stream@2.0.0: {}
 
