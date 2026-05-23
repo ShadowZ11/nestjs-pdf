@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import mustache from 'mustache';
+import mustache, { EscapeFunction } from 'mustache';
 import fs from 'node:fs';
 import path from 'node:path';
 
 export interface MustacheOptions {
   tags?: [string, string];
+  escape?: EscapeFunction;
 }
 
 @Injectable()
@@ -30,7 +31,10 @@ export class MustacheService {
   ): string {
     try {
       const tags = options?.tags ?? ['{{', '}}'];
-      return mustache.render(template, data, undefined, tags);
+      return mustache.render(template, data, undefined, {
+        tags: tags,
+        escape: options?.escape,
+      });
     } catch (error) {
       throw new Error(`Mustache rendering failed: ${String(error)}`, {
         cause: error,
