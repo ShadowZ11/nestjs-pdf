@@ -6,6 +6,7 @@ import { MJMLParsingOptions } from 'mjml-core';
 import { PugOptions } from './engines/pug/pug.service';
 import { EjsOptions } from './engines/ejs/ejs.service';
 import { NunjucksOptions } from './engines/nunjucks/nunjucks.service';
+import { EtaOptions } from './engines/eta/eta.service';
 
 export interface PuppeteerParameters {
   pdfOptions?: PDFOptions;
@@ -15,6 +16,7 @@ export interface PuppeteerParameters {
   pugOptions?: PugOptions;
   ejsOptions?: EjsOptions;
   nunjucksOptions?: NunjucksOptions;
+  etaOptions?: EtaOptions;
   chromiumRevision?: string;
   buildId?: string;
   headless?: boolean | 'shell';

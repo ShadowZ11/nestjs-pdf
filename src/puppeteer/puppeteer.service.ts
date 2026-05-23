@@ -9,6 +9,7 @@ import { MjmlService } from './engines/mjml/mjml.service';
 import { PugService } from './engines/pug/pug.service';
 import { EjsService } from './engines/ejs/ejs.service';
 import { NunjucksService } from './engines/nunjucks/nunjucks.service';
+import { EtaService } from './engines/eta/eta.service';
 import { PDFOptions } from 'puppeteer';
 import { LocalsObject } from 'pug';
 import { Data } from 'ejs';
@@ -23,6 +24,7 @@ export class PuppeteerService {
     @Optional() private readonly pugService?: PugService,
     @Optional() private readonly ejsService?: EjsService,
     @Optional() private readonly nunjucksService?: NunjucksService,
+    @Optional() private readonly etaService?: EtaService,
   ) {}
 
   private readonly limit = pLimit(3);
@@ -270,6 +272,42 @@ export class PuppeteerService {
       file,
       data,
       options?.nunjucksOptions ?? this.options.nunjucksOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromEtaString(
+    template: string,
+    data: Record<string, unknown> = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.etaService) {
+      throw new Error(
+        'Eta service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = this.etaService.render(
+      template,
+      data,
+      options?.etaOptions ?? this.options.etaOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromEtaFile(
+    file: string,
+    data: Record<string, unknown> = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.etaService) {
+      throw new Error(
+        'Eta service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = this.etaService.renderFile(
+      file,
+      data,
+      options?.etaOptions ?? this.options.etaOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
