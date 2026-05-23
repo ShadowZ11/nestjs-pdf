@@ -1,11 +1,11 @@
 import { HandlebarsOptions } from '@gboutte/nestjs-hbs/dist/handlebars-options.interface';
 import { Browser } from '@puppeteer/browsers';
 import { PDFOptions } from 'puppeteer';
-import { BrowserTag } from './browser.service';
+import { BrowserTag } from './browser/browser.service';
 import { MJMLParsingOptions } from 'mjml-core';
-import { PugOptions } from './services/pug.service';
-import { EjsOptions } from './services/ejs.service';
-import { NunjucksOptions } from './services/nunjucks.service';
+import { PugOptions } from './engines/pug/pug.service';
+import { EjsOptions } from './engines/ejs/ejs.service';
+import { NunjucksOptions } from './engines/nunjucks/nunjucks.service';
 
 export interface PuppeteerParameters {
   pdfOptions?: PDFOptions;

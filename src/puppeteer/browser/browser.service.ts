@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import puppeteer, { Browser, BrowserContext } from 'puppeteer';
 import { Browser as BrowserType } from '@puppeteer/browsers';
-import type { PuppeteerParameters } from './puppeteer-parameters.interface';
+import type { PuppeteerParameters } from '../puppeteer-parameters.interface';
 
 export enum BrowserTag {
   LATEST = 'latest',
