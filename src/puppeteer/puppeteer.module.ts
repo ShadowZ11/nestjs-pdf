@@ -9,11 +9,11 @@ import {
   Provider,
 } from '@nestjs/common';
 import { PuppeteerService } from './puppeteer.service';
-import { BrowserService } from './browser.service';
-import { MjmlService } from './services/mjml.service';
-import { PugService } from './services/pug.service';
-import { EjsService } from './services/ejs.service';
-import { NunjucksService } from './services/nunjucks.service';
+import { BrowserService } from './browser/browser.service';
+import { MjmlService } from './engines/mjml/mjml.service';
+import { PugService } from './engines/pug/pug.service';
+import { EjsService } from './engines/ejs/ejs.service';
+import { NunjucksService } from './engines/nunjucks/nunjucks.service';
 import { HANDLEBARS_PARAMETERS, PDF_PARAMETERS } from './helpers/tokens';
 import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 import { ConfigModule } from '@nestjs/config';

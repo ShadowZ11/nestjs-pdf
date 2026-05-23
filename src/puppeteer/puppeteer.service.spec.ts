@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PuppeteerService } from './puppeteer.service';
-import { BrowserService } from './browser.service';
+import { BrowserService } from './browser/browser.service';
 import { PDF_PARAMETERS } from './helpers/tokens';
 import { HandlebarsService } from '@gboutte/nestjs-hbs';
 import { Logger } from '@nestjs/common';
