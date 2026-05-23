@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Eta } from 'eta';
+import { Eta, EtaConfig } from 'eta';
 import fs from 'node:fs';
 import path from 'node:path';
 
-export interface EtaOptions {
+export interface EtaOptions extends Partial<EtaConfig> {
   cache?: boolean;
   autoEscape?: boolean;
   varName?: string;
