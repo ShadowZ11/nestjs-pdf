@@ -39,15 +39,16 @@ export class EtaService {
     options?: EtaOptions,
   ): string {
     try {
-      const eta = options
-        ? new Eta({
-            cache: true,
-            autoEscape: true,
-            useWith: true,
-            ...options,
-            varName: options.varName ?? 'it',
-          })
-        : this.eta;
+      const eta =
+        options && Object.keys(options).length > 0
+          ? new Eta({
+              cache: true,
+              autoEscape: true,
+              useWith: true,
+              ...options,
+              varName: options.varName ?? 'it',
+            })
+          : this.eta;
 
       return eta.renderString(template, data);
     } catch (error) {
