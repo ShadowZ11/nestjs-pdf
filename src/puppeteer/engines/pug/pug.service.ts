@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import pug from 'pug';
 import { readFileSync } from 'node:fs';
+import { compile, LocalsObject, Options } from 'pug';
 
-export type PugOptions = pug.Options;
+export type PugOptions = Options;
 
 @Injectable()
 export class PugService {
   render(
     template: string,
-    data: pug.LocalsObject = {},
+    data: LocalsObject = {},
     options?: PugOptions,
   ): string {
     try {
-      const compiledFn = pug.compile(template, {
+      const compiledFn = compile(template, {
         ...options,
       });
       return compiledFn(data);
@@ -25,7 +25,7 @@ export class PugService {
 
   renderFile(
     filePath: string,
-    data: pug.LocalsObject = {},
+    data: LocalsObject = {},
     options?: PugOptions,
   ): string {
     try {
