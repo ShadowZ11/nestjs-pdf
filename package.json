@@ -72,7 +72,7 @@
     "@types/jest": "^30.0.0",
     "@types/mjml": "^5.0.0",
     "@types/mjml-core": "^5.0.0",
-    "@types/mustache": "^4.2.5",
+    "@types/mustache": "^4.2.6",
     "@types/node": "^25.6.2",
     "@types/nunjucks": "^3.2.6",
     "@types/pug": "^2.0.10",
