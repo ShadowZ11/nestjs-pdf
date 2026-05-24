@@ -11,6 +11,9 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  HUSKY: 0
+
 jobs:
   quality:
     name: Lint, test and build
