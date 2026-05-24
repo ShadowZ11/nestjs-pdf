@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import mustache, { EscapeFunction } from 'mustache';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import { resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
 
 export interface MustacheOptions {
   tags?: [string, string];
@@ -60,8 +60,8 @@ export class MustacheService {
 
       if (!template) {
         // Read template from file
-        const resolvedPath = path.resolve(filePath);
-        template = fs.readFileSync(resolvedPath, 'utf-8');
+        const resolvedPath = resolve(filePath);
+        template = readFileSync(resolvedPath, 'utf-8');
 
         // Add to cache if not full
         if (this.templateCache.size < this.maxCacheSize) {

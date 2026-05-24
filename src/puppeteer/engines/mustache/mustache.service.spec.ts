@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MustacheService } from './mustache.service';
-import * as fs from 'fs';
-import * as path from 'path';
+import { existsSync, unlinkSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 describe('MustacheService', () => {
   let service: MustacheService;
@@ -63,19 +63,19 @@ describe('MustacheService', () => {
   });
 
   describe('renderFile', () => {
-    const testFilePath = path.join(__dirname, 'test-template.mustache');
+    const testFilePath = join(__dirname, 'test-template.mustache');
 
     beforeEach(() => {
       // Create a test template file
-      if (!fs.existsSync(testFilePath)) {
-        fs.writeFileSync(testFilePath, 'Hello {{name}}!');
+      if (!existsSync(testFilePath)) {
+        writeFileSync(testFilePath, 'Hello {{name}}!');
       }
     });
 
     afterEach(() => {
       // Clean up the test file
-      if (fs.existsSync(testFilePath)) {
-        fs.unlinkSync(testFilePath);
+      if (existsSync(testFilePath)) {
+        unlinkSync(testFilePath);
       }
     });
 
@@ -94,23 +94,23 @@ describe('MustacheService', () => {
     });
 
     it('should throw error on non-existent file', () => {
-      const nonExistentPath = path.join(__dirname, 'non-existent.mustache');
+      const nonExistentPath = join(__dirname, 'non-existent.mustache');
       expect(() => service.renderFile(nonExistentPath, {})).toThrow();
     });
   });
 
   describe('clearCache', () => {
-    const testFilePath = path.join(__dirname, 'test-template.mustache');
+    const testFilePath = join(__dirname, 'test-template.mustache');
 
     beforeEach(() => {
-      if (!fs.existsSync(testFilePath)) {
-        fs.writeFileSync(testFilePath, 'Hello {{name}}!');
+      if (!existsSync(testFilePath)) {
+        writeFileSync(testFilePath, 'Hello {{name}}!');
       }
     });
 
     afterEach(() => {
-      if (fs.existsSync(testFilePath)) {
-        fs.unlinkSync(testFilePath);
+      if (existsSync(testFilePath)) {
+        unlinkSync(testFilePath);
       }
     });
 

@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import * as puppeteerBrowser from '@puppeteer/browsers';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import { existsSync, promises, readFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import puppeteer, { Browser, BrowserContext } from 'puppeteer';
 import { Browser as BrowserType } from '@puppeteer/browsers';
 import type { PuppeteerParameters } from '../puppeteer-parameters.interface';
@@ -21,7 +21,7 @@ async function sleep(ms: number) {
 async function rmWithRetries(dir: string, retries = 5): Promise<void> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      await fs.promises.rm(dir, { recursive: true, force: true });
+      await promises.rm(dir, { recursive: true, force: true });
       return;
     } catch (err: unknown) {
       const code = (err as NodeJS.ErrnoException)?.code;
@@ -57,7 +57,7 @@ export class BrowserService implements OnModuleDestroy {
   private buildId: string | undefined;
 
   constructor(@Inject('PDF_PARAMETERS') pdfParams: PuppeteerParameters) {
-    this.cacheDir = path.resolve('.cache/puppeteer-browser');
+    this.cacheDir = resolve('.cache/puppeteer-browser');
     this.options = pdfParams;
 
     if (pdfParams.cleanupBrowserCacheOnExit) {
@@ -162,12 +162,12 @@ export class BrowserService implements OnModuleDestroy {
     const logger = new Logger('NestJsPdf');
     const dir = this.cacheDir;
     try {
-      if (!fs.existsSync(dir)) return;
+      if (!existsSync(dir)) return;
 
       logger.log(`Cleanup puppeteer cache on signal: ${dir}`);
 
       await rmWithRetries(dir, 6);
-      if (fs.existsSync(dir)) {
+      if (existsSync(dir)) {
         await sleep(100);
         await rmWithRetries(dir, 3);
       }
@@ -180,7 +180,7 @@ export class BrowserService implements OnModuleDestroy {
       );
     }
     try {
-      const leftover = await fs.promises.readdir(dir, { recursive: true });
+      const leftover = await promises.readdir(dir, { recursive: true });
       logger.warn(`Leftover files: ${leftover.slice(0, 20).join(', ')}...`);
     } catch {
       logger.log(`No leftover files in ${dir}`);
@@ -394,21 +394,21 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   private writeLockFile(browser: BrowserType, buildId: string) {
-    const lockFile = path.resolve(this.cacheDir, `${browser}.lock`);
+    const lockFile = resolve(this.cacheDir, `${browser}.lock`);
     const data = JSON.stringify({
       browser: browser,
       buildId: buildId,
       date: new Date().toISOString(),
     });
-    fs.writeFileSync(lockFile, data);
+    writeFileSync(lockFile, data);
 
     Logger.log(`Browser ${browser} locked to build ${buildId}`, 'NestJsPdf');
   }
 
   getLockedBuildId(browser: BrowserType): string | null {
-    const lockFile = path.resolve(this.cacheDir, `${browser}.lock`);
-    if (fs.existsSync(lockFile)) {
-      const data = fs.readFileSync(lockFile);
+    const lockFile = resolve(this.cacheDir, `${browser}.lock`);
+    if (existsSync(lockFile)) {
+      const data = readFileSync(lockFile);
       const lock = JSON.parse(data.toString()) as {
         browser: Browser;
         buildId: string;
