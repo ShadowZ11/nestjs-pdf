@@ -1,9 +1,16 @@
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import * as puppeteerBrowser from '@puppeteer/browsers';
 import { existsSync, promises, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import puppeteer, { Browser, BrowserContext } from 'puppeteer';
-import { Browser as BrowserType } from '@puppeteer/browsers';
+import { Browser, BrowserContext, launch } from 'puppeteer';
+import {
+  Browser as BrowserType,
+  BrowserPlatform,
+  canDownload,
+  detectBrowserPlatform,
+  getInstalledBrowsers,
+  resolveBuildId,
+  install,
+} from '@puppeteer/browsers';
 import type { PuppeteerParameters } from '../puppeteer-parameters.interface';
 
 export enum BrowserTag {
@@ -93,7 +100,7 @@ export class BrowserService implements OnModuleDestroy {
     if (!this._browserInstance?.connected) {
       const executablePath = await this.getExecutablePath();
 
-      this._browserInstance = await puppeteer.launch({
+      this._browserInstance = await launch({
         executablePath,
         headless,
         args,
@@ -191,17 +198,11 @@ export class BrowserService implements OnModuleDestroy {
     const browser: BrowserType = this.browser;
     const versionTag: BrowserTag = this.browserTag;
 
-    const browserPlatform =
-      puppeteerBrowser.detectBrowserPlatform() ??
-      puppeteerBrowser.BrowserPlatform.LINUX;
+    const browserPlatform = detectBrowserPlatform() ?? BrowserPlatform.LINUX;
 
     let buildId: string;
     if (this.buildId === undefined) {
-      buildId = await puppeteerBrowser.resolveBuildId(
-        browser,
-        browserPlatform,
-        versionTag,
-      );
+      buildId = await resolveBuildId(browser, browserPlatform, versionTag);
     } else {
       buildId = this.buildId;
     }
@@ -227,12 +228,12 @@ export class BrowserService implements OnModuleDestroy {
         baseUrl: this.options?.browserInstallBaseUrl ?? undefined,
       };
 
-      if (await puppeteerBrowser.canDownload(installOption)) {
+      if (await canDownload(installOption)) {
         Logger.log(
           `Installing ${installOption.browser} ${installOption.buildId}`,
           'NestJsPdf',
         );
-        const installedBrowser = await puppeteerBrowser.install(installOption);
+        const installedBrowser = await install(installOption);
         if (await this.hasBrowserInstalled(browser, buildId)) {
           Logger.log('Browser installed successfully', 'NestJsPdf');
           if (lock) {
@@ -344,7 +345,7 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   async hasBrowserInstalled(browser: BrowserType, buildId: string) {
-    const installedBrowserlist = await puppeteerBrowser.getInstalledBrowsers({
+    const installedBrowserlist = await getInstalledBrowsers({
       cacheDir: this.cacheDir,
     });
 
@@ -360,20 +361,14 @@ export class BrowserService implements OnModuleDestroy {
   async getExecutablePath(): Promise<string> {
     const browser: BrowserType = this.browser;
     const versionTag: BrowserTag = this.browserTag;
-    const browserPlatform =
-      puppeteerBrowser.detectBrowserPlatform() ??
-      puppeteerBrowser.BrowserPlatform.LINUX;
+    const browserPlatform = detectBrowserPlatform() ?? BrowserPlatform.LINUX;
     let buildId: string | null = null;
     if (this.useLockedBrowser) {
       buildId = this.getLockedBuildId(browser);
       Logger.log(`Using locked browser ${buildId}`, 'NestJsPdf');
     }
-    buildId ??= await puppeteerBrowser.resolveBuildId(
-      browser,
-      browserPlatform,
-      versionTag,
-    );
-    const installedBrowserlist = await puppeteerBrowser.getInstalledBrowsers({
+    buildId ??= await resolveBuildId(browser, browserPlatform, versionTag);
+    const installedBrowserlist = await getInstalledBrowsers({
       cacheDir: this.cacheDir,
     });
     const installedBrowser = installedBrowserlist.find((installedBrowser) => {
