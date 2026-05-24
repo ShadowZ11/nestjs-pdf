@@ -29,11 +29,11 @@ export class PdfController {
             <h2>Items:</h2>
             {{#items}}
             <div class="item">
-              <p>{{name}} - ${{price}}</p>
+              <p>{{name}} - ${{ price }}</p>
             </div>
             {{/items}}
             <hr />
-            <p><strong>Total:</strong> ${{total}}</p>
+            <p><strong>Total:</strong> ${{ total }}</p>
           </div>
         </body>
       </html>
@@ -75,7 +75,7 @@ export class PdfController {
     };
 
     const pdf = await this.pdfService.generatePdfFromMustacheFile(
-      'path/to/sample-template.mustache',
+      'path/to/sample-template.mustache', // Placeholder
       data,
     );
 
@@ -83,4 +83,3 @@ export class PdfController {
     response.send(pdf);
   }
 }
-

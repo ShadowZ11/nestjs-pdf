@@ -13,10 +13,6 @@ export class MustacheService {
   private readonly templateCache: Map<string, string> = new Map();
   private readonly maxCacheSize = 100;
 
-  constructor() {
-    // Initialize with default settings
-  }
-
   /**
    * Render a Mustache template from a string
    * @param template The template string to render
@@ -55,17 +51,14 @@ export class MustacheService {
     options?: MustacheOptions,
   ): string {
     try {
-      // Check cache first
-      let template = this.templateCache.get(filePath);
+      const resolvedPath = resolve(filePath);
+      let template = this.templateCache.get(resolvedPath);
 
       if (!template) {
-        // Read template from file
-        const resolvedPath = resolve(filePath);
         template = readFileSync(resolvedPath, 'utf-8');
 
-        // Add to cache if not full
         if (this.templateCache.size < this.maxCacheSize) {
-          this.templateCache.set(filePath, template);
+          this.templateCache.set(resolvedPath, template);
         }
       }
 

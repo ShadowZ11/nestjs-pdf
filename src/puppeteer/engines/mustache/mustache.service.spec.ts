@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MustacheService } from './mustache.service';
-import { existsSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 describe('MustacheService', () => {
@@ -63,19 +64,18 @@ describe('MustacheService', () => {
   });
 
   describe('renderFile', () => {
-    const testFilePath = join(__dirname, 'test-template.mustache');
+    let tempDir: string;
+    let testFilePath: string;
 
     beforeEach(() => {
-      // Create a test template file
-      if (!existsSync(testFilePath)) {
-        writeFileSync(testFilePath, 'Hello {{name}}!');
-      }
+      tempDir = mkdtempSync(join(tmpdir(), 'mustache-service-'));
+      testFilePath = join(tempDir, 'test-template.mustache');
+      writeFileSync(testFilePath, 'Hello {{name}}!');
     });
 
     afterEach(() => {
-      // Clean up the test file
-      if (existsSync(testFilePath)) {
-        unlinkSync(testFilePath);
+      if (tempDir && existsSync(tempDir)) {
+        rmSync(tempDir, { recursive: true, force: true });
       }
     });
 
@@ -90,7 +90,7 @@ describe('MustacheService', () => {
       service.renderFile(testFilePath, {});
       expect(service.getCacheSize()).toBe(1);
       service.renderFile(testFilePath, {});
-      expect(service.getCacheSize()).toBe(1); // Should still be 1
+      expect(service.getCacheSize()).toBe(1);
     });
 
     it('should throw error on non-existent file', () => {
@@ -100,17 +100,18 @@ describe('MustacheService', () => {
   });
 
   describe('clearCache', () => {
-    const testFilePath = join(__dirname, 'test-template.mustache');
+    let tempDir: string;
+    let testFilePath: string;
 
     beforeEach(() => {
-      if (!existsSync(testFilePath)) {
-        writeFileSync(testFilePath, 'Hello {{name}}!');
-      }
+      tempDir = mkdtempSync(join(tmpdir(), 'mustache-service-'));
+      testFilePath = join(tempDir, 'test-template.mustache');
+      writeFileSync(testFilePath, 'Hello {{name}}!');
     });
 
     afterEach(() => {
-      if (existsSync(testFilePath)) {
-        unlinkSync(testFilePath);
+      if (tempDir && existsSync(tempDir)) {
+        rmSync(tempDir, { recursive: true, force: true });
       }
     });
 
