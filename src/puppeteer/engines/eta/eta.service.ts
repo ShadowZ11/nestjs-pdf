@@ -19,7 +19,6 @@ export class EtaService {
   private readonly maxCacheSize = 100;
 
   constructor() {
-    // Initialize Eta with default settings
     this.eta = new Eta({
       cache: true,
       autoEscape: true,
@@ -40,18 +39,17 @@ export class EtaService {
     options?: EtaOptions,
   ): string {
     try {
-      if (options) {
-        this.eta = new Eta({
-          cache: options.cache ?? true,
-          autoEscape: options.autoEscape ?? true,
-          varName: options.varName ?? 'it',
-          views: options.views,
-          useWith: options.useWith ?? true,
-          plugins: options.plugins,
-        });
-      }
+      const eta = options
+        ? new Eta({
+            cache: true,
+            autoEscape: true,
+            useWith: true,
+            ...options,
+            varName: options.varName ?? 'it',
+          })
+        : this.eta;
 
-      return this.eta.renderString(template, data);
+      return eta.renderString(template, data);
     } catch (error) {
       throw new Error(`Eta rendering failed: ${String(error)}`, {
         cause: error,
@@ -72,31 +70,19 @@ export class EtaService {
     options?: EtaOptions,
   ): string {
     try {
-      if (options) {
-        this.eta = new Eta({
-          cache: options.cache ?? true,
-          autoEscape: options.autoEscape ?? true,
-          varName: options.varName ?? 'it',
-          views: options.views,
-          useWith: options.useWith ?? true,
-          plugins: options.plugins,
-        });
-      }
-
-      // Check cache first
-      let template = this.templateCache.get(filePath);
+      const resolvedPath = resolve(filePath);
+      const useCache = options?.cache ?? true;
+      let template = useCache
+        ? this.templateCache.get(resolvedPath)
+        : undefined;
 
       if (!template) {
-        // Read template from file
-        const resolvedPath = resolve(filePath);
         template = readFileSync(resolvedPath, 'utf-8');
 
-        // Add to cache if not full
-        if (this.templateCache.size < this.maxCacheSize) {
-          this.templateCache.set(filePath, template);
+        if (useCache && this.templateCache.size < this.maxCacheSize) {
+          this.templateCache.set(resolvedPath, template);
         }
       }
-
       return this.render(template, data, options);
     } catch (error) {
       throw new Error(

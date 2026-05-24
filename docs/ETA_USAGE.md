@@ -160,14 +160,14 @@ Iterate over arrays:
 </ul>
 ```
 
-### Conditionals with &&
+### Conditionals (shorthand)
 
-Use shortcuts for conditional rendering:
+For readability, prefer an explicit `if` block:
 
 ```eta
-<% it.show && %>
-  <p>This shows if it.show is true</p>
-<% end %>
+<% if (it.show) { %>
+    <p>This shows if it.show is true</p>
+<% } %>
 ```
 
 ### Nested Objects
