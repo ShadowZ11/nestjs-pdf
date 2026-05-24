@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EtaService } from './eta.service';
-import * as fs from 'fs';
-import * as path from 'path';
+import { join } from 'node:path';
+import { existsSync, unlinkSync, writeFileSync } from 'node:fs';
 
 describe('EtaService', () => {
   let service: EtaService;
@@ -56,17 +56,17 @@ describe('EtaService', () => {
   });
 
   describe('renderFile', () => {
-    const testFilePath = path.join(__dirname, 'test-template.eta');
+    const testFilePath = join(__dirname, 'test-template.eta');
 
     beforeEach(() => {
-      if (!fs.existsSync(testFilePath)) {
-        fs.writeFileSync(testFilePath, 'Hello <%= it.name %>!');
+      if (!existsSync(testFilePath)) {
+        writeFileSync(testFilePath, 'Hello <%= it.name %>!');
       }
     });
 
     afterEach(() => {
-      if (fs.existsSync(testFilePath)) {
-        fs.unlinkSync(testFilePath);
+      if (existsSync(testFilePath)) {
+        unlinkSync(testFilePath);
       }
     });
 
@@ -85,23 +85,23 @@ describe('EtaService', () => {
     });
 
     it('should throw error on non-existent file', () => {
-      const nonExistentPath = path.join(__dirname, 'non-existent.eta');
+      const nonExistentPath = join(__dirname, 'non-existent.eta');
       expect(() => service.renderFile(nonExistentPath, {})).toThrow();
     });
   });
 
   describe('clearCache', () => {
-    const testFilePath = path.join(__dirname, 'test-template.eta');
+    const testFilePath = join(__dirname, 'test-template.eta');
 
     beforeEach(() => {
-      if (!fs.existsSync(testFilePath)) {
-        fs.writeFileSync(testFilePath, 'Hello <%= it.name %>!');
+      if (!existsSync(testFilePath)) {
+        writeFileSync(testFilePath, 'Hello <%= it.name %>!');
       }
     });
 
     afterEach(() => {
-      if (fs.existsSync(testFilePath)) {
-        fs.unlinkSync(testFilePath);
+      if (existsSync(testFilePath)) {
+        unlinkSync(testFilePath);
       }
     });
 

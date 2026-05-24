@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Eta, EtaConfig } from 'eta';
-import fs from 'node:fs';
-import path from 'node:path';
+import { resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
 
 export interface EtaOptions extends Partial<EtaConfig> {
   cache?: boolean;
@@ -88,8 +88,8 @@ export class EtaService {
 
       if (!template) {
         // Read template from file
-        const resolvedPath = path.resolve(filePath);
-        template = fs.readFileSync(resolvedPath, 'utf-8');
+        const resolvedPath = resolve(filePath);
+        template = readFileSync(resolvedPath, 'utf-8');
 
         // Add to cache if not full
         if (this.templateCache.size < this.maxCacheSize) {

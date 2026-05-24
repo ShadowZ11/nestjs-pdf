@@ -98,7 +98,7 @@
     "@gboutte/nestjs-hbs": "^0.2.0",
     "@napi-rs/canvas": "^1.0.0",
     "ejs": "^5.0.2",
-    "eta": "^3.2.0",
+    "eta": "^4.6.0",
     "mjml": "^5.2.1",
     "nunjucks": "^3.2.4",
     "pug": "^3.0.3"
