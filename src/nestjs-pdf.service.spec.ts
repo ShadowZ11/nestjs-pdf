@@ -24,6 +24,8 @@ describe('NestjsPdfService', () => {
     generatePdfFromPugFile: jest.fn(),
     generatePdfFromNunjucksString: jest.fn(),
     generatePdfFromNunjucksFile: jest.fn(),
+    generatePdfFromMustacheString: jest.fn(),
+    generatePdfFromMustacheFile: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -593,6 +595,118 @@ describe('NestjsPdfService', () => {
 
       await expect(
         service.generatePdfFromNunjucksFile(filePath),
+      ).rejects.toThrow('File not found');
+    });
+  });
+
+  describe('generatePdfFromMustacheString', () => {
+    it('should delegate to puppeteerService.generatePdfFromMustacheString', async () => {
+      const template = '<p>{{name}}</p>';
+      const data = { name: 'Frank' };
+      const mockPdf = new Uint8Array([99, 100, 101]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromMustacheString')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromMustacheString(
+        template,
+        data,
+      );
+
+      expect(spy).toHaveBeenCalledWith(template, data, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should handle default data', async () => {
+      const template = '<p>Hello Mustache</p>';
+      const mockPdf = new Uint8Array([102, 103, 104]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromMustacheString')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromMustacheString(template);
+
+      expect(spy).toHaveBeenCalledWith(template, {}, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should pass custom options', async () => {
+      const template = '<p>{{title}}</p>';
+      const data = { title: 'Mustache Template' };
+      const options = { pdfOptions: { format: 'A4' as const } };
+      const mockPdf = new Uint8Array([105, 106, 107]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromMustacheString')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromMustacheString(template, data, options);
+
+      expect(spy).toHaveBeenCalledWith(template, data, options);
+    });
+
+    it('should propagate errors', async () => {
+      const template = '<p>{{invalid}}</p>';
+      const error = new Error('Mustache render error');
+      jest
+        .spyOn(puppeteerService, 'generatePdfFromMustacheString')
+        .mockRejectedValue(error);
+
+      await expect(
+        service.generatePdfFromMustacheString(template),
+      ).rejects.toThrow('Mustache render error');
+    });
+  });
+
+  describe('generatePdfFromMustacheFile', () => {
+    it('should delegate to puppeteerService.generatePdfFromMustacheFile', async () => {
+      const filePath = '/path/to/template.mustache';
+      const data = { user: 'Charlie' };
+      const mockPdf = new Uint8Array([108, 109, 110]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromMustacheFile')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromMustacheFile(filePath, data);
+
+      expect(spy).toHaveBeenCalledWith(filePath, data, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should handle default data', async () => {
+      const filePath = '/templates/document.mustache';
+      const mockPdf = new Uint8Array([111, 112, 113]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromMustacheFile')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromMustacheFile(filePath);
+
+      expect(spy).toHaveBeenCalledWith(filePath, {}, undefined);
+    });
+
+    it('should pass options through', async () => {
+      const filePath = '/templates/invoice.mustache';
+      const data = { amount: '750' };
+      const options = { pdfOptions: { format: 'A4' as const } };
+      const mockPdf = new Uint8Array([114, 115, 116]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromMustacheFile')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromMustacheFile(filePath, data, options);
+
+      expect(spy).toHaveBeenCalledWith(filePath, data, options);
+    });
+
+    it('should propagate errors', async () => {
+      const filePath = '/path/to/missing.mustache';
+      const error = new Error('File not found');
+      jest
+        .spyOn(puppeteerService, 'generatePdfFromMustacheFile')
+        .mockRejectedValue(error);
+
+      await expect(
+        service.generatePdfFromMustacheFile(filePath),
       ).rejects.toThrow('File not found');
     });
   });
