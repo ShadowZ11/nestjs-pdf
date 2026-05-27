@@ -16,6 +16,14 @@ describe('NestjsPdfService', () => {
     generatePdfFromHtml: jest.fn(),
     generatePdfFromTemplateHbsString: jest.fn(),
     generatePdfFromTemplateHbsFile: jest.fn(),
+    generatePdfFromMjmlString: jest.fn(),
+    generatePdfFromMjmlFile: jest.fn(),
+    generatePdfFromEjsString: jest.fn(),
+    generatePdfFromEjsFile: jest.fn(),
+    generatePdfFromPugString: jest.fn(),
+    generatePdfFromPugFile: jest.fn(),
+    generatePdfFromNunjucksString: jest.fn(),
+    generatePdfFromNunjucksFile: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -174,6 +182,418 @@ describe('NestjsPdfService', () => {
       );
 
       expect(spy).toHaveBeenCalledWith(filePath, parameters, options);
+    });
+  });
+
+  describe('generatePdfFromMjmlString', () => {
+    it('should delegate to puppeteerService.generatePdfFromMjmlString', async () => {
+      const template =
+        '<mjml><mj-body><mj-section><mj-column><mj-text>Hello</mj-text></mj-column></mj-section></mj-body></mjml>';
+      const mockPdf = new Uint8Array([33, 34, 35]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromMjmlString')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromMjmlString(template);
+
+      expect(spy).toHaveBeenCalledWith(template, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should pass custom options', async () => {
+      const template =
+        '<mjml><mj-body><mj-section><mj-column><mj-text>Email</mj-text></mj-column></mj-section></mj-body></mjml>';
+      const options = { pdfOptions: { format: 'A4' as const } };
+      const mockPdf = new Uint8Array([36, 37, 38]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromMjmlString')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromMjmlString(template, options);
+
+      expect(spy).toHaveBeenCalledWith(template, options);
+    });
+
+    it('should propagate errors', async () => {
+      const template = '<invalid>';
+      const error = new Error('Invalid MJML');
+      jest
+        .spyOn(puppeteerService, 'generatePdfFromMjmlString')
+        .mockRejectedValue(error);
+
+      await expect(service.generatePdfFromMjmlString(template)).rejects.toThrow(
+        'Invalid MJML',
+      );
+    });
+  });
+
+  describe('generatePdfFromMjmlFile', () => {
+    it('should delegate to puppeteerService.generatePdfFromMjmlFile', async () => {
+      const filePath = '/path/to/template.mjml';
+      const mockPdf = new Uint8Array([39, 40, 41]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromMjmlFile')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromMjmlFile(filePath);
+
+      expect(spy).toHaveBeenCalledWith(filePath, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should pass custom options', async () => {
+      const filePath = '/templates/email.mjml';
+      const options = { pdfOptions: { format: 'Letter' as const } };
+      const mockPdf = new Uint8Array([42, 43, 44]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromMjmlFile')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromMjmlFile(filePath, options);
+
+      expect(spy).toHaveBeenCalledWith(filePath, options);
+    });
+
+    it('should propagate errors', async () => {
+      const filePath = '/path/to/missing.mjml';
+      const error = new Error('File not found');
+      jest
+        .spyOn(puppeteerService, 'generatePdfFromMjmlFile')
+        .mockRejectedValue(error);
+
+      await expect(service.generatePdfFromMjmlFile(filePath)).rejects.toThrow(
+        'File not found',
+      );
+    });
+  });
+
+  describe('generatePdfFromEjsString', () => {
+    it('should delegate to puppeteerService.generatePdfFromEjsString', async () => {
+      const template = '<p><%= name %></p>';
+      const data = { name: 'John' };
+      const mockPdf = new Uint8Array([45, 46, 47]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromEjsString')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromEjsString(template, data);
+
+      expect(spy).toHaveBeenCalledWith(template, data, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should handle default data', async () => {
+      const template = '<p>Hello</p>';
+      const mockPdf = new Uint8Array([48, 49, 50]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromEjsString')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromEjsString(template);
+
+      expect(spy).toHaveBeenCalledWith(template, {}, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should pass custom options', async () => {
+      const template = '<p><%= title %></p>';
+      const data = { title: 'Document' };
+      const options = { pdfOptions: { format: 'A4' as const } };
+      const mockPdf = new Uint8Array([51, 52, 53]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromEjsString')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromEjsString(template, data, options);
+
+      expect(spy).toHaveBeenCalledWith(template, data, options);
+    });
+
+    it('should propagate errors', async () => {
+      const template = '<p><%= invalid.nested %></p>';
+      const error = new Error('EJS render error');
+      jest
+        .spyOn(puppeteerService, 'generatePdfFromEjsString')
+        .mockRejectedValue(error);
+
+      await expect(service.generatePdfFromEjsString(template)).rejects.toThrow(
+        'EJS render error',
+      );
+    });
+  });
+
+  describe('generatePdfFromEjsFile', () => {
+    it('should delegate to puppeteerService.generatePdfFromEjsFile', async () => {
+      const filePath = '/path/to/template.ejs';
+      const data = { content: 'Test' };
+      const mockPdf = new Uint8Array([54, 55, 56]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromEjsFile')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromEjsFile(filePath, data);
+
+      expect(spy).toHaveBeenCalledWith(filePath, data, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should handle default data', async () => {
+      const filePath = '/templates/document.ejs';
+      const mockPdf = new Uint8Array([57, 58, 59]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromEjsFile')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromEjsFile(filePath);
+
+      expect(spy).toHaveBeenCalledWith(filePath, {}, undefined);
+    });
+
+    it('should pass options through', async () => {
+      const filePath = '/templates/invoice.ejs';
+      const data = { amount: '500' };
+      const options = { pdfOptions: { format: 'A4' as const } };
+      const mockPdf = new Uint8Array([60, 61, 62]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromEjsFile')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromEjsFile(filePath, data, options);
+
+      expect(spy).toHaveBeenCalledWith(filePath, data, options);
+    });
+
+    it('should propagate errors', async () => {
+      const filePath = '/path/to/missing.ejs';
+      const error = new Error('File not found');
+      jest
+        .spyOn(puppeteerService, 'generatePdfFromEjsFile')
+        .mockRejectedValue(error);
+
+      await expect(service.generatePdfFromEjsFile(filePath)).rejects.toThrow(
+        'File not found',
+      );
+    });
+  });
+
+  describe('generatePdfFromPugString', () => {
+    it('should delegate to puppeteerService.generatePdfFromPugString', async () => {
+      const template = 'p= name';
+      const data = { name: 'John' };
+      const mockPdf = new Uint8Array([63, 64, 65]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromPugString')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromPugString(template, data);
+
+      expect(spy).toHaveBeenCalledWith(template, data, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should handle default data', async () => {
+      const template = 'p Hello';
+      const mockPdf = new Uint8Array([66, 67, 68]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromPugString')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromPugString(template);
+
+      expect(spy).toHaveBeenCalledWith(template, {}, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should pass custom options', async () => {
+      const template = 'p= title';
+      const data = { title: 'Report' };
+      const options = { pdfOptions: { format: 'A3' as const } };
+      const mockPdf = new Uint8Array([69, 70, 71]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromPugString')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromPugString(template, data, options);
+
+      expect(spy).toHaveBeenCalledWith(template, data, options);
+    });
+
+    it('should propagate errors', async () => {
+      const template = 'invalid pug syntax [[';
+      const error = new Error('Pug syntax error');
+      jest
+        .spyOn(puppeteerService, 'generatePdfFromPugString')
+        .mockRejectedValue(error);
+
+      await expect(service.generatePdfFromPugString(template)).rejects.toThrow(
+        'Pug syntax error',
+      );
+    });
+  });
+
+  describe('generatePdfFromPugFile', () => {
+    it('should delegate to puppeteerService.generatePdfFromPugFile', async () => {
+      const filePath = '/path/to/template.pug';
+      const data = { user: 'Alice' };
+      const mockPdf = new Uint8Array([72, 73, 74]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromPugFile')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromPugFile(filePath, data);
+
+      expect(spy).toHaveBeenCalledWith(filePath, data, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should handle default data', async () => {
+      const filePath = '/templates/report.pug';
+      const mockPdf = new Uint8Array([75, 76, 77]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromPugFile')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromPugFile(filePath);
+
+      expect(spy).toHaveBeenCalledWith(filePath, {}, undefined);
+    });
+
+    it('should pass options through', async () => {
+      const filePath = '/templates/cert.pug';
+      const data = { recipient: 'Bob' };
+      const options = { pdfOptions: { format: 'A4' as const } };
+      const mockPdf = new Uint8Array([78, 79, 80]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromPugFile')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromPugFile(filePath, data, options);
+
+      expect(spy).toHaveBeenCalledWith(filePath, data, options);
+    });
+
+    it('should propagate errors', async () => {
+      const filePath = '/path/to/missing.pug';
+      const error = new Error('File not found');
+      jest
+        .spyOn(puppeteerService, 'generatePdfFromPugFile')
+        .mockRejectedValue(error);
+
+      await expect(service.generatePdfFromPugFile(filePath)).rejects.toThrow(
+        'File not found',
+      );
+    });
+  });
+
+  describe('generatePdfFromNunjucksString', () => {
+    it('should delegate to puppeteerService.generatePdfFromNunjucksString', async () => {
+      const template = '<p>{{ name }}</p>';
+      const data = { name: 'Emma' };
+      const mockPdf = new Uint8Array([81, 82, 83]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromNunjucksString')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromNunjucksString(
+        template,
+        data,
+      );
+
+      expect(spy).toHaveBeenCalledWith(template, data, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should handle default data', async () => {
+      const template = '<p>Hello World</p>';
+      const mockPdf = new Uint8Array([84, 85, 86]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromNunjucksString')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromNunjucksString(template);
+
+      expect(spy).toHaveBeenCalledWith(template, {}, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should pass custom options', async () => {
+      const template = '<p>{{ title }}</p>';
+      const data = { title: 'Nunjucks' };
+      const options = { pdfOptions: { format: 'A4' as const } };
+      const mockPdf = new Uint8Array([87, 88, 89]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromNunjucksString')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromNunjucksString(template, data, options);
+
+      expect(spy).toHaveBeenCalledWith(template, data, options);
+    });
+
+    it('should propagate errors', async () => {
+      const template = '<p>{{ undefined_var }}</p>';
+      const error = new Error('Nunjucks render error');
+      jest
+        .spyOn(puppeteerService, 'generatePdfFromNunjucksString')
+        .mockRejectedValue(error);
+
+      await expect(
+        service.generatePdfFromNunjucksString(template),
+      ).rejects.toThrow('Nunjucks render error');
+    });
+  });
+
+  describe('generatePdfFromNunjucksFile', () => {
+    it('should delegate to puppeteerService.generatePdfFromNunjucksFile', async () => {
+      const filePath = '/path/to/template.njk';
+      const data = { version: '1.0' };
+      const mockPdf = new Uint8Array([90, 91, 92]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromNunjucksFile')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromNunjucksFile(filePath, data);
+
+      expect(spy).toHaveBeenCalledWith(filePath, data, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should handle default data', async () => {
+      const filePath = '/templates/page.njk';
+      const mockPdf = new Uint8Array([93, 94, 95]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromNunjucksFile')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromNunjucksFile(filePath);
+
+      expect(spy).toHaveBeenCalledWith(filePath, {}, undefined);
+    });
+
+    it('should pass options through', async () => {
+      const filePath = '/templates/manifest.njk';
+      const data = { items: ['a', 'b', 'c'] };
+      const options = { pdfOptions: { format: 'A4' as const } };
+      const mockPdf = new Uint8Array([96, 97, 98]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromNunjucksFile')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromNunjucksFile(filePath, data, options);
+
+      expect(spy).toHaveBeenCalledWith(filePath, data, options);
+    });
+
+    it('should propagate errors', async () => {
+      const filePath = '/path/to/missing.njk';
+      const error = new Error('File not found');
+      jest
+        .spyOn(puppeteerService, 'generatePdfFromNunjucksFile')
+        .mockRejectedValue(error);
+
+      await expect(
+        service.generatePdfFromNunjucksFile(filePath),
+      ).rejects.toThrow('File not found');
     });
   });
 
