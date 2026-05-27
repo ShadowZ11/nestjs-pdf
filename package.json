@@ -127,6 +127,14 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "globals": {
+      "ts-jest": {
+        "useESM": true
+      }
+    },
     "collectCoverageFrom": [
       "src/**/*.(t|j)s"
     ],
