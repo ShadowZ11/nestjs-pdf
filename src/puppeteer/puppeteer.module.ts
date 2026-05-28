@@ -14,6 +14,7 @@ import { MjmlService } from './engines/mjml/mjml.service';
 import { PugService } from './engines/pug/pug.service';
 import { EjsService } from './engines/ejs/ejs.service';
 import { NunjucksService } from './engines/nunjucks/nunjucks.service';
+import { EtaService } from './engines/eta/eta.service';
 import { MustacheService } from './engines/mustache/mustache.service';
 import { HANDLEBARS_PARAMETERS, PDF_PARAMETERS } from '../helpers/tokens';
 import type { PuppeteerParameters } from './puppeteer-parameters.interface';
@@ -39,6 +40,7 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
     PugService,
     EjsService,
     NunjucksService,
+    EtaService,
     MustacheService,
   ],
   exports: [
@@ -47,6 +49,7 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
     PugService,
     EjsService,
     NunjucksService,
+    EtaService,
     MustacheService,
   ],
 })
@@ -75,6 +78,7 @@ export class PuppeteerModule implements OnModuleInit {
       PugService,
       EjsService,
       NunjucksService,
+      EtaService,
       MustacheService,
     ];
 
@@ -88,6 +92,7 @@ export class PuppeteerModule implements OnModuleInit {
         PugService,
         EjsService,
         NunjucksService,
+        EtaService,
         MustacheService,
       ],
     };
@@ -120,6 +125,7 @@ export class PuppeteerModule implements OnModuleInit {
         PugService,
         EjsService,
         NunjucksService,
+        EtaService,
         MustacheService,
       ],
       exports: [
@@ -128,6 +134,7 @@ export class PuppeteerModule implements OnModuleInit {
         PugService,
         EjsService,
         NunjucksService,
+        EtaService,
         MustacheService,
       ],
     };

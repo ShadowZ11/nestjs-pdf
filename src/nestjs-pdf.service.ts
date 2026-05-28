@@ -184,6 +184,40 @@ export class NestjsPdfService {
   }
 
   /**
+   * @param template Eta template string
+   * @param data Data to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the provided Eta template with data applied
+   * @description This method generates a PDF from an Eta template provided as a string. Eta is a fast and lightweight embedded templating language with a syntax similar to EJS but with better performance. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   */
+  generatePdfFromEtaString(
+    template: string,
+    data: Record<string, unknown> = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromEtaString(
+      template,
+      data,
+      options,
+    );
+  }
+
+  /**
+   * @param file Path to the Eta template file
+   * @param data Data to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the Eta template at the provided file path with data applied
+   * @description This method generates a PDF from an Eta template located at the specified file path. The file path is passed as a string in the `file` parameter. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   */
+  generatePdfFromEtaFile(
+    file: string,
+    data: Record<string, unknown> = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromEtaFile(file, data, options);
+  }
+
+  /**
    * @param template Mustache template string
    * @param data Data to inject into the template
    * @param options PDF generation options (optional)
