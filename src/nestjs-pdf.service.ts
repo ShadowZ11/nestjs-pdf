@@ -218,6 +218,44 @@ export class NestjsPdfService {
   }
 
   /**
+   * @param template Mustache template string
+   * @param data Data to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the provided Mustache template with data applied
+   * @description This method generates a PDF from a Mustache template provided as a string. Mustache is a logic-less template language that emphasizes readable and simple templates. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   */
+  generatePdfFromMustacheString(
+    template: string,
+    data: Record<string, unknown> = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromMustacheString(
+      template,
+      data,
+      options,
+    );
+  }
+
+  /**
+   * @param file Path to the Mustache template file
+   * @param data Data to inject into the template
+   * @param options PDF generation options (optional)
+   * @returns PDF generated from the Mustache template at the provided file path with data applied
+   * @description This method generates a PDF from a Mustache template located at the specified file path. The file path is passed as a string in the `file` parameter. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   */
+  generatePdfFromMustacheFile(
+    file: string,
+    data: Record<string, unknown> = {},
+    options?: PuppeteerParameters,
+  ) {
+    return this.puppeteerService.generatePdfFromMustacheFile(
+      file,
+      data,
+      options,
+    );
+  }
+
+  /**
    * @param pdf The PDF bytes to modify
    * @param fieldName The name of the signature field to add (default: 'SignatureDebtor')
    * @param anchorText The text anchor to locate the signature field position (default: '__SIG_DEBTOR_ANCHOR__')

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PuppeteerModule } from './puppeteer.module';
 import { PuppeteerService } from './puppeteer.service';
-import { PDF_PARAMETERS, HANDLEBARS_PARAMETERS } from './helpers/tokens';
+import { PDF_PARAMETERS, HANDLEBARS_PARAMETERS } from '../helpers/tokens';
 import { ConfigModule } from '@nestjs/config';
 import { PuppeteerParameters } from './puppeteer-parameters.interface';
 import { BrowserTag } from './browser/browser.service';

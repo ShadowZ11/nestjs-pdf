@@ -42,6 +42,7 @@
     "mjml",
     "pug",
     "eta",
+    "mustache",
     "pdf-lib",
     "pdfjs-dist"
   ],
@@ -72,6 +73,7 @@
     "@types/jest": "^30.0.0",
     "@types/mjml": "^5.0.0",
     "@types/mjml-core": "^5.0.0",
+    "@types/mustache": "^4.2.6",
     "@types/node": "^25.6.2",
     "@types/nunjucks": "^3.2.6",
     "@types/pug": "^2.0.10",
@@ -100,6 +102,7 @@
     "ejs": "^5.0.2",
     "eta": "^4.6.0",
     "mjml": "^5.2.1",
+    "mustache": "^4.2.0",
     "nunjucks": "^3.2.4",
     "pug": "^3.0.3"
   },
@@ -128,14 +131,6 @@
     ],
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "extensionsToTreatAsEsm": [
-      ".ts"
-    ],
-    "globals": {
-      "ts-jest": {
-        "useESM": true
-      }
     },
     "collectCoverageFrom": [
       "src/**/*.(t|j)s"

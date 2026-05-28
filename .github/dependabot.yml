@@ -6,6 +6,11 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    reviewers:
+      - Asma-B-M
+      - ShadowZ11
+    assignees:
+      - ShadowZ11
     groups:
       npm-dependencies:
         patterns:
@@ -15,6 +20,11 @@ updates:
           - "patch"
   - package-ecosystem: "github-actions"
     directory: "/"
+    reviewers:
+      - Asma-B-M
+      - ShadowZ11
+    assignees:
+      - ShadowZ11
     target-branch: "develop"
     schedule:
       interval: "weekly"

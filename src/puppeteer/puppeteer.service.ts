@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import type { PuppeteerParameters } from './puppeteer-parameters.interface';
-import { PDF_PARAMETERS } from './helpers/tokens';
+import { PDF_PARAMETERS } from '../helpers/tokens';
 import { BrowserService } from './browser/browser.service';
 import { mergePuppeteerParameters } from '../helpers/deepMergePdfparams';
 import pLimit from 'p-limit';
@@ -10,6 +10,7 @@ import { PugService } from './engines/pug/pug.service';
 import { EjsService } from './engines/ejs/ejs.service';
 import { NunjucksService } from './engines/nunjucks/nunjucks.service';
 import { EtaService } from './engines/eta/eta.service';
+import { MustacheService } from './engines/mustache/mustache.service';
 import { PDFOptions } from 'puppeteer';
 import { LocalsObject } from 'pug';
 import { Data } from 'ejs';
@@ -25,6 +26,7 @@ export class PuppeteerService {
     @Optional() private readonly ejsService?: EjsService,
     @Optional() private readonly nunjucksService?: NunjucksService,
     @Optional() private readonly etaService?: EtaService,
+    @Optional() private readonly mustacheService?: MustacheService,
   ) {}
 
   private readonly limit = pLimit(3);
@@ -308,6 +310,42 @@ export class PuppeteerService {
       file,
       data,
       options?.etaOptions ?? this.options.etaOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromMustacheString(
+    template: string,
+    data: Record<string, unknown> = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.mustacheService) {
+      throw new Error(
+        'Mustache service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = this.mustacheService.render(
+      template,
+      data,
+      options?.mustacheOptions ?? this.options.mustacheOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromMustacheFile(
+    file: string,
+    data: Record<string, unknown> = {},
+    options?: PuppeteerParameters,
+  ) {
+    if (!this.mustacheService) {
+      throw new Error(
+        'Mustache service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
+    const html = this.mustacheService.renderFile(
+      file,
+      data,
+      options?.mustacheOptions ?? this.options.mustacheOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }

@@ -7,6 +7,7 @@ import { PugOptions } from './engines/pug/pug.service';
 import { EjsOptions } from './engines/ejs/ejs.service';
 import { NunjucksOptions } from './engines/nunjucks/nunjucks.service';
 import { EtaOptions } from './engines/eta/eta.service';
+import { MustacheOptions } from './engines/mustache/mustache.service';
 
 export interface PuppeteerParameters {
   pdfOptions?: PDFOptions;
@@ -17,6 +18,7 @@ export interface PuppeteerParameters {
   ejsOptions?: EjsOptions;
   nunjucksOptions?: NunjucksOptions;
   etaOptions?: EtaOptions;
+  mustacheOptions?: MustacheOptions;
   chromiumRevision?: string;
   buildId?: string;
   headless?: boolean | 'shell';

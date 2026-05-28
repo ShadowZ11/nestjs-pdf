@@ -36,6 +36,7 @@ To use a template engine, you need to install the corresponding package as a dep
 - For MJML: `npm install mjml`
 - For Nunjucks: `npm install nunjucks`
 - For Eta: `npm install eta`
+- For Mustache: `npm install mustache`
 
 ```ts
 import { Module } from '@nestjs/common';
@@ -118,6 +119,7 @@ The library exposes Puppeteer options via the `PuppeteerParameters` interface (s
 | `mjmlOptions`               | The mjml options can be found on [MJML documentation](https://mjml.io/documentation/#options)                                                                                                                                                                                                  |
 | `nunjucksOptions`           | The nunjucks options can be found on [Nunjucks documentation](https://mozilla.github.io/nunjucks/api.html#configure)                                                                                                                                                                           |
 | `etaOptions`                | The eta options can be found on [Eta documentation](https://eta.js.org/docs/4.x.x/api/configuration)                                                                                                                                                                                           |
+| `mustacheOptions`           | The mustache options can be found on [Mustache documentation](https://mustache.github.io/mustache.5.html)                                                                                                                                                                                      |
 | `browser`                   | The browser to use for the PDF generation. By default: `Browser.CHROMIUM`. Allowed values `Browser.CHROMIUM`, `Browser.CHROMEHEADLESSSHELL`, `Browser.CHROME`, `Browser.FIREFOX`, `Browser.CHROMEDRIVER` ([Official documentation of Browser](https://pptr.dev/browsers-api/browsers.browser)) |
 | `browserTag`                | The version of the browser to use for the PDF generation. By default: `BrowserTag.LATEST` if Browser is **CHROMIUM** else `BrowserTag.STABLE`. Allowed values `BrowserTag.STABLE`, `BrowserTag.LATEST`, `BrowserTag.BETA`, `BrowserTag.DEV`, `BrowserTag.CANARY`                               |
 | `browserInstallBaseUrl`     | The baseUrl used for the installation of the browser. This baseUrl is passed to the [`install`](https://pptr.dev/browsers-api/browsers.install) method of `@puppeteer/browsers`                                                                                                                |
