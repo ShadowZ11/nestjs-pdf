@@ -24,6 +24,8 @@ describe('NestjsPdfService', () => {
     generatePdfFromPugFile: jest.fn(),
     generatePdfFromNunjucksString: jest.fn(),
     generatePdfFromNunjucksFile: jest.fn(),
+    generatePdfFromEtaString: jest.fn(),
+    generatePdfFromEtaFile: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -594,6 +596,115 @@ describe('NestjsPdfService', () => {
       await expect(
         service.generatePdfFromNunjucksFile(filePath),
       ).rejects.toThrow('File not found');
+    });
+  });
+
+  describe('generatePdfFromEtaString', () => {
+    it('should delegate to puppeteerService.generatePdfFromEtaString', async () => {
+      const template = '<p><%= it.name %></p>';
+      const data = { name: 'Diana' };
+      const mockPdf = new Uint8Array([99, 100, 101]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromEtaString')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromEtaString(template, data);
+
+      expect(spy).toHaveBeenCalledWith(template, data, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should handle default data', async () => {
+      const template = '<p>Hello from Eta</p>';
+      const mockPdf = new Uint8Array([102, 103, 104]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromEtaString')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromEtaString(template);
+
+      expect(spy).toHaveBeenCalledWith(template, {}, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should pass custom options', async () => {
+      const template = '<p><%= it.title %></p>';
+      const data = { title: 'Eta Template' };
+      const options = { pdfOptions: { format: 'A4' as const } };
+      const mockPdf = new Uint8Array([105, 106, 107]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromEtaString')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromEtaString(template, data, options);
+
+      expect(spy).toHaveBeenCalledWith(template, data, options);
+    });
+
+    it('should propagate errors', async () => {
+      const template = '<p><%= it.invalid %></p>';
+      const error = new Error('Eta render error');
+      jest
+        .spyOn(puppeteerService, 'generatePdfFromEtaString')
+        .mockRejectedValue(error);
+
+      await expect(service.generatePdfFromEtaString(template)).rejects.toThrow(
+        'Eta render error',
+      );
+    });
+  });
+
+  describe('generatePdfFromEtaFile', () => {
+    it('should delegate to puppeteerService.generatePdfFromEtaFile', async () => {
+      const filePath = '/path/to/template.eta';
+      const data = { user: 'George' };
+      const mockPdf = new Uint8Array([108, 109, 110]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromEtaFile')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromEtaFile(filePath, data);
+
+      expect(spy).toHaveBeenCalledWith(filePath, data, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should handle default data', async () => {
+      const filePath = '/templates/document.eta';
+      const mockPdf = new Uint8Array([111, 112, 113]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromEtaFile')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromEtaFile(filePath);
+
+      expect(spy).toHaveBeenCalledWith(filePath, {}, undefined);
+    });
+
+    it('should pass options through', async () => {
+      const filePath = '/templates/invoice.eta';
+      const data = { amount: '999' };
+      const options = { pdfOptions: { format: 'A4' as const } };
+      const mockPdf = new Uint8Array([114, 115, 116]);
+      const spy = jest
+        .spyOn(puppeteerService, 'generatePdfFromEtaFile')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromEtaFile(filePath, data, options);
+
+      expect(spy).toHaveBeenCalledWith(filePath, data, options);
+    });
+
+    it('should propagate errors', async () => {
+      const filePath = '/path/to/missing.eta';
+      const error = new Error('File not found');
+      jest
+        .spyOn(puppeteerService, 'generatePdfFromEtaFile')
+        .mockRejectedValue(error);
+
+      await expect(service.generatePdfFromEtaFile(filePath)).rejects.toThrow(
+        'File not found',
+      );
     });
   });
 
