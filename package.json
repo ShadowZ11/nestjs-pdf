@@ -28,7 +28,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "prepare": "husky"
   },
   "keywords": [
     "nestjs",
@@ -40,6 +41,8 @@
     "ejs",
     "mjml",
     "pug",
+    "eta",
+    "mustache",
     "pdf-lib",
     "pdfjs-dist"
   ],
@@ -70,6 +73,7 @@
     "@types/jest": "^30.0.0",
     "@types/mjml": "^5.0.0",
     "@types/mjml-core": "^5.0.0",
+    "@types/mustache": "^4.2.6",
     "@types/node": "^25.6.2",
     "@types/nunjucks": "^3.2.6",
     "@types/pug": "^2.0.10",
@@ -78,6 +82,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "globals": "^17.6.0",
+    "husky": "^9.1.7",
     "jest": "^30.4.2",
     "prettier": "^3.8.3",
     "reflect-metadata": "^0.2.2",
@@ -95,7 +100,9 @@
     "@gboutte/nestjs-hbs": "^0.2.0",
     "@napi-rs/canvas": "^1.0.0",
     "ejs": "^5.0.2",
+    "eta": "^4.6.0",
     "mjml": "^5.2.1",
+    "mustache": "^4.2.0",
     "nunjucks": "^3.2.4",
     "pug": "^3.0.3"
   },

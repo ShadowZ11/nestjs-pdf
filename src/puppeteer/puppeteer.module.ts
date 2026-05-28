@@ -9,12 +9,14 @@ import {
   Provider,
 } from '@nestjs/common';
 import { PuppeteerService } from './puppeteer.service';
-import { BrowserService } from './browser.service';
-import { MjmlService } from './services/mjml.service';
-import { PugService } from './services/pug.service';
-import { EjsService } from './services/ejs.service';
-import { NunjucksService } from './services/nunjucks.service';
-import { HANDLEBARS_PARAMETERS, PDF_PARAMETERS } from './helpers/tokens';
+import { BrowserService } from './browser/browser.service';
+import { MjmlService } from './engines/mjml/mjml.service';
+import { PugService } from './engines/pug/pug.service';
+import { EjsService } from './engines/ejs/ejs.service';
+import { NunjucksService } from './engines/nunjucks/nunjucks.service';
+import { EtaService } from './engines/eta/eta.service';
+import { MustacheService } from './engines/mustache/mustache.service';
+import { HANDLEBARS_PARAMETERS, PDF_PARAMETERS } from '../helpers/tokens';
 import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 import { ConfigModule } from '@nestjs/config';
 import { HandlebarsService } from '@gboutte/nestjs-hbs';
@@ -38,6 +40,8 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
     PugService,
     EjsService,
     NunjucksService,
+    EtaService,
+    MustacheService,
   ],
   exports: [
     PuppeteerService,
@@ -45,6 +49,8 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
     PugService,
     EjsService,
     NunjucksService,
+    EtaService,
+    MustacheService,
   ],
 })
 export class PuppeteerModule implements OnModuleInit {
@@ -72,6 +78,8 @@ export class PuppeteerModule implements OnModuleInit {
       PugService,
       EjsService,
       NunjucksService,
+      EtaService,
+      MustacheService,
     ];
 
     return {
@@ -84,6 +92,8 @@ export class PuppeteerModule implements OnModuleInit {
         PugService,
         EjsService,
         NunjucksService,
+        EtaService,
+        MustacheService,
       ],
     };
   }
@@ -115,6 +125,8 @@ export class PuppeteerModule implements OnModuleInit {
         PugService,
         EjsService,
         NunjucksService,
+        EtaService,
+        MustacheService,
       ],
       exports: [
         PuppeteerService,
@@ -122,6 +134,8 @@ export class PuppeteerModule implements OnModuleInit {
         PugService,
         EjsService,
         NunjucksService,
+        EtaService,
+        MustacheService,
       ],
     };
   }

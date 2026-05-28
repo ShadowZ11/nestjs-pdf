@@ -7,7 +7,7 @@
 
 import { Controller, Get, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import { NestjsPdfService } from '../src/nestjs-pdf.service';
+import { NestjsPdfService } from '../../src/nestjs-pdf.service';
 
 @Controller('pdf')
 export class PdfController {
@@ -205,7 +205,8 @@ export class PdfController {
         taxAmount: 920,
         discountAmount: 1380,
         finalTotal: 8740,
-        notes: 'Payment terms: Net 30 days. Please remit payment to the invoice address. Thank you!',
+        notes:
+          'Payment terms: Net 30 days. Please remit payment to the invoice address. Thank you!',
         generatedDate: new Date().toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long',
@@ -276,7 +277,7 @@ export class PdfController {
           },
           {
             name: 'Copywriting',
-            description: 'Professional copywriting services',
+            description: 'Professional copywriting engines',
             quantity: 1,
             price: 1500,
             total: 1500,
@@ -345,4 +346,3 @@ export class PdfController {
  * })
  * export class AppModule {}
  */
-
