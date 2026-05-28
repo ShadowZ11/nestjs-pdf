@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.2.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.1.0...v2.2.0) (2026-05-28)
+
+
+### Features
+
+* adding eta template engine ([ec93bd8](https://github.com/ShadowZ11/nestjs-pdf/commit/ec93bd8bd10175bcf23be39c28fe70afdb57dbbb))
+* adding mustache template engine ([27df8d0](https://github.com/ShadowZ11/nestjs-pdf/commit/27df8d0284111d81b042a52f9e03b5a016c1a37b))
+* update puppeteer and @puppeteer/browsers imports ([561d0ca](https://github.com/ShadowZ11/nestjs-pdf/commit/561d0cafb15422f82264db0cb2b3a6697af5c09e))
+
+
+### Bug Fixes
+
+* update nunjucks imports ([b659707](https://github.com/ShadowZ11/nestjs-pdf/commit/b659707a83881ba77688e1fe7e864a648e874b5b))
+* update pug imports ([b51421f](https://github.com/ShadowZ11/nestjs-pdf/commit/b51421ff0b2a2a3bbb2e05d40f750f9f7270d8b4))
+
 ## [2.1.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.0.1...v2.1.0) (2026-05-20)
 
 
