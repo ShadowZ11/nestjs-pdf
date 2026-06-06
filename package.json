@@ -57,7 +57,7 @@
     "p-limit": "^7.3.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.7.284",
-    "puppeteer": "^24.43.1"
+    "puppeteer": "^25.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
