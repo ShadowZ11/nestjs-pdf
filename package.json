@@ -132,6 +132,9 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "transformIgnorePatterns": [
+      "/node_modules/\\.pnpm/(?!(puppeteer[@+]|puppeteer-core[@+]|@puppeteer\\+))"
+    ],
     "collectCoverageFrom": [
       "src/**/*.(t|j)s"
     ],
