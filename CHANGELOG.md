@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.2.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.2.0...v2.2.1) (2026-06-10)
+
+
+### 🧹 Maintenance
+
+* **deps:** bump @puppeteer/browsers from 2.13.2 to 3.0.4 ([db19bca](https://github.com/ShadowZ11/nestjs-pdf/commit/db19bcaab1e5f2ebae465684fdfddb12a406127e))
+* **deps:** bump @puppeteer/browsers from 2.13.2 to 3.0.4 ([c239dfb](https://github.com/ShadowZ11/nestjs-pdf/commit/c239dfbf65b7a6124359d1ec525b0bb8129ad348))
+* **deps:** bump ejs from 5.0.2 to 6.0.1 ([ec687e1](https://github.com/ShadowZ11/nestjs-pdf/commit/ec687e1091fc66061a6bfcdd08991d89d778861b))
+* **deps:** bump puppeteer from 24.43.1 to 25.1.0 ([eb99411](https://github.com/ShadowZ11/nestjs-pdf/commit/eb994113634645bf314d7960a2ac9040cdf1fef6))
+* **deps:** bump puppeteer from 24.43.1 to 25.1.0 ([cf532cd](https://github.com/ShadowZ11/nestjs-pdf/commit/cf532cd2ddc0b002eab2c23c0ffbfae397fd79ba))
+* **deps:** bump the npm-dependencies group across 1 directory with 8 updates ([a71ef30](https://github.com/ShadowZ11/nestjs-pdf/commit/a71ef30f3b22c270b38d66a6192429c0b3a23c11))
+* **deps:** bump the npm-dependencies group with 8 updates ([3d82dad](https://github.com/ShadowZ11/nestjs-pdf/commit/3d82dad9ee9b4a89bd94120742456a42095bdad1))
+* update pnpm-workspace.yaml ([02b78d1](https://github.com/ShadowZ11/nestjs-pdf/commit/02b78d19037636ceca2c320c3f318405b7496b88))
+* update pnpm-workspace.yaml ([1f7eceb](https://github.com/ShadowZ11/nestjs-pdf/commit/1f7ecebc92420acb3bf1153ab5dcb62a27669eff))
+
+
+### 🔄 CI/CD
+
+* **test:** update jest test and release-please-config.json ([0e978d9](https://github.com/ShadowZ11/nestjs-pdf/commit/0e978d9e23882b3c4f8db9d40b3cc272820b90d5))
+
 ## [2.2.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.1.0...v2.2.0) (2026-05-28)
 
 

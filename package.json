@@ -1,6 +1,6 @@
 {
   "name": "@shad0wz7/nestjs-pdf",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "A NestJS library for generating PDFs with Puppeteer and Handlebars.",
   "author": "Emmanuel Boisset",
   "license": "MIT",
