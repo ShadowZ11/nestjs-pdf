@@ -6,9 +6,6 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    reviewers:
-      - Asma-B-M
-      - ShadowZ11
     assignees:
       - ShadowZ11
     groups:
