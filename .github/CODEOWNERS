@@ -1,0 +1,9 @@
+# CODEOWNERS
+# Documentation : https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Les owners listés ici sont automatiquement demandés en review
+# sur toute Pull Request modifiant les fichiers correspondants.
+
+# ─── Règle globale ────────────────────────────────────────────────────────────
+# Tous les fichiers du repo sont sous la responsabilité des deux maintainers.
+* @ShadowZ11 @Asma-B-M
