@@ -1,10 +1,10 @@
 # nestjs-pdf
 
-A small NestJS library to generate and manipulate PDFs using Puppeteer and multiple template engines, including Handlebars, EJS, Pug, and MJML.
+A small NestJS library to generate and manipulate PDFs using Puppeteer and multiple template engines, including Handlebars, EJS, Pug, MJML, Nunjucks, Eta and Mustache.
 
 Main features:
 
-- Generate PDFs from HTML, Handlebars, EJS, Pug or MJML templates
+- Generate PDFs from HTML, Handlebars, EJS, Pug, MJML, Nunjucks, Eta or Mustache templates
 - Concurrency limiting for Puppeteer jobs (p-limit)
 - Add signature fields based on a text anchor in an existing PDF
 - Simple API (module and service) to integrate easily into a Nest application
@@ -128,6 +128,7 @@ The library exposes Puppeteer options via the `PuppeteerParameters` interface (s
 | `buildId`                   | You can force the build id. Should be `string`                                                                                                                                                                                                                                                 |
 | `cleanupBrowserCacheOnExit` | Define if you want to clean up the browser cache folder on exit. By default it's `true`. Allowed values: `true`,`false`                                                                                                                                                                        |
 | `extraPuppeteerArgs`        | It passes some extra arguments to Puppeteer's launch method. You can check the default args at bellow. Should be `string[]`                                                                                                                                                                    |
+| `executablePath`            | The path to the browser executable to use. If not specified, Puppeteer will install Chromium in cache dir. (useLockedBrowser is useless with this param specified)                                                                                                                             |
 
 these are the default extra arguments passed to Puppeteer:
 ```ts
