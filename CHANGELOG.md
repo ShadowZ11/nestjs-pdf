@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.2.2...v2.3.0) (2026-06-26)
+
+
+### ✨ Features
+
+* new `executablePath` parameter ([3ec20b9](https://github.com/ShadowZ11/nestjs-pdf/commit/3ec20b9a289acd954399aacb48246ef8801a01e6))
+
 ## [2.2.2](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.2.1...v2.2.2) (2026-06-21)
 
 
