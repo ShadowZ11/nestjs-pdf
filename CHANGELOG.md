@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.3.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.2.2...v2.3.0) (2026-06-26)
+
+
+### ✨ Features
+
+* new `executablePath` parameter ([3ec20b9](https://github.com/ShadowZ11/nestjs-pdf/commit/3ec20b9a289acd954399aacb48246ef8801a01e6))
+
+## [2.2.2](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.2.1...v2.2.2) (2026-06-21)
+
+
+### 🧹 Maintenance
+
+* **deps-dev:** bump @types/node from 25.9.3 to 26.0.0 ([25386df](https://github.com/ShadowZ11/nestjs-pdf/commit/25386dfebc9e52498c58d0c212c56e2bc339036f))
+* **deps-dev:** bump the npm-dependencies group across 1 directory with 8 updates ([2771eec](https://github.com/ShadowZ11/nestjs-pdf/commit/2771eec995f6a2d5d75b601221350222730b3698))
+* **deps-dev:** bump ts-loader from 9.6.0 to 9.6.1 in the npm-dependencies group across 1 directory ([f81ecdf](https://github.com/ShadowZ11/nestjs-pdf/commit/f81ecdfe7059b33fc6de32d9fa596107eb036c4b))
+* **deps:** bump actions/checkout from 6 to 7 ([8600a7a](https://github.com/ShadowZ11/nestjs-pdf/commit/8600a7a1114d43a3384ddd3794aee3cd52068ce3))
+* **deps:** bump pdfjs-dist from 5.7.284 to 6.0.227 ([1c524c3](https://github.com/ShadowZ11/nestjs-pdf/commit/1c524c3cb3cc7c683c6c208eb71803b03c32da2b))
+
 ## [2.2.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.2.0...v2.2.1) (2026-06-10)
 
 
