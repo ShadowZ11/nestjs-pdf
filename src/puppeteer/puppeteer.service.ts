@@ -49,6 +49,8 @@ export class PuppeteerService {
       const headless: boolean | 'shell' =
         mergePuppeteerOptions.headless ?? true;
 
+      const executablePath = mergePuppeteerOptions.executablePath || undefined;
+
       //src: https://www.bannerbear.com/blog/ways-to-speed-up-puppeteer-screenshots/
       const args = mergePuppeteerOptions.extraPuppeteerArgs || [
         '--autoplay-policy=user-gesture-required',
@@ -97,7 +99,7 @@ export class PuppeteerService {
         context = await this.browserService.createContext(
           args,
           headless,
-          mergePuppeteerOptions.executablePath,
+          executablePath,
         );
         const page = await context.newPage();
 
