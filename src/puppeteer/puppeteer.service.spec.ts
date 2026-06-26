@@ -110,6 +110,7 @@ describe('PuppeteerService', () => {
       expect(browserService.createContext as jest.Mock).toHaveBeenCalledWith(
         expect.any(Array),
         true, // default headless value from mockPdfParameters
+        undefined,
       );
     });
 
@@ -185,7 +186,8 @@ describe('PuppeteerService', () => {
 
       expect(browserService.createContext as jest.Mock).toHaveBeenCalledWith(
         expect.any(Array),
-        false, // custom headless value
+        false, // custom headless value,
+        undefined,
       );
     });
 
@@ -311,6 +313,7 @@ describe('PuppeteerService', () => {
       expect(browserService.createContext).toHaveBeenCalledWith(
         expect.any(Array),
         false,
+        undefined,
       );
     });
   });

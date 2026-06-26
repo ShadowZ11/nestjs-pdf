@@ -27,5 +27,6 @@ export interface PuppeteerParameters {
   useLockedBrowser?: boolean;
   browserInstallBaseUrl?: string;
   extraPuppeteerArgs?: string[];
+  executablePath?: string;
   cleanupBrowserCacheOnExit?: boolean;
 }
