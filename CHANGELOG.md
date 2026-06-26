@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.3.0...v2.3.1) (2026-06-26)
+
+
+### 🐛 Bug Fixes
+
+* adding condition on browser installation when module initialization with executablePath ([d71e00d](https://github.com/ShadowZ11/nestjs-pdf/commit/d71e00d968265adbdedf4aa6efddfaf87af47eb9))
+
 ## [2.3.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.2.2...v2.3.0) (2026-06-26)
 
 
