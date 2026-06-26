@@ -60,7 +60,10 @@ export class PuppeteerModule implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this.browserService.install(this.pdfParams.useLockedBrowser ?? false);
+    if (!this.pdfParams.executablePath)
+      await this.browserService.install(
+        this.pdfParams.useLockedBrowser ?? false,
+      );
   }
 
   static forRoot(pdfParameters: PuppeteerParameters): DynamicModule {
