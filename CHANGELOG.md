@@ -13,14 +13,10 @@
 ### 🧹 Maintenance
 
 * **deps-dev:** bump @types/node from 25.9.3 to 26.0.0 ([25386df](https://github.com/ShadowZ11/nestjs-pdf/commit/25386dfebc9e52498c58d0c212c56e2bc339036f))
-* **deps-dev:** bump @types/node from 25.9.3 to 26.0.0 ([01ae44d](https://github.com/ShadowZ11/nestjs-pdf/commit/01ae44d24c958024f02264260def3f438e2aca74))
 * **deps-dev:** bump the npm-dependencies group across 1 directory with 8 updates ([2771eec](https://github.com/ShadowZ11/nestjs-pdf/commit/2771eec995f6a2d5d75b601221350222730b3698))
-* **deps-dev:** bump ts-loader ([0763e17](https://github.com/ShadowZ11/nestjs-pdf/commit/0763e17160ca38ffc74c60d23745537d64d32ed3))
 * **deps-dev:** bump ts-loader from 9.6.0 to 9.6.1 in the npm-dependencies group across 1 directory ([f81ecdf](https://github.com/ShadowZ11/nestjs-pdf/commit/f81ecdfe7059b33fc6de32d9fa596107eb036c4b))
 * **deps:** bump actions/checkout from 6 to 7 ([8600a7a](https://github.com/ShadowZ11/nestjs-pdf/commit/8600a7a1114d43a3384ddd3794aee3cd52068ce3))
-* **deps:** bump actions/checkout from 6 to 7 ([a4fc0d8](https://github.com/ShadowZ11/nestjs-pdf/commit/a4fc0d87b59a06e5acc2c2a9982873816e7db47f))
 * **deps:** bump pdfjs-dist from 5.7.284 to 6.0.227 ([1c524c3](https://github.com/ShadowZ11/nestjs-pdf/commit/1c524c3cb3cc7c683c6c208eb71803b03c32da2b))
-* **deps:** bump pdfjs-dist from 5.7.284 to 6.0.227 ([7044f37](https://github.com/ShadowZ11/nestjs-pdf/commit/7044f376a163dca86ee1d04e7a43eb2451ded61f))
 
 ## [2.2.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.2.0...v2.2.1) (2026-06-10)
 
