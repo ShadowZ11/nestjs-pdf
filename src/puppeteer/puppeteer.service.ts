@@ -94,7 +94,11 @@ export class PuppeteerService {
         null;
 
       try {
-        context = await this.browserService.createContext(args, headless);
+        context = await this.browserService.createContext(
+          args,
+          headless,
+          mergePuppeteerOptions.executablePath,
+        );
         const page = await context.newPage();
 
         const pdfOptions: PDFOptions = mergePuppeteerOptions.pdfOptions ?? {

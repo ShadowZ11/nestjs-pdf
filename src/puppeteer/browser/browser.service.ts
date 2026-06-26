@@ -96,9 +96,11 @@ export class BrowserService implements OnModuleDestroy {
   async getBrowserInstance(
     args: string[],
     headless: boolean | 'shell' | undefined,
+    executablePathBin: string | undefined,
   ) {
     if (!this._browserInstance?.connected) {
-      const executablePath = await this.getExecutablePath();
+      const executablePath =
+        executablePathBin ?? (await this.getExecutablePath());
 
       this._browserInstance = await launch({
         executablePath,
@@ -117,8 +119,13 @@ export class BrowserService implements OnModuleDestroy {
   async createContext(
     args: string[],
     headless: boolean | 'shell' | undefined,
+    executablePath?: string,
   ): Promise<BrowserContext> {
-    const browser = await this.getBrowserInstance(args, headless);
+    const browser = await this.getBrowserInstance(
+      args,
+      headless,
+      executablePath,
+    );
     return await browser.createBrowserContext();
   }
 
