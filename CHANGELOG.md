@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.2](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.3.1...v2.3.2) (2026-06-28)
+
+
+### 🧹 Maintenance
+
+* **deps:** bump the npm-dependencies group with 11 updates ([fb3d03d](https://github.com/ShadowZ11/nestjs-pdf/commit/fb3d03d83de7b7f1c2ff5810df5c806fc5dfa86e))
+
 ## [2.3.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.3.0...v2.3.1) (2026-06-26)
 
 
