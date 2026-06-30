@@ -111,11 +111,9 @@ describe('PuppeteerModule', () => {
     });
 
     it('should inject dependencies for async factory', async () => {
-      const asyncFactory = jest.fn(
-        (): PuppeteerParameters => ({
-          headless: true,
-        }),
-      );
+      const asyncFactory = jest.fn((): PuppeteerParameters => ({
+        headless: true,
+      }));
 
       module = await Test.createTestingModule({
         imports: [
