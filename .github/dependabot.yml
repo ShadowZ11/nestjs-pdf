@@ -6,6 +6,7 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    versioning-strategy: "increase"
     assignees:
       - ShadowZ11
     groups:

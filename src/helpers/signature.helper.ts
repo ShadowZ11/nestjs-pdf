@@ -8,21 +8,27 @@ import {
 } from 'pdf-lib';
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
+let pdfjsPromise: typeof import('pdfjs-dist/legacy/build/pdf.mjs') | undefined;
+
 async function loadPdfjs() {
-  try {
-    return await import('pdfjs-dist/legacy/build/pdf.mjs');
-  } catch (error) {
-    throw new Error(
-      [
-        'Failed to load pdfjs-dist.',
-        'If you use anchor-based signature placement in Node.js, make sure @napi-rs/canvas is installed.',
-        'Try: npm install @napi-rs/canvas',
-        '',
-        `Original error: ${error instanceof Error ? error.message : String(error)}`,
-      ].join('\n'),
-      { cause: error },
-    );
+  if (!pdfjsPromise) {
+    try {
+      pdfjsPromise = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    } catch (error) {
+      pdfjsPromise = undefined;
+      throw new Error(
+        [
+          'Failed to load pdfjs-dist.',
+          'If you use anchor-based signature placement in Node.js, make sure @napi-rs/canvas is installed.',
+          'Try: npm install @napi-rs/canvas',
+          '',
+          `Original error: ${error instanceof Error ? error.message : String(error)}`,
+        ].join('\n'),
+        { cause: error },
+      );
+    }
   }
+  return pdfjsPromise;
 }
 
 function toU8(input: Uint8Array | Buffer): Uint8Array {
@@ -41,35 +47,39 @@ async function findAnchorPosition(
 }> {
   const pdfjsLib = await loadPdfjs();
   const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
-  const pdf = await loadingTask.promise;
 
-  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-    const page = await pdf.getPage(pageNum);
-    const viewport = page.getViewport({ scale: 1 });
-    const textContent = await page.getTextContent();
+  try {
+    const pdf = await loadingTask.promise;
 
-    for (const itemRaw of textContent.items) {
-      const item = itemRaw as TextItem;
-      const str = item.str;
-      if (!str?.includes(anchorText)) continue;
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 1 });
+      const textContent = await page.getTextContent();
 
-      const t = pdfjsLib.Util.transform(viewport.transform, item.transform);
-      const [_a, _b, _c, _d, e, f] = t as number[];
+      for (const itemRaw of textContent.items) {
+        const item = itemRaw as TextItem;
+        const str = item.str;
+        if (!str?.includes(anchorText)) continue;
 
-      const x = e;
-      const y = viewport.height - f;
+        const t = pdfjsLib.Util.transform(viewport.transform, item.transform);
+        const [_a, _b, _c, _d, e, f] = t as number[];
 
-      return {
-        pageIndex: pageNum - 1,
-        x,
-        y,
-        pageWidth: viewport.width,
-        pageHeight: viewport.height,
-      };
+        const x = e;
+        const y = viewport.height - f;
+
+        return {
+          pageIndex: pageNum - 1,
+          x,
+          y,
+          pageWidth: viewport.width,
+          pageHeight: viewport.height,
+        };
+      }
     }
+    return null;
+  } finally {
+    await loadingTask.destroy();
   }
-
-  return null;
 }
 
 function addSignatureFieldAt(
