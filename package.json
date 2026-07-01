@@ -52,12 +52,12 @@
     "rxjs": "^7.8.0"
   },
   "dependencies": {
-    "@puppeteer/browsers": "^3.0.5",
+    "@puppeteer/browsers": "^3.0.6",
     "deepmerge-ts": "^7.1.5",
     "p-limit": "^7.3.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.1.200",
-    "puppeteer": "^25.2.1"
+    "puppeteer": "^25.3.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
@@ -74,7 +74,7 @@
     "@types/mjml": "^5.0.0",
     "@types/mjml-core": "^5.0.0",
     "@types/mustache": "^4.2.6",
-    "@types/node": "^26.0.1",
+    "@types/node": "^26.1.0",
     "@types/nunjucks": "^3.2.6",
     "@types/pug": "^2.0.10",
     "@types/supertest": "^7.2.0",
