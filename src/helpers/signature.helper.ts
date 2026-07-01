@@ -208,3 +208,13 @@ export async function addSignatureFieldUsingAnchor(
 
   return await pdfDoc.save();
 }
+
+// Test helper to inject a mocked pdfjs implementation and avoid dynamic import in tests
+// This helper throws outside of tests to avoid exposing a test-only API in production.
+export function __setPdfjsForTests(p: any) {
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error('__setPdfjsForTests is only available in test environment');
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  pdfjsPromise = p;
+}
