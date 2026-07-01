@@ -1,16 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NestjsPdfService } from './nestjs-pdf.service';
 import { PuppeteerService } from './puppeteer/puppeteer.service';
-import { addSignatureFieldUsingAnchor } from './helpers/signature.helper';
-
-jest.mock('@/helpers/signature.helper', () => ({
-  addSignatureFieldUsingAnchor: jest.fn(),
-}));
+import * as signatureHelperModule from './helpers/signature.helper';
 
 describe('NestjsPdfService', () => {
   let service: NestjsPdfService;
   let puppeteerService: jest.Mocked<PuppeteerService>;
-  let signatureHelper: jest.MockedFunction<typeof addSignatureFieldUsingAnchor>;
+  let signatureHelper: jest.SpyInstance;
 
   const mockPuppeteerService = {
     generatePdfFromHtml: jest.fn(),
@@ -43,7 +39,10 @@ describe('NestjsPdfService', () => {
 
     service = module.get<NestjsPdfService>(NestjsPdfService);
     puppeteerService = module.get(PuppeteerService);
-    signatureHelper = jest.mocked(addSignatureFieldUsingAnchor);
+    signatureHelper = jest.spyOn(
+      signatureHelperModule,
+      'addSignatureFieldUsingAnchor',
+    );
   });
 
   afterEach(() => {
