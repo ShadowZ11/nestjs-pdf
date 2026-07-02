@@ -2,7 +2,7 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
-    target-branch: "develop"
+    target-branch: "main"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
@@ -23,7 +23,7 @@ updates:
       - ShadowZ11
     assignees:
       - ShadowZ11
-    target-branch: "develop"
+    target-branch: "main"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
