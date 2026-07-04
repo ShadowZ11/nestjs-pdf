@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.4.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.3.2...v2.4.0) (2026-07-04)
+
+
+### ✨ Features
+
+* optimize signature pdf by destroy worker and loading library ([3d9707b](https://github.com/ShadowZ11/nestjs-pdf/commit/3d9707bc008d4fc1a6951df96b4c9a369e7906ef))
+
+
+### 🧹 Maintenance
+
+* **ci:** dependabot update ([a1b9dae](https://github.com/ShadowZ11/nestjs-pdf/commit/a1b9daef8f1bce97cb3e7dcbc1d0734c9eef87ce))
+* **deps:** bump codecov/codecov-action from 5 to 7 ([d3940ff](https://github.com/ShadowZ11/nestjs-pdf/commit/d3940ff05c0cafa8436d9d4b784e934133b78db8))
+* **deps:** update dependencies ([e2e8870](https://github.com/ShadowZ11/nestjs-pdf/commit/e2e8870815203693d9b37ce2ce71e6ba65a79f8c))
+* **deps:** upgrade dependencies ([fd449f7](https://github.com/ShadowZ11/nestjs-pdf/commit/fd449f7d28bfe8a8a8ece5084b6f584d46f9951a))
+* security upgrade with dependencies ([4e9f495](https://github.com/ShadowZ11/nestjs-pdf/commit/4e9f495838f08b813c6de847d49b6d73ffe42cb5))
+
 ## [2.3.2](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.3.1...v2.3.2) (2026-06-28)
 
 
