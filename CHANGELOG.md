@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.4.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.4.0...v2.4.1) (2026-07-12)
+
+
+### 🧹 Maintenance
+
+* **deps-dev:** bump the npm-dependencies group across 1 directory with 8 updates ([e9a31ba](https://github.com/ShadowZ11/nestjs-pdf/commit/e9a31ba7e551d54443e77a94cc4e181082b56404))
+* Remove @nestjs/platform-express from package JSON ([1e331b6](https://github.com/ShadowZ11/nestjs-pdf/commit/1e331b67673d4a46bd25a789c987d8985d7c1fd8))
+
 ## [2.4.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.3.2...v2.4.0) (2026-07-04)
 
 
