@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.4.2](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.4.1...v2.4.2) (2026-07-25)
+
+
+### 🧹 Maintenance
+
+* **deps-dev:** bump the npm-dependencies group with 2 updates ([991affb](https://github.com/ShadowZ11/nestjs-pdf/commit/991affbebfca0f4cd4fe9ad4f46279739730556d))
+* **deps:** bump actions/setup-node from 6 to 7 ([62c3829](https://github.com/ShadowZ11/nestjs-pdf/commit/62c3829f902536582e5a0c96a9c05b7926417f8b))
+* **deps:** bump the npm-dependencies group with 7 updates ([03f8d5c](https://github.com/ShadowZ11/nestjs-pdf/commit/03f8d5ce7323791fb2ee1e7f1225cc7b200b9dd9))
+
 ## [2.4.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.4.0...v2.4.1) (2026-07-12)
 
 
