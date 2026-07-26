@@ -21,7 +21,7 @@ describe('signature.helper', () => {
     const bytes = await pdfDoc.save();
 
     // mock pdfjs to return a page with a matching anchor text
-    const pageMock: any = {
+    const pageMock = {
       getTextContent: jest.fn().mockResolvedValue({
         items: [
           { str: '__SIG_DEBTOR_ANCHOR__', transform: [1, 0, 0, 1, 0, 0] },
@@ -40,13 +40,13 @@ describe('signature.helper', () => {
         getPage: jest.fn().mockResolvedValue(pageMock),
       }),
       destroy: jest.fn(),
-    } as any);
+    } as never);
 
     // ensure transform returns a position (e,f)
     pdfjsMock.Util.transform = jest.fn(() => [1, 0, 0, 1, 150, 100]);
 
     // inject mocked pdfjs to avoid dynamic import at runtime
-    __setPdfjsForTests(pdfjsMock as any);
+    __setPdfjsForTests(pdfjsMock);
 
     const result = await addSignatureFieldUsingAnchor(bytes);
 
@@ -79,10 +79,10 @@ describe('signature.helper', () => {
         }),
       }),
       destroy: jest.fn(),
-    } as any);
+    } as never);
 
     // inject mocked pdfjs to avoid dynamic import at runtime
-    __setPdfjsForTests(pdfjsMock as any);
+    __setPdfjsForTests(pdfjsMock);
 
     const result = await addSignatureFieldUsingAnchor(bytes);
     const out = await PDFDocument.load(result);
