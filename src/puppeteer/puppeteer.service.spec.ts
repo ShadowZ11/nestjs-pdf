@@ -25,6 +25,24 @@ describe('PuppeteerService', () => {
     headless: true,
   };
 
+  const createServiceWithoutHandlebars = async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        PuppeteerService,
+        {
+          provide: BrowserService,
+          useValue: mockBrowserService,
+        },
+        {
+          provide: PDF_PARAMETERS,
+          useValue: mockPdfParameters,
+        },
+      ],
+    }).compile();
+
+    return module.get<PuppeteerService>(PuppeteerService);
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -385,6 +403,32 @@ describe('PuppeteerService', () => {
       expect(handlebarsService.renderFile as jest.Mock).toHaveBeenCalledWith(
         filePath,
         {},
+      );
+    });
+  });
+
+  describe('when Handlebars service is unavailable', () => {
+    it.each([
+      [
+        'generatePdfFromTemplateHbsString',
+        async (localService: PuppeteerService) =>
+          localService.generatePdfFromTemplateHbsString('Hello {{name}}', {
+            name: 'World',
+          }),
+      ],
+      [
+        'generatePdfFromTemplateHbsFile',
+        async (localService: PuppeteerService) =>
+          localService.generatePdfFromTemplateHbsFile(
+            '/templates/invoice.hbs',
+            { id: '123' },
+          ),
+      ],
+    ])('should throw from %s', async (_, invoke) => {
+      const localService = await createServiceWithoutHandlebars();
+
+      await expect(invoke(localService)).rejects.toThrow(
+        'Handlebars service is not available. If the problem persists, open an issue in the repo.',
       );
     });
   });

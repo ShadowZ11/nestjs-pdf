@@ -14,6 +14,7 @@ import { MustacheService } from './engines/mustache/mustache.service';
 import { PDFOptions } from 'puppeteer';
 import { LocalsObject } from 'pug';
 import { Data } from 'ejs';
+import { requireService } from './libs/requireService.utils';
 
 @Injectable()
 export class PuppeteerService {
@@ -134,12 +135,8 @@ export class PuppeteerService {
     parameters: any = {},
     options?: PuppeteerParameters,
   ) {
-    if (!this.hbsService) {
-      throw new Error(
-        'Handlebars service is not available. If the problem persists, open an issue in the repo.',
-      );
-    }
-    const html = this.hbsService.render(template, parameters);
+    const hbsService = requireService(this.hbsService, 'Handlebars');
+    const html = hbsService.render(template, parameters);
     return this.generatePdfFromHtml(html, options);
   }
 
@@ -148,12 +145,8 @@ export class PuppeteerService {
     parameters: any = {},
     options?: PuppeteerParameters,
   ) {
-    if (!this.hbsService) {
-      throw new Error(
-        'Handlebars service is not available. If the problem persists, open an issue in the repo.',
-      );
-    }
-    const html = this.hbsService.renderFile(file, parameters);
+    const hbsService = requireService(this.hbsService, 'Handlebars');
+    const html = hbsService.renderFile(file, parameters);
     return this.generatePdfFromHtml(html, options);
   }
 
@@ -161,12 +154,8 @@ export class PuppeteerService {
     template: string,
     options?: PuppeteerParameters,
   ) {
-    if (!this.mjmlService) {
-      throw new Error(
-        'MJML service is not available. If the problem persists, open an issue in the repo.',
-      );
-    }
-    const html = await this.mjmlService.render(
+    const mjmlService = requireService(this.mjmlService, 'MJML');
+    const html = await mjmlService.render(
       template,
       options?.mjmlOptions ?? this.options.mjmlOptions,
     );
@@ -174,12 +163,8 @@ export class PuppeteerService {
   }
 
   async generatePdfFromMjmlFile(file: string, options?: PuppeteerParameters) {
-    if (!this.mjmlService) {
-      throw new Error(
-        'MJML service is not available. If the problem persists, open an issue in the repo.',
-      );
-    }
-    const html = await this.mjmlService.renderFile(
+    const mjmlService = requireService(this.mjmlService, 'MJML');
+    const html = await mjmlService.renderFile(
       file,
       options?.mjmlOptions ?? this.options.mjmlOptions,
     );
@@ -191,12 +176,8 @@ export class PuppeteerService {
     data: LocalsObject = {},
     options?: PuppeteerParameters,
   ) {
-    if (!this.pugService) {
-      throw new Error(
-        'Pug service is not available. If the problem persists, open an issue in the repo.',
-      );
-    }
-    const html = this.pugService.render(
+    const pugService = requireService(this.pugService, 'Pug');
+    const html = pugService.render(
       template,
       data,
       options?.pugOptions ?? this.options.pugOptions,
@@ -209,12 +190,8 @@ export class PuppeteerService {
     data: LocalsObject = {},
     options?: PuppeteerParameters,
   ) {
-    if (!this.pugService) {
-      throw new Error(
-        'Pug service is not available. If the problem persists, open an issue in the repo.',
-      );
-    }
-    const html = this.pugService.renderFile(
+    const pugService = requireService(this.pugService, 'Pug');
+    const html = pugService.renderFile(
       file,
       data,
       options?.pugOptions ?? this.options.pugOptions,
@@ -227,12 +204,8 @@ export class PuppeteerService {
     data: Data = {},
     options?: PuppeteerParameters,
   ) {
-    if (!this.ejsService) {
-      throw new Error(
-        'EJS service is not available. If the problem persists, open an issue in the repo.',
-      );
-    }
-    const html = await this.ejsService.render(
+    const ejsService = requireService(this.ejsService, 'EJS');
+    const html = await ejsService.render(
       template,
       data,
       options?.ejsOptions ?? this.options.ejsOptions,
@@ -245,12 +218,8 @@ export class PuppeteerService {
     data: Data = {},
     options?: PuppeteerParameters,
   ) {
-    if (!this.ejsService) {
-      throw new Error(
-        'EJS service is not available. If the problem persists, open an issue in the repo.',
-      );
-    }
-    const html = await this.ejsService.renderFile(
+    const ejsService = requireService(this.ejsService, 'EJS');
+    const html = await ejsService.renderFile(
       file,
       data,
       options?.ejsOptions ?? this.options.ejsOptions,
@@ -263,12 +232,8 @@ export class PuppeteerService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    if (!this.nunjucksService) {
-      throw new Error(
-        'Nunjucks service is not available. If the problem persists, open an issue in the repo.',
-      );
-    }
-    const html = this.nunjucksService.render(
+    const nunjucksService = requireService(this.nunjucksService, 'Nunjucks');
+    const html = nunjucksService.render(
       template,
       data,
       options?.nunjucksOptions ?? this.options.nunjucksOptions,
@@ -281,12 +246,8 @@ export class PuppeteerService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    if (!this.nunjucksService) {
-      throw new Error(
-        'Nunjucks service is not available. If the problem persists, open an issue in the repo.',
-      );
-    }
-    const html = this.nunjucksService.renderFile(
+    const nunjucksService = requireService(this.nunjucksService, 'Nunjucks');
+    const html = nunjucksService.renderFile(
       file,
       data,
       options?.nunjucksOptions ?? this.options.nunjucksOptions,
@@ -299,12 +260,8 @@ export class PuppeteerService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    if (!this.etaService) {
-      throw new Error(
-        'Eta service is not available. If the problem persists, open an issue in the repo.',
-      );
-    }
-    const html = this.etaService.render(
+    const etaService = requireService(this.etaService, 'Eta');
+    const html = etaService.render(
       template,
       data,
       options?.etaOptions ?? this.options.etaOptions,
@@ -317,12 +274,8 @@ export class PuppeteerService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    if (!this.etaService) {
-      throw new Error(
-        'Eta service is not available. If the problem persists, open an issue in the repo.',
-      );
-    }
-    const html = this.etaService.renderFile(
+    const etaService = requireService(this.etaService, 'Eta');
+    const html = etaService.renderFile(
       file,
       data,
       options?.etaOptions ?? this.options.etaOptions,
@@ -335,12 +288,8 @@ export class PuppeteerService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    if (!this.mustacheService) {
-      throw new Error(
-        'Mustache service is not available. If the problem persists, open an issue in the repo.',
-      );
-    }
-    const html = this.mustacheService.render(
+    const mustacheService = requireService(this.mustacheService, 'Mustache');
+    const html = mustacheService.render(
       template,
       data,
       options?.mustacheOptions ?? this.options.mustacheOptions,
@@ -353,12 +302,8 @@ export class PuppeteerService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    if (!this.mustacheService) {
-      throw new Error(
-        'Mustache service is not available. If the problem persists, open an issue in the repo.',
-      );
-    }
-    const html = this.mustacheService.renderFile(
+    const mustacheService = requireService(this.mustacheService, 'Mustache');
+    const html = mustacheService.renderFile(
       file,
       data,
       options?.mustacheOptions ?? this.options.mustacheOptions,
