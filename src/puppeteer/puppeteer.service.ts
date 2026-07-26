@@ -18,9 +18,9 @@ import { Data } from 'ejs';
 @Injectable()
 export class PuppeteerService {
   constructor(
-    private readonly hbsService: HandlebarsService,
     private readonly browserService: BrowserService,
     @Inject(PDF_PARAMETERS) private readonly options: PuppeteerParameters,
+    @Optional() private readonly hbsService?: HandlebarsService,
     @Optional() private readonly mjmlService?: MjmlService,
     @Optional() private readonly pugService?: PugService,
     @Optional() private readonly ejsService?: EjsService,
@@ -134,6 +134,11 @@ export class PuppeteerService {
     parameters: any = {},
     options?: PuppeteerParameters,
   ) {
+    if (!this.hbsService) {
+      throw new Error(
+        'Handlebars service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
     const html = this.hbsService.render(template, parameters);
     return this.generatePdfFromHtml(html, options);
   }
@@ -143,6 +148,11 @@ export class PuppeteerService {
     parameters: any = {},
     options?: PuppeteerParameters,
   ) {
+    if (!this.hbsService) {
+      throw new Error(
+        'Handlebars service is not available. If the problem persists, open an issue in the repo.',
+      );
+    }
     const html = this.hbsService.renderFile(file, parameters);
     return this.generatePdfFromHtml(html, options);
   }
