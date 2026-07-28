@@ -1,6 +1,6 @@
 {
   "name": "@shad0wz7/nestjs-pdf",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "description": "A NestJS library for generating PDFs with Puppeteer and multiple engines.",
   "author": "Emmanuel Boisset",
   "license": "MIT",
