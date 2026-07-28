@@ -57,7 +57,7 @@
     "p-limit": "^7.3.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.1.200",
-    "puppeteer": "^25.3.0"
+    "puppeteer": "^25.4.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
@@ -72,14 +72,14 @@
     "@types/mjml": "^5.0.0",
     "@types/mjml-core": "^5.1.0",
     "@types/mustache": "^4.2.6",
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.1.2",
     "@types/nunjucks": "^3.2.6",
     "@types/pug": "^2.0.10",
     "@types/supertest": "^7.2.1",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
-    "globals": "^17.7.0",
+    "globals": "^17.8.0",
     "husky": "^9.1.7",
     "jest": "^30.4.2",
     "prettier": "^3.9.6",
@@ -96,7 +96,7 @@
   },
   "optionalDependencies": {
     "@gboutte/nestjs-hbs": "^0.2.0",
-    "@napi-rs/canvas": "^1.0.2",
+    "@napi-rs/canvas": "^1.0.3",
     "ejs": "^6.0.1",
     "eta": "^4.6.0",
     "mjml": "^5.4.0",
