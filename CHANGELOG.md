@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.3](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.4.2...v2.4.3) (2026-07-28)
+
+
+### 🐛 Bug Fixes
+
+* make handlebars optional to avoid potential breaks in usage ([43ed0c9](https://github.com/ShadowZ11/nestjs-pdf/commit/43ed0c97d840616ec4c4ce038600d281a137feaa))
+
 ## [2.4.2](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.4.1...v2.4.2) (2026-07-25)
 
 
