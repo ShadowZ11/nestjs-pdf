@@ -4,8 +4,8 @@ updates:
     directory: "/"
     target-branch: "main"
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
+      interval: "monthly"
+    open-pull-requests-limit: 10
     versioning-strategy: "increase"
     assignees:
       - ShadowZ11

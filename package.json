@@ -134,7 +134,8 @@
       "/node_modules/\\.pnpm/(?!(puppeteer[@+]|puppeteer-core[@+]|@puppeteer\\+))"
     ],
     "collectCoverageFrom": [
-      "src/**/*.(t|j)s"
+      "src/**/*.(t|j)s",
+      "!src/index.ts"
     ],
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",

@@ -4,4 +4,9 @@ allowBuilds:
   esbuild: true
   puppeteer: true
   unrs-resolver: false
+
 minimumReleaseAge: 120
+
+trustPolicy: no-downgrade
+
+trustPolicyIgnoreAfter: 20160 # 14 days

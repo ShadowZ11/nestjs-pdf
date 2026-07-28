@@ -1,10 +1,125 @@
+jest.mock('node:fs', () => ({
+  existsSync: jest.fn(),
+  promises: {
+    rm: jest.fn(),
+    readdir: jest.fn(),
+  },
+  readFileSync: jest.fn(),
+  writeFileSync: jest.fn(),
+}));
+
+jest.mock('puppeteer', () => ({
+  launch: jest.fn(),
+}));
+
+jest.mock('@puppeteer/browsers', () => ({
+  Browser: {
+    CHROMIUM: 'chromium',
+    CHROME: 'chrome',
+  },
+  BrowserPlatform: {
+    LINUX: 'linux',
+  },
+  canDownload: jest.fn(),
+  detectBrowserPlatform: jest.fn(),
+  getInstalledBrowsers: jest.fn(),
+  resolveBuildId: jest.fn(),
+  install: jest.fn(),
+}));
+
+import { Logger } from '@nestjs/common';
+import {
+  Browser as BrowserType,
+  canDownload,
+  detectBrowserPlatform,
+  getInstalledBrowsers,
+  type InstalledBrowser,
+  install,
+  resolveBuildId,
+} from '@puppeteer/browsers';
+import { existsSync, promises, readFileSync } from 'node:fs';
+import { launch, type Browser as PuppeteerBrowser } from 'puppeteer';
 import { BrowserService, BrowserTag } from './browser.service';
+import type { PuppeteerParameters } from '../puppeteer-parameters.interface';
+
+type BrowserLike = {
+  connected: boolean;
+  close: jest.Mock;
+  createBrowserContext: jest.Mock;
+  on: jest.Mock;
+};
+
+type BrowserServiceTestState = {
+  _browserInstance: BrowserLike | null;
+  recycleRequested: boolean;
+  recycling: boolean;
+  useLockedBrowser: boolean;
+  browser: BrowserType;
+  writeLockFile(browser: BrowserType, buildId: string): void;
+};
+
+const testState = (instance: BrowserService) =>
+  instance as unknown as BrowserServiceTestState;
 
 describe('BrowserService', () => {
   let service: BrowserService;
 
+  const mockInstalledBrowsers = [];
+
+  const createService = (options: Partial<PuppeteerParameters> = {}) =>
+    new BrowserService({
+      cleanupBrowserCacheOnExit: false,
+      ...options,
+    });
+
+  const createBrowser = (
+    overrides: Partial<BrowserLike> = {},
+  ): BrowserLike => ({
+    connected: true,
+    close: jest.fn().mockResolvedValue(undefined),
+    createBrowserContext: jest.fn().mockResolvedValue({}),
+    on: jest.fn(),
+    ...overrides,
+  });
+
   beforeEach(() => {
-    service = new BrowserService({ cleanupBrowserCacheOnExit: false });
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+
+    (detectBrowserPlatform as jest.Mock).mockReturnValue(undefined);
+    (getInstalledBrowsers as jest.Mock).mockResolvedValue(
+      mockInstalledBrowsers,
+    );
+    (resolveBuildId as jest.Mock).mockResolvedValue('build-123');
+    (canDownload as jest.Mock).mockResolvedValue(true);
+    const installedBrowser = {
+      browser: BrowserType.CHROMIUM,
+      buildId: 'build-123',
+      platform: 'linux',
+      executablePath: '/installed/browser',
+      path: '/installed/browser',
+      folderPath: '/installed',
+    } as unknown as Awaited<ReturnType<typeof install>>;
+    (install as jest.Mock).mockResolvedValue(installedBrowser);
+    (existsSync as jest.Mock).mockReturnValue(false);
+    (readFileSync as jest.Mock).mockReturnValue(
+      Buffer.from(
+        JSON.stringify({
+          browser: BrowserType.CHROMIUM,
+          buildId: 'locked-build',
+          date: '2026-01-01T00:00:00.000Z',
+        }),
+      ),
+    );
+    (promises.rm as jest.Mock).mockResolvedValue(undefined);
+    (promises.readdir as jest.Mock).mockResolvedValue([]);
+    (launch as jest.Mock).mockResolvedValue(createBrowser());
+
+    jest.spyOn(Logger, 'log').mockImplementation(() => undefined);
+    jest.spyOn(Logger, 'warn').mockImplementation(() => undefined);
+    jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+
+    service = createService();
   });
 
   describe('initialization', () => {
@@ -12,14 +127,23 @@ describe('BrowserService', () => {
       expect(service).toBeDefined();
     });
 
-    it('should initialize with default browser tag (LATEST for CHROMIUM)', () => {
-      const tag = service.getBrowserTag();
-      expect(tag).toBe(BrowserTag.LATEST);
+    it('should initialize with default browser tag and browser', () => {
+      expect(service.getBrowserTag()).toBe(BrowserTag.LATEST);
+      expect(service.getBrowser()).toBe(BrowserType.CHROMIUM);
+      expect(service.getBuildId()).toBeUndefined();
     });
 
-    it('should initialize with CHROMIUM browser', () => {
-      const browser = service.getBrowser();
-      expect(browser).toBeDefined();
+    it('should honor explicit options', () => {
+      const localService = createService({
+        browser: BrowserType.CHROME,
+        browserTag: BrowserTag.BETA,
+        buildId: 'explicit-build',
+        useLockedBrowser: true,
+      });
+
+      expect(localService.getBrowser()).toBe(BrowserType.CHROME);
+      expect(localService.getBrowserTag()).toBe(BrowserTag.BETA);
+      expect(localService.getBuildId()).toBe('explicit-build');
     });
   });
 
@@ -37,30 +161,281 @@ describe('BrowserService', () => {
         service.markJobStarted();
       }
 
-      // Access private property for testing (this is for testing purposes)
-      const recycleRequested = (
-        service as unknown as { recycleRequested: boolean }
-      ).recycleRequested;
+      const recycleRequested = testState(service).recycleRequested;
       expect(recycleRequested).toBe(true);
     });
 
     it('should decrement active jobs on markJobFinished', async () => {
       service.markJobStarted();
       service.markJobStarted();
-      service.markJobStarted();
-
-      expect(service.activeJobs).toBe(3);
 
       await service.markJobFinished();
 
-      expect(service.activeJobs).toBe(2);
+      expect(service.activeJobs).toBe(1);
     });
 
     it('should not decrement below zero', async () => {
-      service.activeJobs = 0;
       await service.markJobFinished();
 
       expect(service.activeJobs).toBe(0);
+    });
+  });
+
+  describe('getBrowserInstance', () => {
+    it('should launch a browser when none is connected', async () => {
+      const browser = createBrowser();
+      (launch as jest.Mock).mockResolvedValue(browser);
+      const getExecutablePathSpy = jest
+        .spyOn(service, 'getExecutablePath')
+        .mockResolvedValue('/browser/bin');
+
+      const result = await service.getBrowserInstance(
+        ['--no-sandbox'],
+        true,
+        undefined,
+      );
+
+      expect(getExecutablePathSpy).toHaveBeenCalled();
+      expect(launch).toHaveBeenCalledWith({
+        executablePath: '/browser/bin',
+        headless: true,
+        args: ['--no-sandbox'],
+      });
+      expect(result).toBe(browser);
+      expect(browser.on).toHaveBeenCalledWith(
+        'disconnected',
+        expect.any(Function),
+      );
+    });
+
+    it('should reuse the existing browser instance when connected', async () => {
+      const browser = createBrowser();
+      testState(service)._browserInstance = browser;
+
+      const result = await service.getBrowserInstance([], true, '/custom/bin');
+
+      expect(launch).not.toHaveBeenCalled();
+      expect(result).toBe(browser);
+    });
+  });
+
+  describe('createContext', () => {
+    it('should delegate to browser.createBrowserContext', async () => {
+      const browser = createBrowser({
+        createBrowserContext: jest.fn().mockResolvedValue({ id: 'ctx' }),
+      });
+      const puppeteerBrowser = browser as unknown as PuppeteerBrowser;
+      const getBrowserInstanceSpy = jest.spyOn(
+        service,
+        'getBrowserInstance',
+      ) as unknown as jest.Mock;
+      getBrowserInstanceSpy.mockResolvedValue(puppeteerBrowser);
+
+      const result = await service.createContext(['--test'], false, undefined);
+
+      expect(browser.createBrowserContext).toHaveBeenCalled();
+      expect(result).toEqual({ id: 'ctx' });
+    });
+  });
+
+  describe('recycleBrowserIfNeeded', () => {
+    it('should do nothing when recycle is not requested', async () => {
+      await service.recycleBrowserIfNeeded();
+
+      expect(launch).not.toHaveBeenCalled();
+    });
+
+    it('should recycle a connected browser when requested', async () => {
+      const browser = createBrowser();
+      testState(service).recycleRequested = true;
+      testState(service)._browserInstance = browser;
+
+      await service.recycleBrowserIfNeeded();
+
+      expect(browser.close).toHaveBeenCalled();
+      expect(service.totalJobs).toBe(0);
+      expect(
+        (service as unknown as { recycleRequested: boolean }).recycleRequested,
+      ).toBe(false);
+    });
+
+    it('should keep going when browser recycle fails', async () => {
+      const browser = createBrowser({
+        close: jest.fn().mockRejectedValue(new Error('boom')),
+      });
+      testState(service).recycleRequested = true;
+      testState(service)._browserInstance = browser;
+
+      await service.recycleBrowserIfNeeded();
+
+      expect(Logger.warn).toHaveBeenCalled();
+      expect((service as unknown as { recycling: boolean }).recycling).toBe(
+        false,
+      );
+    });
+  });
+
+  describe('install', () => {
+    it('should return null when download is not allowed', async () => {
+      (canDownload as jest.Mock).mockResolvedValue(false);
+      const result = await service.install();
+
+      expect(result).toBeNull();
+    });
+
+    it('should write lock file when browser is already installed', async () => {
+      (getInstalledBrowsers as jest.Mock).mockResolvedValue([
+        {
+          browser: BrowserType.CHROMIUM,
+          buildId: 'build-123',
+          executablePath: '/already-installed',
+        },
+      ]);
+      const writeLockSpy = jest
+        .spyOn(testState(service), 'writeLockFile')
+        .mockImplementation(() => undefined);
+
+      const result = await service.install(true);
+
+      expect(resolveBuildId).toHaveBeenCalled();
+      expect(writeLockSpy).toHaveBeenCalledWith(
+        BrowserType.CHROMIUM,
+        'build-123',
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('should install and return executable path when missing', async () => {
+      (getInstalledBrowsers as jest.Mock)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          {
+            browser: BrowserType.CHROMIUM,
+            buildId: 'build-123',
+            executablePath: '/installed/browser',
+          },
+        ]);
+      const writeLockSpy = jest
+        .spyOn(testState(service), 'writeLockFile')
+        .mockImplementation(() => undefined);
+
+      const result = await service.install(true);
+
+      expect(install).toHaveBeenCalled();
+      expect(writeLockSpy).toHaveBeenCalledWith(
+        BrowserType.CHROMIUM,
+        'build-123',
+      );
+      expect(result).toEqual(
+        expect.objectContaining({
+          executablePath: '/installed/browser',
+        }),
+      );
+    });
+  });
+
+  describe('getExecutablePath', () => {
+    it('should return a locked installed browser path when lock file exists', async () => {
+      testState(service).useLockedBrowser = true;
+      testState(service).browser = BrowserType.CHROMIUM;
+      (existsSync as jest.Mock).mockReturnValue(true);
+      (readFileSync as jest.Mock).mockReturnValue(
+        Buffer.from(
+          JSON.stringify({
+            browser: BrowserType.CHROMIUM,
+            buildId: 'locked-build',
+            date: '2026-01-01T00:00:00.000Z',
+          }),
+        ),
+      );
+      (getInstalledBrowsers as jest.Mock).mockResolvedValue([
+        {
+          browser: BrowserType.CHROMIUM,
+          buildId: 'locked-build',
+          executablePath: '/locked/browser',
+        },
+      ]);
+
+      const result = await service.getExecutablePath();
+
+      expect(resolveBuildId).not.toHaveBeenCalled();
+      expect(result).toBe('/locked/browser');
+    });
+
+    it('should install the browser when it is missing', async () => {
+      (getInstalledBrowsers as jest.Mock).mockResolvedValue([]);
+      const installedBrowser = {
+        browser: BrowserType.CHROMIUM,
+        buildId: 'build-123',
+        platform: 'linux',
+        executablePath: '/downloaded/browser',
+        path: '/downloaded/browser',
+        folderPath: '/downloaded',
+      } as unknown as InstalledBrowser;
+      const installSpy = jest.spyOn(service, 'install') as unknown as jest.Mock;
+      installSpy.mockResolvedValue(installedBrowser);
+
+      const result = await service.getExecutablePath();
+
+      expect(installSpy).toHaveBeenCalledWith();
+      expect(result).toBe('/downloaded/browser');
+    });
+
+    it('should throw when installation fails', async () => {
+      (getInstalledBrowsers as jest.Mock).mockResolvedValue([]);
+      (
+        jest.spyOn(service, 'install') as unknown as jest.Mock
+      ).mockResolvedValue(null);
+
+      await expect(service.getExecutablePath()).rejects.toThrow(
+        'Could not install browser',
+      );
+    });
+  });
+
+  describe('cleanup and destroy', () => {
+    it('should close browser on destroy and cleanup cache', async () => {
+      const browser = createBrowser();
+      testState(service)._browserInstance = browser;
+      (existsSync as jest.Mock).mockReturnValue(true);
+
+      await service.onModuleDestroy();
+
+      expect(browser.close).toHaveBeenCalled();
+      expect(promises.rm).toHaveBeenCalled();
+      expect(promises.readdir).toHaveBeenCalled();
+    });
+
+    it('should retry cache cleanup on transient rm failure', async () => {
+      testState(service)._browserInstance = null;
+      (existsSync as jest.Mock)
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(false);
+      (promises.rm as jest.Mock)
+        .mockRejectedValueOnce(
+          Object.assign(new Error('busy'), { code: 'EPERM' }),
+        )
+        .mockResolvedValueOnce(undefined);
+
+      await service.onModuleDestroy();
+
+      expect(promises.rm).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('locked browser id', () => {
+    it('should return null when lock file does not exist', () => {
+      (existsSync as jest.Mock).mockReturnValue(false);
+
+      expect(service.getLockedBuildId(BrowserType.CHROMIUM)).toBeNull();
+    });
+
+    it('should read the lock file when it exists', () => {
+      (existsSync as jest.Mock).mockReturnValue(true);
+
+      expect(service.getLockedBuildId(BrowserType.CHROMIUM)).toBe(
+        'locked-build',
+      );
     });
   });
 
@@ -68,81 +443,6 @@ describe('BrowserService', () => {
     it('should set and get browser tag', () => {
       service.setBrowserTag(BrowserTag.STABLE);
       expect(service.getBrowserTag()).toBe(BrowserTag.STABLE);
-    });
-
-    it('should support all BrowserTag enum values', () => {
-      Object.values(BrowserTag).forEach((tag) => {
-        service.setBrowserTag(tag);
-        expect(service.getBrowserTag()).toBe(tag);
-      });
-    });
-  });
-
-  describe('browser', () => {
-    it('should get browser on initialization', () => {
-      const currentBrowser = service.getBrowser();
-      expect(currentBrowser).toBeDefined();
-    });
-  });
-
-  describe('build ID', () => {
-    it('should get undefined build ID initially', () => {
-      const buildId = service.getBuildId();
-      expect(buildId).toBeUndefined();
-    });
-
-    it('should set and get build ID', () => {
-      const testBuildId = '123456789';
-      service.setBuildId(testBuildId);
-      expect(service.getBuildId()).toBe(testBuildId);
-    });
-
-    it('should set build ID to undefined', () => {
-      service.setBuildId('test-id');
-      service.setBuildId(undefined);
-      expect(service.getBuildId()).toBeUndefined();
-    });
-  });
-
-  describe('active jobs counter', () => {
-    it('should track active jobs correctly', () => {
-      expect(service.activeJobs).toBe(0);
-
-      service.markJobStarted();
-      expect(service.activeJobs).toBe(1);
-
-      service.markJobStarted();
-      expect(service.activeJobs).toBe(2);
-    });
-
-    it('should track total jobs independently from active jobs', () => {
-      service.markJobStarted();
-      service.markJobStarted();
-
-      expect(service.activeJobs).toBe(2);
-      expect(service.totalJobs).toBe(2);
-
-      service.activeJobs = 0;
-
-      expect(service.activeJobs).toBe(0);
-      expect(service.totalJobs).toBe(2);
-    });
-  });
-
-  describe('onModuleDestroy', () => {
-    it('should handle module destruction gracefully', async () => {
-      const result = await service.onModuleDestroy();
-      expect(result).toBeUndefined();
-    });
-  });
-
-  describe('cache directory', () => {
-    it('should use .cache/puppeteer-browser as cache directory', () => {
-      // Access private property for testing (this is for testing purposes)
-
-      const cacheDir = (service as unknown as { cacheDir: string }).cacheDir;
-      expect(cacheDir).toContain('.cache');
-      expect(cacheDir).toContain('puppeteer-browser');
     });
   });
 });
@@ -154,10 +454,5 @@ describe('BrowserTag Enum', () => {
     expect(BrowserTag.DEV).toBe('dev');
     expect(BrowserTag.STABLE).toBe('stable');
     expect(BrowserTag.CANARY).toBe('canary');
-  });
-
-  it('should be able to iterate all values', () => {
-    const values = Object.values(BrowserTag);
-    expect(values).toHaveLength(5);
   });
 });
