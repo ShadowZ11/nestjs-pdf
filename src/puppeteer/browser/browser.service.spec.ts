@@ -208,6 +208,28 @@ describe('BrowserService', () => {
       );
     });
 
+    it('should clear the cached browser when it disconnects', async () => {
+      const browser = createBrowser();
+      let disconnectedHandler: (() => void) | undefined;
+      browser.on.mockImplementation((event: string, handler: () => void) => {
+        if (event === 'disconnected') {
+          disconnectedHandler = handler;
+        }
+        return browser;
+      });
+      (launch as jest.Mock).mockResolvedValue(browser);
+      jest
+        .spyOn(service, 'getExecutablePath')
+        .mockResolvedValue('/browser/bin');
+
+      await service.getBrowserInstance(['--no-sandbox'], true, undefined);
+      expect(testState(service)._browserInstance).toBe(browser);
+
+      disconnectedHandler?.();
+
+      expect(testState(service)._browserInstance).toBeNull();
+    });
+
     it('should reuse the existing browser instance when connected', async () => {
       const browser = createBrowser();
       testState(service)._browserInstance = browser;
@@ -235,6 +257,34 @@ describe('BrowserService', () => {
 
       expect(browser.createBrowserContext).toHaveBeenCalled();
       expect(result).toEqual({ id: 'ctx' });
+    });
+
+    it('should relaunch once when browser closes while creating a context', async () => {
+      const firstBrowser = createBrowser({
+        createBrowserContext: jest.fn().mockRejectedValueOnce(
+          Object.assign(
+            new Error('Protocol error (Target.createTarget): Target closed'),
+            {
+              name: 'TargetCloseError',
+            },
+          ),
+        ),
+      });
+      const secondBrowser = createBrowser({
+        createBrowserContext: jest.fn().mockResolvedValue({ id: 'ctx-2' }),
+      });
+
+      (launch as jest.Mock)
+        .mockResolvedValueOnce(firstBrowser)
+        .mockResolvedValueOnce(secondBrowser);
+      jest
+        .spyOn(service, 'getExecutablePath')
+        .mockResolvedValue('/browser/bin');
+
+      const result = await service.createContext(['--test'], false, undefined);
+
+      expect(launch).toHaveBeenCalledTimes(2);
+      expect(result).toEqual({ id: 'ctx-2' });
     });
   });
 
