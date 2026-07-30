@@ -14,7 +14,7 @@ export interface EtaOptions extends Partial<EtaConfig> {
 
 @Injectable()
 export class EtaService {
-  private eta: Eta;
+  private readonly eta: Eta;
   private readonly templateCache: Map<string, string> = new Map();
   private readonly maxCacheSize = 100;
 
