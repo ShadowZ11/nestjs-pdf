@@ -21,6 +21,8 @@ export enum BrowserTag {
   CANARY = 'canary',
 }
 
+export type Headless = boolean | 'shell' | undefined;
+
 async function sleep(ms: number) {
   await new Promise((r) => setTimeout(r, ms));
 }
@@ -121,7 +123,7 @@ export class BrowserService implements OnModuleDestroy {
 
   async createContext(
     args: string[],
-    headless: boolean | 'shell' | undefined,
+    headless: Headless,
     executablePath?: string,
   ): Promise<BrowserContext> {
     const browser = await this.getBrowserInstance(
@@ -418,7 +420,7 @@ export class BrowserService implements OnModuleDestroy {
 
   private async launchBrowser(
     args: string[],
-    headless: boolean | 'shell' | undefined,
+    headless: Headless,
     executablePathBin: string | undefined,
   ) {
     const executablePath =
