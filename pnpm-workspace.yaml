@@ -5,7 +5,7 @@ allowBuilds:
   puppeteer: true
   unrs-resolver: false
 
-minimumReleaseAge: 120
+minimumReleaseAge: 1440
 
 trustPolicy: no-downgrade
 

@@ -56,7 +56,7 @@
     "deepmerge-ts": "^7.1.5",
     "p-limit": "^7.3.1",
     "pdf-lib": "^1.17.1",
-    "pdfjs-dist": "^6.1.200",
+    "pdfjs-dist": "^6.2.108",
     "puppeteer": "^25.4.0"
   },
   "devDependencies": {
@@ -66,7 +66,7 @@
     "@nestjs/config": "^4.0.4",
     "@nestjs/schematics": "^11.1.0",
     "@nestjs/testing": "^11.1.28",
-    "@swc/core": "^1.15.46",
+    "@swc/core": "^1.15.47",
     "@types/ejs": "^3.1.5",
     "@types/jest": "^30.0.0",
     "@types/mjml": "^5.0.0",
@@ -143,5 +143,5 @@
       "<rootDir>/src/"
     ]
   },
-  "packageManager": "pnpm@11.17.0+sha512.cca3cea332ad254bb84145f966d19f4879615210346fc92c79a047f23a0d7b3cca3c3792f0076ba1f1831d277efbcf0a9119b31a9a60eca7fb3d6231f331ef72"
+  "packageManager": "pnpm@11.18.0+sha512.33d83c77da82f49fba836925c6f1b841181ec3132b670639bd012f7075f5c7cf634c5f870147c19aae7478fac01df09d8892e880454896edd23ee9b33757563c"
 }
