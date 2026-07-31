@@ -45,6 +45,16 @@ async function rmWithRetries(dir: string, retries = 5): Promise<void> {
   }
 }
 
+function isTargetClosedError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+
+  return (
+    error.name === 'TargetCloseError' ||
+    error.message.includes('Target closed') ||
+    error.message.includes('Target.createTarget')
+  );
+}
+
 @Injectable()
 export class BrowserService implements OnModuleDestroy {
   private readonly cacheDir: string;
@@ -99,18 +109,11 @@ export class BrowserService implements OnModuleDestroy {
     executablePathBin: string | undefined,
   ) {
     if (!this._browserInstance?.connected) {
-      const executablePath =
-        executablePathBin ?? (await this.getExecutablePath());
-
-      this._browserInstance = await launch({
-        executablePath,
-        headless,
+      this._browserInstance = await this.launchBrowser(
         args,
-      });
-
-      this._browserInstance.on('disconnected', () => {
-        Logger.warn('Puppeteer browser disconnected');
-      });
+        headless,
+        executablePathBin,
+      );
     }
 
     return this._browserInstance;
@@ -126,7 +129,25 @@ export class BrowserService implements OnModuleDestroy {
       headless,
       executablePath,
     );
-    return await browser.createBrowserContext();
+    try {
+      return await browser.createBrowserContext();
+    } catch (error) {
+      if (!isTargetClosedError(error)) {
+        throw error;
+      }
+
+      Logger.warn(
+        'Puppeteer browser closed while creating a context, retrying once',
+      );
+
+      this._browserInstance = null;
+      const freshBrowser = await this.getBrowserInstance(
+        args,
+        headless,
+        executablePath,
+      );
+      return await freshBrowser.createBrowserContext();
+    }
   }
 
   markJobStarted() {
@@ -393,6 +414,30 @@ export class BrowserService implements OnModuleDestroy {
       }
     }
     return installedBrowser.executablePath;
+  }
+
+  private async launchBrowser(
+    args: string[],
+    headless: boolean | 'shell' | undefined,
+    executablePathBin: string | undefined,
+  ) {
+    const executablePath =
+      executablePathBin ?? (await this.getExecutablePath());
+
+    const browser = await launch({
+      executablePath,
+      headless,
+      args,
+    });
+
+    browser.on('disconnected', () => {
+      Logger.warn('Puppeteer browser disconnected');
+      if (this._browserInstance === browser) {
+        this._browserInstance = null;
+      }
+    });
+
+    return browser;
   }
 
   private writeLockFile(browser: BrowserType, buildId: string) {

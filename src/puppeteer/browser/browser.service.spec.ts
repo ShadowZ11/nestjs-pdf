@@ -37,7 +37,7 @@ import {
   install,
   resolveBuildId,
 } from '@puppeteer/browsers';
-import { existsSync, promises, readFileSync } from 'node:fs';
+import { existsSync, promises, readFileSync, writeFileSync } from 'node:fs';
 import { launch, type Browser as PuppeteerBrowser } from 'puppeteer';
 import { BrowserService, BrowserTag } from './browser.service';
 import type { PuppeteerParameters } from '../puppeteer-parameters.interface';
@@ -208,6 +208,28 @@ describe('BrowserService', () => {
       );
     });
 
+    it('should clear the cached browser when it disconnects', async () => {
+      const browser = createBrowser();
+      let disconnectedHandler: (() => void) | undefined;
+      browser.on.mockImplementation((event: string, handler: () => void) => {
+        if (event === 'disconnected') {
+          disconnectedHandler = handler;
+        }
+        return browser;
+      });
+      (launch as jest.Mock).mockResolvedValue(browser);
+      jest
+        .spyOn(service, 'getExecutablePath')
+        .mockResolvedValue('/browser/bin');
+
+      await service.getBrowserInstance(['--no-sandbox'], true, undefined);
+      expect(testState(service)._browserInstance).toBe(browser);
+
+      disconnectedHandler?.();
+
+      expect(testState(service)._browserInstance).toBeNull();
+    });
+
     it('should reuse the existing browser instance when connected', async () => {
       const browser = createBrowser();
       testState(service)._browserInstance = browser;
@@ -235,6 +257,102 @@ describe('BrowserService', () => {
 
       expect(browser.createBrowserContext).toHaveBeenCalled();
       expect(result).toEqual({ id: 'ctx' });
+    });
+
+    it('should relaunch once when browser closes while creating a context', async () => {
+      const firstBrowser = createBrowser({
+        createBrowserContext: jest.fn().mockRejectedValueOnce(
+          Object.assign(
+            new Error('Protocol error (Target.createTarget): Target closed'),
+            {
+              name: 'TargetCloseError',
+            },
+          ),
+        ),
+      });
+      const secondBrowser = createBrowser({
+        createBrowserContext: jest.fn().mockResolvedValue({ id: 'ctx-2' }),
+      });
+
+      (launch as jest.Mock)
+        .mockResolvedValueOnce(firstBrowser)
+        .mockResolvedValueOnce(secondBrowser);
+      jest
+        .spyOn(service, 'getExecutablePath')
+        .mockResolvedValue('/browser/bin');
+
+      const result = await service.createContext(['--test'], false, undefined);
+
+      expect(launch).toHaveBeenCalledTimes(2);
+      expect(result).toEqual({ id: 'ctx-2' });
+    });
+
+    it('should relaunch when the target is closed in the error message', async () => {
+      const firstBrowser = createBrowser({
+        createBrowserContext: jest
+          .fn()
+          .mockRejectedValueOnce(new Error('Target closed')),
+      });
+      const secondBrowser = createBrowser({
+        createBrowserContext: jest.fn().mockResolvedValue({ id: 'ctx-3' }),
+      });
+
+      (launch as jest.Mock)
+        .mockResolvedValueOnce(firstBrowser)
+        .mockResolvedValueOnce(secondBrowser);
+      jest
+        .spyOn(service, 'getExecutablePath')
+        .mockResolvedValue('/browser/bin');
+
+      const result = await service.createContext(['--test'], false, undefined);
+
+      expect(launch).toHaveBeenCalledTimes(2);
+      expect(result).toEqual({ id: 'ctx-3' });
+    });
+
+    it('should relaunch when Target.createTarget appears in the error message', async () => {
+      const firstBrowser = createBrowser({
+        createBrowserContext: jest
+          .fn()
+          .mockRejectedValueOnce(
+            new Error(
+              'Protocol error (Target.createTarget): something went wrong',
+            ),
+          ),
+      });
+      const secondBrowser = createBrowser({
+        createBrowserContext: jest.fn().mockResolvedValue({ id: 'ctx-4' }),
+      });
+
+      (launch as jest.Mock)
+        .mockResolvedValueOnce(firstBrowser)
+        .mockResolvedValueOnce(secondBrowser);
+      jest
+        .spyOn(service, 'getExecutablePath')
+        .mockResolvedValue('/browser/bin');
+
+      const result = await service.createContext(['--test'], false, undefined);
+
+      expect(launch).toHaveBeenCalledTimes(2);
+      expect(result).toEqual({ id: 'ctx-4' });
+    });
+
+    it('should rethrow when the error is not a target-closed error', async () => {
+      const browser = createBrowser({
+        createBrowserContext: jest
+          .fn()
+          .mockRejectedValueOnce(new Error('Unexpected failure')),
+      });
+
+      (launch as jest.Mock).mockResolvedValueOnce(browser);
+      jest
+        .spyOn(service, 'getExecutablePath')
+        .mockResolvedValue('/browser/bin');
+
+      await expect(
+        service.createContext(['--test'], false, undefined),
+      ).rejects.toThrow('Unexpected failure');
+      expect(launch).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -331,6 +449,24 @@ describe('BrowserService', () => {
           executablePath: '/installed/browser',
         }),
       );
+    });
+
+    it('should call writeFileSync when the browser is already installed', async () => {
+      (getInstalledBrowsers as jest.Mock).mockResolvedValue([
+        {
+          browser: BrowserType.CHROMIUM,
+          buildId: 'build-123',
+          executablePath: '/already-installed',
+        },
+      ]);
+
+      const result = await service.install(true);
+
+      expect(writeFileSync).toHaveBeenCalledWith(
+        expect.stringContaining('chromium.lock'),
+        expect.stringContaining('"buildId":"build-123"'),
+      );
+      expect(result).toBeUndefined();
     });
   });
 
