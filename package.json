@@ -6,11 +6,14 @@
   "author": "Emmanuel Boisset",
   "license": "MIT",
   "type": "commonjs",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.cts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.cts"
+      "require": "./dist/index.cjs"
     }
   },
   "files": [
@@ -149,8 +152,5 @@
     "dotenv": "17.4.1",
     "dotenv-expand": "12.0.3",
     "lodash": "4.18.1"
-  },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.cts"
+  }
 }
