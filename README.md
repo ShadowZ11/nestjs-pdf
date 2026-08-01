@@ -180,6 +180,11 @@ these are the default extra arguments passed to Puppeteer:
 
 You can use `forRootAsync(...)` if you need to provide configuration asynchronously.
 
+## Examples
+
+If you want to see a working example, check the `examples` folder and choose one of the subfolders with the engine you want to use.
+These are minimal examples of how to use the library with different template engines. Use Nest.Js documentation to init a real project and integrate the library.
+
 ## Tests
 
 This repository includes unit and integration tests (Jest). To run the tests:
