@@ -17,5 +17,5 @@ export default defineConfig({
       '@gboutte/nestjs-hbs',
     ],
   },
-  target: false,
+  target: ['es2024'],
 });

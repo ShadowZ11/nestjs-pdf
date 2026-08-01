@@ -1,19 +1,16 @@
 {
   "name": "@shad0wz7/nestjs-pdf",
   "version": "2.4.3",
-  "packageManager": "pnpm@11.18.0+sha512.33d83c77da82f49fba836925c6f1b841181ec3132b670639bd012f7075f5c7cf634c5f870147c19aae7478fac01df09d8892e880454896edd23ee9b33757563c",
   "description": "A NestJS library for generating PDFs with Puppeteer and multiple engines.",
+  "packageManager": "pnpm@11.18.0+sha512.33d83c77da82f49fba836925c6f1b841181ec3132b670639bd012f7075f5c7cf634c5f870147c19aae7478fac01df09d8892e880454896edd23ee9b33757563c",
   "author": "Emmanuel Boisset",
   "license": "MIT",
   "type": "commonjs",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.cts"
     }
   },
   "files": [
@@ -145,5 +142,15 @@
     "roots": [
       "<rootDir>/src/"
     ]
-  }
+  },
+  "inlinedDependencies": {
+    "@nestjs/config": "4.0.4",
+    "@types/mjml-core": "5.1.0",
+    "dotenv": "17.4.1",
+    "dotenv-expand": "12.0.3",
+    "lodash": "4.18.1"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts"
 }

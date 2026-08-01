@@ -19,7 +19,7 @@ type JwksClientLike = {
   getSigningKey: (kid: string) => Promise<SigningKey>;
 };
 
-const jwksRsa = jest.fn((options: JwksRsaOptions = {}) => {
+const jwksRsa = jest.fn((_: JwksRsaOptions = {}) => {
   const client: JwksClientLike = {
     getSigningKey: jest.fn(async (kid: string) => ({
       kid,
