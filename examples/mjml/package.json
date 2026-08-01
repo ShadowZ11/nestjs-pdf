@@ -1,0 +1,21 @@
+{
+  "name": "nestjs-pdf-example-mjml",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Example: MJML template with nestjs-pdf",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@shad0wz7/nestjs-pdf": "^2.4.3",
+    "express": "^5.2.1",
+    "mjml": "^5.4.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/mjml": "^5.0.0",
+    "@types/mjml-core": "^5.1.0",
+    "typescript": "^6.0.3"
+  }
+}

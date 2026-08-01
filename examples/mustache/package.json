@@ -1,0 +1,20 @@
+{
+  "name": "nestjs-pdf-example-mustache",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Example: Mustache template with nestjs-pdf",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@shad0wz7/nestjs-pdf": "^2.4.3",
+    "express": "^5.2.1",
+    "mustache": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/mustache": "^4.2.6",
+    "typescript": "^6.0.3"
+  }
+}

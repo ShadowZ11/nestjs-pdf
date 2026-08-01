@@ -1,0 +1,19 @@
+{
+  "name": "nestjs-pdf-example-eta",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Example: Eta template with nestjs-pdf",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@shad0wz7/nestjs-pdf": "^2.4.3",
+    "eta": "^4.6.0",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "typescript": "^6.0.3"
+  }
+}
