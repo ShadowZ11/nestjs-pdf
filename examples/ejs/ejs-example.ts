@@ -324,22 +324,4 @@ export class PdfController {
   }
 }
 
-/**
- * Module setup example:
- *
- * import { Module } from '@nestjs/common';
- * import { PdfController } from './pdf.controller';
- * import { NestjsPdfModule } from '@shad0wz7/nestjs-pdf';
- *
- * @Module({
- *   imports: [
- *     NestjsPdfModule.forRoot({
- *       ejsOptions: {
- *         cache: false,
- *       },
- *     })
- *   ],
- *   controllers: [PdfController],
- * })
- * export class AppModule {}
- */
+// See ./app.module.ts and ./main.ts for a runnable NestJS app wiring this controller.

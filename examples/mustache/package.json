@@ -4,17 +4,22 @@
   "private": true,
   "description": "Example: Mustache template with nestjs-pdf",
   "scripts": {
+    "start": "ts-node main.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
     "@shad0wz7/nestjs-pdf": "^2.4.3",
     "express": "^5.2.1",
-    "mustache": "^4.2.0"
+    "mustache": "^4.2.0",
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/mustache": "^4.2.6",
+    "ts-node": "^10.9.2",
     "typescript": "^6.0.3"
   }
 }

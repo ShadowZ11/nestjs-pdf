@@ -4,17 +4,22 @@
   "private": true,
   "description": "Example: Pug template with nestjs-pdf",
   "scripts": {
+    "start": "ts-node main.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
     "@shad0wz7/nestjs-pdf": "^2.4.3",
     "express": "^5.2.1",
-    "pug": "^3.0.4"
+    "pug": "^3.0.4",
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/pug": "^2.0.10",
+    "ts-node": "^10.9.2",
     "typescript": "^6.0.3"
   }
 }
