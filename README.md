@@ -185,6 +185,15 @@ You can use `forRootAsync(...)` if you need to provide configuration asynchronou
 If you want to see a working example, check the `examples` folder and choose one of the subfolders with the engine you want to use.
 These are minimal examples of how to use the library with different template engines. Use Nest.Js documentation to init a real project and integrate the library.
 
+If you want to test locally the examples with the entire project, you can follow these steps:
+
+- uncomment the `packages` section in the `pnpm-workspace.yaml` file
+- run `pnpm install` to install dependencies
+- set 'workspace:*' in the `package.json` of the example you want to test at the `dependencies` section for the `@shad0wz7/nestjs-pdf` package
+- run `pnpm run build` to build the library
+- run `pnpm run start` in the example folder to start the example application
+- test it
+
 ## Tests
 
 This repository includes unit and integration tests (Jest). To run the tests:
