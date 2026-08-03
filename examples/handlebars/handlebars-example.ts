@@ -7,7 +7,7 @@
 
 import { Controller, Get, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import { NestjsPdfService } from '../../src/nestjs-pdf.service';
+import { NestjsPdfService } from '@shad0wz7/nestjs-pdf';
 
 @Controller('pdf')
 export class PdfController {
@@ -301,23 +301,4 @@ export class PdfController {
   }
 }
 
-/**
- * Module setup example:
- *
- * import { Module } from '@nestjs/common';
- * import { PdfController } from './pdf.controller';
- * import { NestjsPdfModule } from '@shad0wz7/nestjs-pdf';
- *
- * @Module({
- *   imports: [
- *     NestjsPdfModule.forRoot({
- *       hbsOptions: {
- *         viewsDir: './templates',
- *         extname: '.hbs',
- *       },
- *     })
- *   ],
- *   controllers: [PdfController],
- * })
- * export class AppModule {}
- */
+// See ./app.module.ts and ./main.ts for a runnable NestJS app wiring this controller.

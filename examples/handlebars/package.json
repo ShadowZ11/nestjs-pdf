@@ -1,0 +1,24 @@
+{
+  "name": "nestjs-pdf-example-handlebars",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Example: Handlebars template with nestjs-pdf",
+  "scripts": {
+    "start": "ts-node main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@gboutte/nestjs-hbs": "^0.2.0",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@shad0wz7/nestjs-pdf": "^2.4.3",
+    "express": "^5.2.1",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}
