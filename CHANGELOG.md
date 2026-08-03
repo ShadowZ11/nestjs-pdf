@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.5.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.4.3...v2.5.0) (2026-08-03)
+
+
+### ✨ Features
+
+* replace tsup by tsdown for uploading and generating lib ([6eefc1e](https://github.com/ShadowZ11/nestjs-pdf/commit/6eefc1e47a333bcf28f693a8737710b7607eae05))
+
+
+### 🐛 Bug Fixes
+
+* target close error process ([57054d9](https://github.com/ShadowZ11/nestjs-pdf/commit/57054d9cd3c99d4b594cdd5ea4ca9a0357930f2a))
+
 ## [2.4.3](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.4.2...v2.4.3) (2026-07-28)
 
 
