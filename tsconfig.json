@@ -25,7 +25,6 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
-    "ignoreDeprecations": "6.0", // Remove when tsup fix the problem with baseUrl auto-detection
     "types": ["node", "jest"]
   }
 }
