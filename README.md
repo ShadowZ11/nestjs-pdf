@@ -1,10 +1,12 @@
 # nestjs-pdf
 
 [![npm version](https://img.shields.io/npm/v/%40shad0wz7%2Fnestjs-pdf?label=npm%20version)](https://www.npmjs.com/package/%40shad0wz7%2Fnestjs-pdf)
+[![NPM License](https://img.shields.io/npm/l/%40shad0wz7%2Fnestjs-pdf)](https://github.com/ShadowZ11/nestjs-pdf?tab=MIT-1-ov-file)
 [![npm downloads](https://img.shields.io/npm/dm/%40shad0wz7%2Fnestjs-pdf?label=npm%20downloads)](https://www.npmjs.com/package/%40shad0wz7%2Fnestjs-pdf)
 [![CI](https://github.com/Shadowz11/nestjs-pdf/actions/workflows/ci.yml/badge.svg)](https://github.com/Shadowz11/nestjs-pdf/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/github/ShadowZ11/nestjs-pdf/graph/badge.svg?token=K0MNB1ZKYK)](https://codecov.io/github/ShadowZ11/nestjs-pdf)
-[![TypeScript](https://img.shields.io/npm/types/nestjs-pdf.svg)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+
 
 A NestJS library to generate and manipulate PDFs using Puppeteer and multiple template engines, including Handlebars, EJS, Pug, MJML, Nunjucks, Eta and Mustache.
 

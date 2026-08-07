@@ -1,2 +1,2 @@
-pnpm lint
 pnpm exec -- jest --runInBand
+pnpm run pre-commit

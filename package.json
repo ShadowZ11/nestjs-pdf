@@ -2,37 +2,6 @@
   "name": "@shad0wz7/nestjs-pdf",
   "version": "2.5.0",
   "description": "A NestJS library for generating PDFs with Puppeteer and multiple engines.",
-  "packageManager": "pnpm@11.18.0+sha512.33d83c77da82f49fba836925c6f1b841181ec3132b670639bd012f7075f5c7cf634c5f870147c19aae7478fac01df09d8892e880454896edd23ee9b33757563c",
-  "author": "Emmanuel Boisset",
-  "license": "MIT",
-  "type": "commonjs",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.cts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.cts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
-    }
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
-  "scripts": {
-    "build:dev": "tsdown --watch ./src",
-    "build": "tsdown",
-    "prepublishOnly": "pnpm lint && pnpm test && pnpm build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "lint": "eslint \"{src,test}/**/*.ts\" --fix",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "prepare": "husky"
-  },
   "keywords": [
     "nestjs",
     "pdf",
@@ -48,10 +17,80 @@
     "pdf-lib",
     "pdfjs-dist"
   ],
-  "peerDependencies": {
-    "@nestjs/common": "^11.0.0",
-    "@nestjs/core": "^11.0.0",
-    "rxjs": "^7.8.0"
+  "repository": {
+    "url": "git+https://github.com/ShadowZ11/nestjs-pdf.git"
+  },
+  "license": "MIT",
+  "author": "Emmanuel Boisset",
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.cts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "build:dev": "tsdown --watch ./src",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
+    "lint:all": "pnpm lint && pnpm lint:package",
+    "lint:fix": "eslint \"{src,test}/**/*.ts\" --fix",
+    "lint:package": "sort-package-json --check",
+    "pre-commit": "lint-staged",
+    "prepare": "husky",
+    "prepublishOnly": "pnpm lint && pnpm test && pnpm build",
+    "sort": "sort-package-json",
+    "test": "jest",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:watch": "jest --watch"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,md,graphql,json,html,yaml,css}": [
+      "pnpm format"
+    ]
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.(t|j)s",
+      "!src/index.ts"
+    ],
+    "coverageDirectory": "./coverage",
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "moduleNameMapper": {
+      "@/(.*)$": "<rootDir>/src/$1",
+      "^pdfjs-dist/legacy/build/pdf\\.mjs$": "<rootDir>/test/__mocks__/pdfjs-dist.ts",
+      "^jwks-rsa$": "<rootDir>/test/__mocks__/jwks-rsa.ts"
+    },
+    "rootDir": ".",
+    "roots": [
+      "<rootDir>/src/"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/setup.ts"
+    ],
+    "testEnvironment": "node",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/\\.pnpm/(?!(puppeteer[@+]|puppeteer-core[@+]|@puppeteer\\+))"
+    ]
   },
   "dependencies": {
     "@puppeteer/browsers": "^3.0.6",
@@ -84,8 +123,10 @@
     "globals": "^17.8.0",
     "husky": "^9.1.7",
     "jest": "^30.4.2",
+    "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
     "reflect-metadata": "^0.2.2",
+    "sort-package-json": "^4.0.0",
     "source-map-support": "^0.5.21",
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.12",
@@ -93,9 +134,13 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "tsdown": "^0.22.14",
-    "tsx": "^4.23.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.65.0"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "rxjs": "^7.8.0"
   },
   "optionalDependencies": {
     "@gboutte/nestjs-hbs": "^0.2.0",
@@ -107,50 +152,16 @@
     "nunjucks": "^3.2.4",
     "pug": "^3.0.4"
   },
+  "packageManager": "pnpm@11.18.0+sha512.33d83c77da82f49fba836925c6f1b841181ec3132b670639bd012f7075f5c7cf634c5f870147c19aae7478fac01df09d8892e880454896edd23ee9b33757563c",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "inlinedDependencies": {
     "@nestjs/config": "4.0.4",
     "@types/mjml-core": "5.1.0",
     "dotenv": "17.4.1",
     "dotenv-expand": "12.0.3",
     "lodash": "4.18.1"
-  },
-  "repository": {
-    "url": "git+https://github.com/ShadowZ11/nestjs-pdf.git"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
-  "jest": {
-    "moduleNameMapper": {
-      "@/(.*)$": "<rootDir>/src/$1",
-      "^pdfjs-dist/legacy/build/pdf\\.mjs$": "<rootDir>/test/__mocks__/pdfjs-dist.ts",
-      "^jwks-rsa$": "<rootDir>/test/__mocks__/jwks-rsa.ts"
-    },
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": ".",
-    "testRegex": ".*\\.spec\\.ts$",
-    "setupFilesAfterEnv": [
-      "<rootDir>/test/setup.ts"
-    ],
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "transformIgnorePatterns": [
-      "/node_modules/\\.pnpm/(?!(puppeteer[@+]|puppeteer-core[@+]|@puppeteer\\+))"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.(t|j)s",
-      "!src/index.ts"
-    ],
-    "coverageDirectory": "./coverage",
-    "testEnvironment": "node",
-    "roots": [
-      "<rootDir>/src/"
-    ]
   }
 }
