@@ -54,12 +54,12 @@
     "rxjs": "^7.8.0"
   },
   "dependencies": {
-    "@puppeteer/browsers": "^3.0.6",
+    "@puppeteer/browsers": "^3.1.0",
     "deepmerge-ts": "^7.1.5",
     "p-limit": "^7.3.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.2.108",
-    "puppeteer": "^25.4.0"
+    "puppeteer": "^25.5.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
@@ -81,7 +81,7 @@
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
-    "globals": "^17.8.0",
+    "globals": "^17.9.0",
     "husky": "^9.1.7",
     "jest": "^30.4.2",
     "prettier": "^3.9.6",
@@ -93,9 +93,9 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "tsdown": "^0.22.14",
-    "tsx": "^4.23.1",
+    "tsx": "^4.23.5",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.65.0"
+    "typescript-eslint": "^8.66.0"
   },
   "optionalDependencies": {
     "@gboutte/nestjs-hbs": "^0.2.0",
