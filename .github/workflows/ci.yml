@@ -14,6 +14,9 @@ concurrency:
 env:
   HUSKY: 0
 
+permissions:
+  contents: read
+
 jobs:
   quality:
     name: Lint, test and build
