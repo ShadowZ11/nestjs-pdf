@@ -1,0 +1,11 @@
+name: "CodeQL config"
+
+paths-ignore:
+  - examples
+  - examples/**
+  - dist
+  - dist/**
+  - coverage
+  - coverage/**
+  - docs
+  - docs/**
