@@ -1,6 +1,7 @@
+import { readFileSync } from 'node:fs';
+
 import { Injectable } from '@nestjs/common';
 import mjml from 'mjml';
-import { readFileSync } from 'node:fs';
 import { MJMLParsingOptions } from 'mjml-core';
 
 @Injectable()

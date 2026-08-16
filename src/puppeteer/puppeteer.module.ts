@@ -1,3 +1,5 @@
+import { HandlebarsService } from '@gboutte/nestjs-hbs';
+import { HandlebarsOptions } from '@gboutte/nestjs-hbs/dist/handlebars-options.interface';
 import {
   DynamicModule,
   Inject,
@@ -8,27 +10,26 @@ import {
   OptionalFactoryDependency,
   Provider,
 } from '@nestjs/common';
-import { PuppeteerService } from './puppeteer.service';
-import { BrowserService } from './browser/browser.service';
-import { MjmlService } from './engines/mjml/mjml.service';
-import { PugService } from './engines/pug/pug.service';
-import { EjsService } from './engines/ejs/ejs.service';
-import { NunjucksService } from './engines/nunjucks/nunjucks.service';
-import { EtaService } from './engines/eta/eta.service';
-import { MustacheService } from './engines/mustache/mustache.service';
-import { HANDLEBARS_PARAMETERS, PDF_PARAMETERS } from '../helpers/tokens';
-import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 import { ConfigModule } from '@nestjs/config';
-import { HandlebarsService } from '@gboutte/nestjs-hbs';
-import { HandlebarsOptions } from '@gboutte/nestjs-hbs/dist/handlebars-options.interface';
+
+import { HANDLEBARS_PARAMETERS, PDF_PARAMETERS } from '../helpers/tokens';
+import { BrowserService } from './browser/browser.service';
+import { EjsService } from './engines/ejs/ejs.service';
+import { EtaService } from './engines/eta/eta.service';
+import { MjmlService } from './engines/mjml/mjml.service';
+import { MustacheService } from './engines/mustache/mustache.service';
+import { NunjucksService } from './engines/nunjucks/nunjucks.service';
+import { PugService } from './engines/pug/pug.service';
+import { PuppeteerService } from './puppeteer.service';
+import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 
 export interface PuppeteerModuleAsyncOptions extends Pick<
   ModuleMetadata,
   'imports'
 > {
-  inject?: (InjectionToken | OptionalFactoryDependency)[];
+  inject?: Array<InjectionToken | OptionalFactoryDependency>;
   useFactory: (
-    ...args: any[]
+    ...args: Array<any>
   ) => Promise<PuppeteerParameters> | PuppeteerParameters;
 }
 
@@ -60,14 +61,15 @@ export class PuppeteerModule implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    if (!this.pdfParams.executablePath)
+    if (!this.pdfParams.executablePath) {
       await this.browserService.install(
         this.pdfParams.useLockedBrowser ?? false,
       );
+    }
   }
 
   static forRoot(pdfParameters: PuppeteerParameters): DynamicModule {
-    const providers: Provider[] = [
+    const providers: Array<Provider> = [
       {
         provide: PDF_PARAMETERS,
         useValue: pdfParameters,
@@ -105,7 +107,8 @@ export class PuppeteerModule implements OnModuleInit {
     const pdfParamsProvider: Provider = {
       provide: PDF_PARAMETERS,
       inject: options.inject ?? [],
-      useFactory: async (...args: unknown[]) => options.useFactory(...args),
+      useFactory: async (...args: Array<unknown>) =>
+        options.useFactory(...args),
     };
 
     const hbsParamsProvider: Provider = {

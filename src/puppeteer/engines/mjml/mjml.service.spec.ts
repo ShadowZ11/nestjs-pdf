@@ -7,9 +7,11 @@ jest.mock('node:fs', () => ({
   readFileSync: jest.fn(),
 }));
 
-import { Test, TestingModule } from '@nestjs/testing';
-import mjml from 'mjml';
 import { readFileSync } from 'node:fs';
+
+import { Test, type TestingModule } from '@nestjs/testing';
+import mjml from 'mjml';
+
 import { MjmlService } from './mjml.service';
 
 describe('MjmlService', () => {

@@ -1,4 +1,5 @@
 import { DynamicModule, Module, ModuleMetadata } from '@nestjs/common';
+
 import { NestjsPdfService } from './nestjs-pdf.service';
 import { PuppeteerModule } from './puppeteer/puppeteer.module';
 import { PuppeteerParameters } from './puppeteer/puppeteer-parameters.interface';
@@ -7,8 +8,8 @@ export interface PdfLibModuleAsyncOptions extends Pick<
   ModuleMetadata,
   'imports'
 > {
-  inject?: any[];
-  useFactory: (...args: any[]) => any;
+  inject?: Array<any>;
+  useFactory: (...args: Array<any>) => any;
 }
 
 @Module({})

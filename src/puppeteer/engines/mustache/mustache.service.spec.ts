@@ -1,8 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { MustacheService } from './mustache.service';
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
+import { Test, type TestingModule } from '@nestjs/testing';
+
+import { MustacheService } from './mustache.service';
 
 describe('MustacheService', () => {
   let service: MustacheService;

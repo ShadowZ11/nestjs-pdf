@@ -1,8 +1,9 @@
 import { PDFDocument } from 'pdf-lib';
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
+
 import {
-  addSignatureFieldUsingAnchor,
   __setPdfjsForTests,
+  addSignatureFieldUsingAnchor,
 } from './signature.helper';
 
 const pdfjsMock = pdfjs as unknown as jest.Mocked<typeof pdfjs>;

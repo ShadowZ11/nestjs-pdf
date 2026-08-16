@@ -1,13 +1,14 @@
-import { HandlebarsOptions } from '@gboutte/nestjs-hbs/dist/handlebars-options.interface';
-import { Browser } from '@puppeteer/browsers';
-import { PDFOptions } from 'puppeteer';
-import { BrowserTag } from './browser/browser.service';
-import { MJMLParsingOptions } from 'mjml-core';
-import { PugOptions } from './engines/pug/pug.service';
-import { EjsOptions } from './engines/ejs/ejs.service';
-import { NunjucksOptions } from './engines/nunjucks/nunjucks.service';
-import { EtaOptions } from './engines/eta/eta.service';
-import { MustacheOptions } from './engines/mustache/mustache.service';
+import { type HandlebarsOptions } from '@gboutte/nestjs-hbs/dist/handlebars-options.interface';
+import { type Browser } from '@puppeteer/browsers';
+import { type MJMLParsingOptions } from 'mjml-core';
+import { type PDFOptions } from 'puppeteer';
+
+import { type BrowserTag } from './browser/browser.service';
+import { type EjsOptions } from './engines/ejs/ejs.service';
+import { type EtaOptions } from './engines/eta/eta.service';
+import { type MustacheOptions } from './engines/mustache/mustache.service';
+import { type NunjucksOptions } from './engines/nunjucks/nunjucks.service';
+import { type PugOptions } from './engines/pug/pug.service';
 
 export interface PuppeteerParameters {
   pdfOptions?: PDFOptions;
@@ -26,7 +27,7 @@ export interface PuppeteerParameters {
   browserTag?: BrowserTag;
   useLockedBrowser?: boolean;
   browserInstallBaseUrl?: string;
-  extraPuppeteerArgs?: string[];
+  extraPuppeteerArgs?: Array<string>;
   executablePath?: string;
   cleanupBrowserCacheOnExit?: boolean;
 }

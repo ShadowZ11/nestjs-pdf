@@ -13,6 +13,5 @@ export const getDocument = jest.fn(() => ({
 }));
 
 export const Util = {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  transform: jest.fn((transform, itemTransform) => [1, 0, 0, 1, 0, 0]),
+  transform: jest.fn((_transform, _itemTransform) => [1, 0, 0, 1, 0, 0]),
 };

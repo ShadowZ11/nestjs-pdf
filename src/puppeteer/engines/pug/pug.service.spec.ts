@@ -6,9 +6,11 @@ jest.mock('node:fs', () => ({
   readFileSync: jest.fn(),
 }));
 
-import { Test, TestingModule } from '@nestjs/testing';
-import { compile } from 'pug';
 import { readFileSync } from 'node:fs';
+
+import { Test, type TestingModule } from '@nestjs/testing';
+import { compile } from 'pug';
+
 import { PugService } from './pug.service';
 
 describe('PugService', () => {

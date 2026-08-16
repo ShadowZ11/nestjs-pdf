@@ -1,4 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
+
 import { NestjsPdfModule, NestjsPdfService } from '../src';
 
 describe('NestjsPdfModule (e2e)', () => {
