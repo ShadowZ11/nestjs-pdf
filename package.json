@@ -42,6 +42,7 @@
     "build": "tsdown",
     "build:dev": "tsdown --watch ./src",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "knip": "knip",
     "lint": "eslint \"{src,test}/**/*.ts\"",
     "lint:all": "pnpm lint && pnpm lint:package",
     "lint:fix": "eslint \"{src,test}/**/*.ts\" --fix",
@@ -57,6 +58,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx,md,graphql,json,html,yaml,css}": [
+      "eslint \"{src,test}/**/*.ts\" --fix",
       "pnpm format"
     ]
   },
@@ -120,9 +122,12 @@
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-simple-import-sort": "^14.0.0",
+    "eslint-plugin-unused-imports": "^4.4.1",
     "globals": "^17.9.0",
     "husky": "^9.1.7",
     "jest": "^30.4.2",
+    "knip": "^6.32.2",
     "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
     "reflect-metadata": "^0.2.2",
