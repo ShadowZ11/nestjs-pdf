@@ -1,7 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
+
+import * as signatureHelperModule from './helpers/signature.helper';
 import { NestjsPdfService } from './nestjs-pdf.service';
 import { PuppeteerService } from './puppeteer/puppeteer.service';
-import * as signatureHelperModule from './helpers/signature.helper';
 
 describe('NestjsPdfService', () => {
   let service: NestjsPdfService;

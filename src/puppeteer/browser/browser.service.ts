@@ -1,16 +1,18 @@
-import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { existsSync, promises, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { Browser, BrowserContext, launch } from 'puppeteer';
+
+import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import {
   Browser as BrowserType,
   BrowserPlatform,
   canDownload,
   detectBrowserPlatform,
   getInstalledBrowsers,
-  resolveBuildId,
   install,
+  resolveBuildId,
 } from '@puppeteer/browsers';
+import { Browser, BrowserContext, launch } from 'puppeteer';
+
 import type { PuppeteerParameters } from '../puppeteer-parameters.interface';
 
 export enum BrowserTag {
@@ -106,7 +108,7 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   async getBrowserInstance(
-    args: string[],
+    args: Array<string>,
     headless: boolean | 'shell' | undefined,
     executablePathBin: string | undefined,
   ) {
@@ -122,7 +124,7 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   async createContext(
-    args: string[],
+    args: Array<string>,
     headless: Headless,
     executablePath?: string,
   ): Promise<BrowserContext> {
@@ -379,11 +381,8 @@ export class BrowserService implements OnModuleDestroy {
       cacheDir: this.cacheDir,
     });
 
-    const installedBrowser = installedBrowserlist.find((installedBrowser) => {
-      return (
-        installedBrowser.browser === browser &&
-        installedBrowser.buildId === buildId
-      );
+    const installedBrowser = installedBrowserlist.find((insBrowser) => {
+      return insBrowser.browser === browser && insBrowser.buildId === buildId;
     });
     return installedBrowser !== undefined;
   }
@@ -401,11 +400,8 @@ export class BrowserService implements OnModuleDestroy {
     const installedBrowserlist = await getInstalledBrowsers({
       cacheDir: this.cacheDir,
     });
-    const installedBrowser = installedBrowserlist.find((installedBrowser) => {
-      return (
-        installedBrowser.browser === browser &&
-        installedBrowser.buildId === buildId
-      );
+    const installedBrowser = installedBrowserlist.find((insBrowser) => {
+      return insBrowser.browser === browser && insBrowser.buildId === buildId;
     });
     if (installedBrowser === undefined) {
       const newinstalledBrowser = await this.install();
@@ -419,7 +415,7 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   private async launchBrowser(
-    args: string[],
+    args: Array<string>,
     headless: Headless,
     executablePathBin: string | undefined,
   ) {

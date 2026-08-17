@@ -1,7 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigModule } from '@nestjs/config';
+import { Test, type TestingModule } from '@nestjs/testing';
+
 import { NestjsPdfModule } from './nestjs-pdf.module';
 import { NestjsPdfService } from './nestjs-pdf.service';
-import { ConfigModule } from '@nestjs/config';
 import { BrowserTag } from './puppeteer/browser/browser.service';
 
 describe('NestJS PDF Library - Integration Tests', () => {

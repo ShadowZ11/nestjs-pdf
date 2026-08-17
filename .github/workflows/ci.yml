@@ -45,11 +45,22 @@ jobs:
       - name: Test
         run: pnpm exec -- jest --coverage --runInBand
 
+      - name: Knip
+        run: pnpm knip
+        continue-on-error: false
+
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
+
+      - name: Upload test results to Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          report_type: test_results
 
       - name: Build
         run: pnpm build

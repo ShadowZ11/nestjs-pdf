@@ -1,7 +1,8 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import { Injectable } from '@nestjs/common';
 import { Eta, EtaConfig } from 'eta';
-import { resolve } from 'node:path';
-import { readFileSync } from 'node:fs';
 
 export interface EtaOptions extends Partial<EtaConfig> {
   cache?: boolean;
@@ -9,7 +10,7 @@ export interface EtaOptions extends Partial<EtaConfig> {
   varName?: string;
   views?: string;
   useWith?: boolean;
-  plugins?: any[];
+  plugins?: Array<any>;
 }
 
 @Injectable()

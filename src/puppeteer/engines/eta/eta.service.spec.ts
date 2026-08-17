@@ -1,7 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { EtaService } from './eta.service';
-import { join } from 'node:path';
 import { existsSync, unlinkSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { Test, type TestingModule } from '@nestjs/testing';
+
+import { EtaService } from './eta.service';
 
 describe('EtaService', () => {
   let service: EtaService;

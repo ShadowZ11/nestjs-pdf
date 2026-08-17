@@ -1,6 +1,6 @@
-import { mergePuppeteerParameters } from './deepMergePdfparams';
-import { PuppeteerParameters } from '../puppeteer/puppeteer-parameters.interface';
 import { BrowserTag } from '../puppeteer/browser/browser.service';
+import { type PuppeteerParameters } from '../puppeteer/puppeteer-parameters.interface';
+import { mergePuppeteerParameters } from './deepMergePdfparams';
 
 describe('mergePuppeteerParameters', () => {
   describe('basic merging', () => {

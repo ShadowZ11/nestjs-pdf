@@ -1,4 +1,5 @@
 import { join, relative, resolve } from 'node:path';
+
 import { getRelativePathToValue } from './getRelativePath.helper';
 
 describe('getRelativePathToValue', () => {

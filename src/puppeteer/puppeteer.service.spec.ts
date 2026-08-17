@@ -1,15 +1,16 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { PuppeteerService } from './puppeteer.service';
-import { BrowserService } from './browser/browser.service';
-import { PDF_PARAMETERS } from '../helpers/tokens';
 import { HandlebarsService } from '@gboutte/nestjs-hbs';
-import { Logger, Provider } from '@nestjs/common';
-import { MjmlService } from './engines/mjml/mjml.service';
-import { PugService } from './engines/pug/pug.service';
+import { Logger, type Provider } from '@nestjs/common';
+import { Test, type TestingModule } from '@nestjs/testing';
+
+import { PDF_PARAMETERS } from '../helpers/tokens';
+import { BrowserService } from './browser/browser.service';
 import { EjsService } from './engines/ejs/ejs.service';
-import { NunjucksService } from './engines/nunjucks/nunjucks.service';
 import { EtaService } from './engines/eta/eta.service';
+import { MjmlService } from './engines/mjml/mjml.service';
 import { MustacheService } from './engines/mustache/mustache.service';
+import { NunjucksService } from './engines/nunjucks/nunjucks.service';
+import { PugService } from './engines/pug/pug.service';
+import { PuppeteerService } from './puppeteer.service';
 
 describe('PuppeteerService', () => {
   let service: PuppeteerService;
@@ -49,7 +50,9 @@ describe('PuppeteerService', () => {
     return module.get<PuppeteerService>(PuppeteerService);
   };
 
-  const createServiceWithProviders = async (providers: Provider[] = []) => {
+  const createServiceWithProviders = async (
+    providers: Array<Provider> = [],
+  ) => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PuppeteerService,

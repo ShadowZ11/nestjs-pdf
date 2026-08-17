@@ -1,20 +1,21 @@
+import { HandlebarsService } from '@gboutte/nestjs-hbs';
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
-import type { PuppeteerParameters } from './puppeteer-parameters.interface';
+import { Data } from 'ejs';
+import pLimit from 'p-limit';
+import { LocalsObject } from 'pug';
+import { PDFOptions } from 'puppeteer';
+
+import { mergePuppeteerParameters } from '../helpers/deepMergePdfparams';
 import { PDF_PARAMETERS } from '../helpers/tokens';
 import { BrowserService } from './browser/browser.service';
-import { mergePuppeteerParameters } from '../helpers/deepMergePdfparams';
-import pLimit from 'p-limit';
-import { HandlebarsService } from '@gboutte/nestjs-hbs';
-import { MjmlService } from './engines/mjml/mjml.service';
-import { PugService } from './engines/pug/pug.service';
 import { EjsService } from './engines/ejs/ejs.service';
-import { NunjucksService } from './engines/nunjucks/nunjucks.service';
 import { EtaService } from './engines/eta/eta.service';
+import { MjmlService } from './engines/mjml/mjml.service';
 import { MustacheService } from './engines/mustache/mustache.service';
-import { PDFOptions } from 'puppeteer';
-import { LocalsObject } from 'pug';
-import { Data } from 'ejs';
+import { NunjucksService } from './engines/nunjucks/nunjucks.service';
+import { PugService } from './engines/pug/pug.service';
 import { requireService } from './libs/requireService.utils';
+import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 
 @Injectable()
 export class PuppeteerService {

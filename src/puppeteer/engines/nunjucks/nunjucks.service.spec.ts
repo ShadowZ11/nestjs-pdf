@@ -4,8 +4,9 @@ jest.mock('nunjucks', () => ({
   renderString: jest.fn(),
 }));
 
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { configure, render, renderString } from 'nunjucks';
+
 import { NunjucksService } from './nunjucks.service';
 
 describe('NunjucksService', () => {

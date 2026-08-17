@@ -8,6 +8,7 @@ import {
 } from 'pdf-lib';
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 let pdfjsPromise: typeof import('pdfjs-dist/legacy/build/pdf.mjs') | undefined;
 
 async function loadPdfjs() {
@@ -62,7 +63,7 @@ async function findAnchorPosition(
         if (!str?.includes(anchorText)) continue;
 
         const t = pdfjsLib.Util.transform(viewport.transform, item.transform);
-        const [_a, _b, _c, _d, e, f] = t as number[];
+        const [_a, _b, _c, _d, e, f] = t as Array<number>;
 
         const x = e;
         const y = viewport.height - f;

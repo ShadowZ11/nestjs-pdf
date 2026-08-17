@@ -1,7 +1,8 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import { Injectable } from '@nestjs/common';
 import mustache, { EscapeFunction } from 'mustache';
-import { resolve } from 'node:path';
-import { readFileSync } from 'node:fs';
 
 export interface MustacheOptions {
   tags?: [string, string];

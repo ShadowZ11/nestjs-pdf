@@ -42,14 +42,15 @@
     "build": "tsdown",
     "build:dev": "tsdown --watch ./src",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "knip": "knip",
     "lint": "eslint \"{src,test}/**/*.ts\"",
-    "lint:all": "pnpm lint && pnpm lint:package",
+    "lint:all": "pnpm lint && pnpm sort:check",
     "lint:fix": "eslint \"{src,test}/**/*.ts\" --fix",
-    "lint:package": "sort-package-json --check",
     "pre-commit": "lint-staged",
     "prepare": "husky",
     "prepublishOnly": "pnpm lint && pnpm test && pnpm build",
     "sort": "sort-package-json",
+    "sort:check": "sort-package-json --check",
     "test": "jest",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
@@ -57,6 +58,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx,md,graphql,json,html,yaml,css}": [
+      "eslint \"{src,test}/**/*.ts\" --fix",
       "pnpm format"
     ]
   },
@@ -76,6 +78,15 @@
       "^pdfjs-dist/legacy/build/pdf\\.mjs$": "<rootDir>/test/__mocks__/pdfjs-dist.ts",
       "^jwks-rsa$": "<rootDir>/test/__mocks__/jwks-rsa.ts"
     },
+    "reporters": [
+      "default",
+      [
+        "jest-junit",
+        {
+          "outputDirectory": "coverage"
+        }
+      ]
+    ],
     "rootDir": ".",
     "roots": [
       "<rootDir>/src/"
@@ -101,9 +112,7 @@
     "puppeteer": "^25.5.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.6",
     "@eslint/js": "^10.0.1",
-    "@nestjs/cli": "^11.0.24",
     "@nestjs/config": "^4.0.4",
     "@nestjs/schematics": "^11.1.0",
     "@nestjs/testing": "^11.1.28",
@@ -116,21 +125,21 @@
     "@types/node": "^26.1.2",
     "@types/nunjucks": "^3.2.6",
     "@types/pug": "^2.0.10",
-    "@types/supertest": "^7.2.1",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-simple-import-sort": "^14.0.0",
+    "eslint-plugin-unused-imports": "^4.4.1",
     "globals": "^17.9.0",
     "husky": "^9.1.7",
     "jest": "^30.4.2",
+    "jest-junit": "^17.0.0",
+    "knip": "^6.32.2",
     "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
     "reflect-metadata": "^0.2.2",
     "sort-package-json": "^4.0.0",
-    "source-map-support": "^0.5.21",
-    "supertest": "^7.2.2",
     "ts-jest": "^29.4.12",
-    "ts-loader": "^9.6.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "tsdown": "^0.22.14",
@@ -148,11 +157,12 @@
     "ejs": "^6.0.1",
     "eta": "^4.6.0",
     "mjml": "^5.4.0",
+    "mjml-core": "^5.4.0",
     "mustache": "^4.2.0",
     "nunjucks": "^3.2.4",
     "pug": "^3.0.4"
   },
-  "packageManager": "pnpm@11.18.0+sha512.33d83c77da82f49fba836925c6f1b841181ec3132b670639bd012f7075f5c7cf634c5f870147c19aae7478fac01df09d8892e880454896edd23ee9b33757563c",
+  "packageManager": "pnpm@11.22.0+sha512.1ff870c4c6133dfd88fb2afc46dd13d47f09c9794b438c6fdb47ca98caf3bc16381ee0be93a091b8e3824cf01f889f46d7d9e20910fb0be1ab0fb5baa80dd621",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"

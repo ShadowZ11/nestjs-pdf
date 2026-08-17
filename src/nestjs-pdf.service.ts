@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { Data } from 'ejs';
+import { LocalsObject } from 'pug';
+
+import { addSignatureFieldUsingAnchor } from './helpers/signature.helper';
 import { PuppeteerService } from './puppeteer/puppeteer.service';
 import { PuppeteerParameters } from './puppeteer/puppeteer-parameters.interface';
-import { addSignatureFieldUsingAnchor } from './helpers/signature.helper';
-import { LocalsObject } from 'pug';
-import { Data } from 'ejs';
 
 @Injectable()
 export class NestjsPdfService {

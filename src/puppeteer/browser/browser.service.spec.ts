@@ -27,20 +27,22 @@ jest.mock('@puppeteer/browsers', () => ({
   install: jest.fn(),
 }));
 
+import { existsSync, promises, readFileSync, writeFileSync } from 'node:fs';
+
 import { Logger } from '@nestjs/common';
 import {
   Browser as BrowserType,
   canDownload,
   detectBrowserPlatform,
   getInstalledBrowsers,
-  type InstalledBrowser,
   install,
+  type InstalledBrowser,
   resolveBuildId,
 } from '@puppeteer/browsers';
-import { existsSync, promises, readFileSync, writeFileSync } from 'node:fs';
-import { launch, type Browser as PuppeteerBrowser } from 'puppeteer';
-import { BrowserService, BrowserTag } from './browser.service';
+import { type Browser as PuppeteerBrowser, launch } from 'puppeteer';
+
 import type { PuppeteerParameters } from '../puppeteer-parameters.interface';
+import { BrowserService, BrowserTag } from './browser.service';
 
 type BrowserLike = {
   connected: boolean;

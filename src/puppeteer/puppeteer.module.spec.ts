@@ -1,10 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigModule } from '@nestjs/config';
+import { Test, type TestingModule } from '@nestjs/testing';
+
+import { HANDLEBARS_PARAMETERS, PDF_PARAMETERS } from '../helpers/tokens';
+import { BrowserService, BrowserTag } from './browser/browser.service';
 import { PuppeteerModule } from './puppeteer.module';
 import { PuppeteerService } from './puppeteer.service';
-import { PDF_PARAMETERS, HANDLEBARS_PARAMETERS } from '../helpers/tokens';
-import { ConfigModule } from '@nestjs/config';
-import { PuppeteerParameters } from './puppeteer-parameters.interface';
-import { BrowserTag } from './browser/browser.service';
+import { type PuppeteerParameters } from './puppeteer-parameters.interface';
 
 describe('PuppeteerModule', () => {
   describe('forRoot', () => {
@@ -185,6 +186,73 @@ describe('PuppeteerModule', () => {
 
       const service = module.get<PuppeteerService>(PuppeteerService);
       expect(service).toBeDefined();
+    });
+  });
+
+  describe('onModuleInit', () => {
+    let module: TestingModule;
+
+    afterEach(async () => {
+      if (module) {
+        await module.close();
+      }
+    });
+
+    it('should install the browser when no executablePath is provided', async () => {
+      const install = jest.fn().mockResolvedValue(undefined);
+
+      module = await Test.createTestingModule({
+        imports: [
+          ConfigModule.forRoot(),
+          PuppeteerModule.forRoot({ headless: true }),
+        ],
+      })
+        .overrideProvider(BrowserService)
+        .useValue({ install })
+        .compile();
+
+      await module.init();
+
+      expect(install).toHaveBeenCalledWith(false);
+    });
+
+    it('should install the browser with the locked flag when useLockedBrowser is true', async () => {
+      const install = jest.fn().mockResolvedValue(undefined);
+
+      module = await Test.createTestingModule({
+        imports: [
+          ConfigModule.forRoot(),
+          PuppeteerModule.forRoot({ headless: true, useLockedBrowser: true }),
+        ],
+      })
+        .overrideProvider(BrowserService)
+        .useValue({ install })
+        .compile();
+
+      await module.init();
+
+      expect(install).toHaveBeenCalledWith(true);
+    });
+
+    it('should not install the browser when executablePath is provided', async () => {
+      const install = jest.fn().mockResolvedValue(undefined);
+
+      module = await Test.createTestingModule({
+        imports: [
+          ConfigModule.forRoot(),
+          PuppeteerModule.forRoot({
+            headless: true,
+            executablePath: '/usr/bin/chromium',
+          }),
+        ],
+      })
+        .overrideProvider(BrowserService)
+        .useValue({ install })
+        .compile();
+
+      await module.init();
+
+      expect(install).not.toHaveBeenCalled();
     });
   });
 
