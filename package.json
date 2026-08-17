@@ -78,6 +78,15 @@
       "^pdfjs-dist/legacy/build/pdf\\.mjs$": "<rootDir>/test/__mocks__/pdfjs-dist.ts",
       "^jwks-rsa$": "<rootDir>/test/__mocks__/jwks-rsa.ts"
     },
+    "reporters": [
+      "default",
+      [
+        "jest-junit",
+        {
+          "outputDirectory": "coverage"
+        }
+      ]
+    ],
     "rootDir": ".",
     "roots": [
       "<rootDir>/src/"
@@ -124,6 +133,7 @@
     "globals": "^17.9.0",
     "husky": "^9.1.7",
     "jest": "^30.4.2",
+    "jest-junit": "^17.0.0",
     "knip": "^6.32.2",
     "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
