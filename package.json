@@ -105,7 +105,7 @@
   },
   "dependencies": {
     "@puppeteer/browsers": "^3.1.0",
-    "deepmerge-ts": "^7.1.5",
+    "deepmerge-ts": "^8.0.0",
     "p-limit": "^7.3.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.2.108",
