@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.5.0...v2.5.1) (2026-08-21)
+
+
+### 🧹 Maintenance
+
+* **deps:** upgrade dependencies ([9043cce](https://github.com/ShadowZ11/nestjs-pdf/commit/9043ccee21f93072e124c7fb79af6c21f761449c))
+
 ## [2.5.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.4.3...v2.5.0) (2026-08-03)
 
 
