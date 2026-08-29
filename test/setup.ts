@@ -1,6 +1,6 @@
 jest.mock('p-limit', () => ({
   __esModule: true,
-  default: jest.fn(() => (fn: any) => fn()),
+  default: jest.fn(() => (fn: () => void) => fn()),
 }));
 
 afterAll(() => {
