@@ -105,27 +105,27 @@
   },
   "dependencies": {
     "@puppeteer/browsers": "^3.2.1",
-    "deepmerge-ts": "^8.0.1",
+    "deepmerge-ts": "^8.0.2",
     "p-limit": "^7.3.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.2.108",
-    "puppeteer": "^25.8.0"
+    "puppeteer": "^25.9.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/schematics": "^11.1.0",
-    "@nestjs/testing": "^11.2.1",
+    "@nestjs/testing": "^11.2.3",
     "@swc/core": "^1.16.1",
     "@types/ejs": "^3.1.5",
     "@types/jest": "^30.0.0",
     "@types/mjml": "^5.0.0",
     "@types/mjml-core": "^5.1.0",
     "@types/mustache": "^4.2.6",
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.3.0",
     "@types/nunjucks": "^3.2.6",
     "@types/pug": "^2.0.10",
-    "eslint": "^10.8.1",
+    "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-simple-import-sort": "^14.0.0",
@@ -144,7 +144,7 @@
     "tsconfig-paths": "^4.2.0",
     "tsdown": "^0.22.14",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.67.0"
+    "typescript-eslint": "^8.68.0"
   },
   "peerDependencies": {
     "@nestjs/common": "^11.0.0",
@@ -153,7 +153,7 @@
   },
   "optionalDependencies": {
     "@gboutte/nestjs-hbs": "^0.2.0",
-    "@napi-rs/canvas": "^1.0.7",
+    "@napi-rs/canvas": "^1.0.8",
     "ejs": "^6.0.1",
     "eta": "^4.6.0",
     "mjml": "^5.4.0",
