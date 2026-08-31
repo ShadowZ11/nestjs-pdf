@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { configure, ConfigureOptions, render, renderString } from 'nunjucks';
+import nunjucks, { type ConfigureOptions } from 'nunjucks';
 
 export interface NunjucksOptions extends Partial<ConfigureOptions> {
   noCache?: boolean;
@@ -13,7 +13,7 @@ export interface NunjucksOptions extends Partial<ConfigureOptions> {
 export class NunjucksService {
   constructor() {
     // Configure default Nunjucks environment
-    configure({
+    nunjucks.configure({
       noCache: true,
       trimBlocks: true,
       lstripBlocks: true,
@@ -34,9 +34,9 @@ export class NunjucksService {
           trimBlocks: options.trimBlocks ?? true,
           lstripBlocks: options.lstripBlocks ?? true,
         };
-        configure(configOptions as ConfigureOptions);
+        nunjucks.configure(configOptions as ConfigureOptions);
       }
-      return renderString(template, data);
+      return nunjucks.renderString(template, data);
     } catch (error) {
       throw new Error(`Nunjucks rendering failed: ${String(error)}`, {
         cause: error,
@@ -58,9 +58,9 @@ export class NunjucksService {
           trimBlocks: options.trimBlocks ?? true,
           lstripBlocks: options.lstripBlocks ?? true,
         };
-        configure(configOptions as ConfigureOptions);
+        nunjucks.configure(configOptions as ConfigureOptions);
       }
-      return render(filePath, data);
+      return nunjucks.render(filePath, data);
     } catch (error) {
       throw new Error(`Nunjucks file rendering failed: ${String(error)}`, {
         cause: error,
