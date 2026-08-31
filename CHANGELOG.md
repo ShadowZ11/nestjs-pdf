@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.2](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.5.1...v2.5.2) (2026-08-31)
+
+
+### 🐛 Bug Fixes
+
+* nunjucks break at startup ([2cf1245](https://github.com/ShadowZ11/nestjs-pdf/commit/2cf1245ac4ca26d847a5df81df2aac3a44b7ae69))
+
 ## [2.5.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.5.0...v2.5.1) (2026-08-21)
 
 
