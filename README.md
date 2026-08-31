@@ -7,7 +7,6 @@
 [![codecov](https://codecov.io/github/ShadowZ11/nestjs-pdf/graph/badge.svg?token=K0MNB1ZKYK)](https://codecov.io/github/ShadowZ11/nestjs-pdf)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-
 A NestJS library to generate and manipulate PDFs using Puppeteer and multiple template engines, including Handlebars, EJS, Pug, MJML, Nunjucks, Eta and Mustache.
 
 Main features:
@@ -61,6 +60,15 @@ import { NestjsPdfModule } from 'nestjs-pdf';
 })
 export class AppModule {}
 ```
+
+> **Enable shutdown hooks.** On shutdown, `nestjs-pdf` waits for in-flight PDF jobs
+> to finish, closes the Puppeteer browser and (optionally) wipes its browser cache.
+> This only runs if your app enables Nest's shutdown hooks:
+>
+> ```ts
+> const app = await NestFactory.create(AppModule);
+> app.enableShutdownHooks();
+> ```
 
 Inject the service and generate a PDF:
 
@@ -117,9 +125,8 @@ If the anchor is not found, the signature field will be added at a default posit
 
 The library exposes Puppeteer options via the `PuppeteerParameters` interface (see `src/puppeteer/puppeteer-parameters.interface.ts`). You can configure:
 
-
 |                             | Description                                                                                                                                                                                                                                                                                    |
-|-----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pdfOptions`                | The pdf options can be found on: https://pptr.dev/api/puppeteer.pdfoptions. Native Puppeteer options for `page.pdf`                                                                                                                                                                            |
 | `hbsOptions`                | The handlebars can be found on [@gboutte/nestjs-hbs](https://github.com/gboutte/nestjs-hbs) as it use a peer dependency and not handlebars directly                                                                                                                                            |
 | `ejsOptions`                | The ejs options can be found on [EJS documentation](https://ejs.co/#options)                                                                                                                                                                                                                   |
@@ -134,11 +141,12 @@ The library exposes Puppeteer options via the `PuppeteerParameters` interface (s
 | `headless`                  | Define if you want to use chromium headless or not, or the old headless version (`shell`). By default it's `true`. Allowed values: `true`,`false`,`"shell"`                                                                                                                                    |
 | `useLockedBrowser`          | Define if you want to use the locked version of the browser. By default it's `false`. Allowed values: `true`,`false`                                                                                                                                                                           |
 | `buildId`                   | You can force the build id. Should be `string`                                                                                                                                                                                                                                                 |
-| `cleanupBrowserCacheOnExit` | Define if you want to clean up the browser cache folder on exit. By default it's `true`. Allowed values: `true`,`false`                                                                                                                                                                        |
+| `cleanupBrowserCacheOnExit` | Wipe the downloaded browser cache folder when the app shuts down (requires `app.enableShutdownHooks()`). Set to `false` to keep the cache between runs. By default it's `true`. Allowed values: `true`,`false`                                                                                 |
 | `extraPuppeteerArgs`        | It passes some extra arguments to Puppeteer's launch method. You can check the default args at bellow. Should be `string[]`                                                                                                                                                                    |
 | `executablePath`            | The path to the browser executable to use. If not specified, Puppeteer will install Chromium in cache dir. (useLockedBrowser is useless with this param specified)                                                                                                                             |
 
 these are the default extra arguments passed to Puppeteer:
+
 ```ts
 [
   '--autoplay-policy=user-gesture-required',

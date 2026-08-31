@@ -520,6 +520,10 @@ describe('BrowserService', () => {
   });
 
   describe('cleanup and destroy', () => {
+    beforeEach(() => {
+      service = createService({ cleanupBrowserCacheOnExit: true });
+    });
+
     it('should close browser on destroy and cleanup cache', async () => {
       const browser = createBrowser();
       testState(service)._browserInstance = browser;
@@ -544,6 +548,53 @@ describe('BrowserService', () => {
       await service.onModuleDestroy();
 
       expect(promises.rm).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('graceful shutdown', () => {
+    it('should reject new jobs once shutting down', async () => {
+      await service.onModuleDestroy();
+
+      expect(() => service.markJobStarted()).toThrow(/shutting down/);
+    });
+
+    it('should skip cache cleanup when cleanupBrowserCacheOnExit is false', async () => {
+      const localService = createService({ cleanupBrowserCacheOnExit: false });
+      testState(localService)._browserInstance = createBrowser();
+      (existsSync as Mock).mockReturnValue(true);
+
+      await localService.onModuleDestroy();
+
+      expect(promises.rm).not.toHaveBeenCalled();
+    });
+
+    it('should wait for in-flight jobs before closing the browser', async () => {
+      const browser = createBrowser();
+      testState(service)._browserInstance = browser;
+      service.markJobStarted();
+
+      const destroy = service.onModuleDestroy();
+      await new Promise((r) => setTimeout(r, 20));
+      expect(browser.close).not.toHaveBeenCalled();
+
+      await service.markJobFinished();
+      await destroy;
+
+      expect(browser.close).toHaveBeenCalled();
+    });
+
+    it('should close the browser anyway once the drain timeout elapses', async () => {
+      const browser = createBrowser();
+      testState(service)._browserInstance = browser;
+      service.shutdownDrainTimeoutMs = 60;
+      service.markJobStarted();
+
+      await service.onModuleDestroy();
+
+      expect(browser.close).toHaveBeenCalled();
+      expect(Logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('still running'),
+      );
     });
   });
 
