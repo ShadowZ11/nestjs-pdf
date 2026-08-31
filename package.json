@@ -1,6 +1,6 @@
 {
   "name": "@shad0wz7/nestjs-pdf",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "description": "A NestJS library for generating PDFs with Puppeteer and multiple engines.",
   "keywords": [
     "nestjs",
