@@ -6,6 +6,7 @@ export default defineConfig({
   dts: true,
   clean: true,
   deps: {
+    alwaysBundle: ['p-limit'],
     neverBundle: [
       'pdfjs-dist',
       'pdf-lib',
@@ -17,5 +18,5 @@ export default defineConfig({
       'handlebars',
     ],
   },
-  target: ['es2024'],
+  target: ['es2023'],
 });

@@ -1,15 +1,19 @@
 import { type Mock, vi } from 'vitest';
 
 vi.mock('nunjucks', () => ({
-  configure: vi.fn(),
-  render: vi.fn(),
-  renderString: vi.fn(),
+  default: {
+    configure: vi.fn(),
+    render: vi.fn(),
+    renderString: vi.fn(),
+  },
 }));
 
 import { Test, type TestingModule } from '@nestjs/testing';
-import { configure, render, renderString } from 'nunjucks';
+import nunjucks from 'nunjucks';
 
 import { NunjucksService } from './nunjucks.service';
+
+const { configure, render, renderString } = nunjucks;
 
 describe('NunjucksService', () => {
   let service: NunjucksService;
