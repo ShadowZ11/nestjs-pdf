@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Data, Options, render, renderFile } from 'ejs';
+import ejs, { type Data, type Options } from 'ejs';
 
 export interface EjsOptions extends Omit<Options, 'async'> {
   async?: boolean;
@@ -9,7 +9,7 @@ export interface EjsOptions extends Omit<Options, 'async'> {
 export class EjsService {
   async render(template: string, data: Data = {}, options?: EjsOptions) {
     try {
-      return await render(template, data, {
+      return await ejs.render(template, data, {
         async: true,
         ...options,
       });
@@ -22,7 +22,7 @@ export class EjsService {
 
   async renderFile(filePath: string, data: Data = {}, options?: EjsOptions) {
     try {
-      return await renderFile(filePath, data, {
+      return await ejs.renderFile(filePath, data, {
         async: true,
         ...options,
       });

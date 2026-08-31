@@ -49,6 +49,9 @@ lerna-debug.log*
 .tmp
 /hbs-service-*
 
+# local perf tooling (not shipped)
+/benchmarks/
+
 # Runtime data
 pids
 *.pid

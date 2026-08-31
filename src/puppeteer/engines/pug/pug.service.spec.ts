@@ -1,7 +1,7 @@
 import { type Mock, vi } from 'vitest';
 
 vi.mock('pug', () => ({
-  compile: vi.fn(),
+  default: { compile: vi.fn() },
 }));
 
 vi.mock('node:fs', () => ({
@@ -11,9 +11,11 @@ vi.mock('node:fs', () => ({
 import { readFileSync } from 'node:fs';
 
 import { Test, type TestingModule } from '@nestjs/testing';
-import { compile } from 'pug';
+import pug from 'pug';
 
 import { PugService } from './pug.service';
+
+const { compile } = pug;
 
 describe('PugService', () => {
   let service: PugService;

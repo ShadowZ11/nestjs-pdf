@@ -1,4 +1,10 @@
-import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
 
 import { HandlebarsService } from './handlebars.service';
@@ -108,6 +114,21 @@ describe('HandlebarsService', () => {
       expect(() =>
         service.render('{{> x}}', {}, { partialDirectory: 'does/not/exist' }),
       ).toThrow(/partial directory does not exist/);
+    });
+
+    it('should skip entries in partialDirectory that are not files', () => {
+      writeFileSync(join(tempDir, 'header.hbs'), '<h1>{{title}}</h1>');
+      mkdirSync(join(tempDir, 'nested'));
+
+      expect(
+        service.render(
+          '{{> header}}',
+          { title: 'Doc' },
+          {
+            partialDirectory: tempDir,
+          },
+        ),
+      ).toBe('<h1>Doc</h1>');
     });
   });
 

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 
 import { Injectable } from '@nestjs/common';
-import { compile, LocalsObject, Options } from 'pug';
+import pug, { type LocalsObject, type Options } from 'pug';
 
 export type PugOptions = Options;
 
@@ -13,7 +13,7 @@ export class PugService {
     options?: PugOptions,
   ): string {
     try {
-      const compiledFn = compile(template, {
+      const compiledFn = pug.compile(template, {
         ...options,
       });
       return compiledFn(data);
