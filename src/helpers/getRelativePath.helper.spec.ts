@@ -1,9 +1,11 @@
 import { join, relative, resolve } from 'node:path';
 
+import { vi } from 'vitest';
+
 import { getRelativePathToValue } from './getRelativePath.helper';
 
 describe('getRelativePathToValue', () => {
-  const cwdSpy = jest.spyOn(process, 'cwd');
+  const cwdSpy = vi.spyOn(process, 'cwd');
   const cwd = resolve(__dirname, '..', '..');
 
   beforeEach(() => {

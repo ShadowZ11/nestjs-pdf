@@ -1,9 +1,11 @@
-export const getDocument = jest.fn(() => ({
+import { vi } from 'vitest';
+
+export const getDocument = vi.fn(() => ({
   promise: Promise.resolve({
     numPages: 1,
-    getPage: jest.fn().mockResolvedValue({
-      getTextContent: jest.fn().mockResolvedValue({ items: [] }),
-      getViewport: jest.fn().mockReturnValue({
+    getPage: vi.fn().mockResolvedValue({
+      getTextContent: vi.fn().mockResolvedValue({ items: [] }),
+      getViewport: vi.fn().mockReturnValue({
         transform: [1, 0, 0, 1, 0, 0],
         height: 800,
         width: 600,
@@ -13,5 +15,5 @@ export const getDocument = jest.fn(() => ({
 }));
 
 export const Util = {
-  transform: jest.fn((_transform, _itemTransform) => [1, 0, 0, 1, 0, 0]),
+  transform: vi.fn((_transform, _itemTransform) => [1, 0, 0, 1, 0, 0]),
 };

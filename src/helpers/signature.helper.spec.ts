@@ -1,18 +1,19 @@
 import { PDFDocument } from 'pdf-lib';
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { type Mocked, vi } from 'vitest';
 
 import {
   __setPdfjsForTests,
   addSignatureFieldUsingAnchor,
 } from './signature.helper';
 
-const pdfjsMock = pdfjs as unknown as jest.Mocked<typeof pdfjs>;
+const pdfjsMock = pdfjs as unknown as Mocked<typeof pdfjs>;
 
-jest.setTimeout(10000);
+vi.setConfig({ testTimeout: 10000 });
 
 describe('signature.helper', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('adds a signature field when anchor is found', async () => {
@@ -23,12 +24,12 @@ describe('signature.helper', () => {
 
     // mock pdfjs to return a page with a matching anchor text
     const pageMock = {
-      getTextContent: jest.fn().mockResolvedValue({
+      getTextContent: vi.fn().mockResolvedValue({
         items: [
           { str: '__SIG_DEBTOR_ANCHOR__', transform: [1, 0, 0, 1, 0, 0] },
         ],
       }),
-      getViewport: jest.fn().mockReturnValue({
+      getViewport: vi.fn().mockReturnValue({
         transform: [1, 0, 0, 1, 0, 0],
         height: 800,
         width: 600,
@@ -38,13 +39,13 @@ describe('signature.helper', () => {
     pdfjsMock.getDocument.mockReturnValue({
       promise: Promise.resolve({
         numPages: 1,
-        getPage: jest.fn().mockResolvedValue(pageMock),
+        getPage: vi.fn().mockResolvedValue(pageMock),
       }),
-      destroy: jest.fn(),
+      destroy: vi.fn(),
     } as never);
 
     // ensure transform returns a position (e,f)
-    pdfjsMock.Util.transform = jest.fn(() => [1, 0, 0, 1, 150, 100]);
+    pdfjsMock.Util.transform = vi.fn(() => [1, 0, 0, 1, 150, 100]);
 
     // inject mocked pdfjs to avoid dynamic import at runtime
     __setPdfjsForTests(pdfjsMock);
@@ -70,16 +71,16 @@ describe('signature.helper', () => {
     pdfjsMock.getDocument.mockReturnValue({
       promise: Promise.resolve({
         numPages: 2,
-        getPage: jest.fn().mockResolvedValue({
-          getTextContent: jest.fn().mockResolvedValue({ items: [] }),
-          getViewport: jest.fn().mockReturnValue({
+        getPage: vi.fn().mockResolvedValue({
+          getTextContent: vi.fn().mockResolvedValue({ items: [] }),
+          getViewport: vi.fn().mockReturnValue({
             transform: [1, 0, 0, 1, 0, 0],
             height: 800,
             width: 600,
           }),
         }),
       }),
-      destroy: jest.fn(),
+      destroy: vi.fn(),
     } as never);
 
     // inject mocked pdfjs to avoid dynamic import at runtime

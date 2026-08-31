@@ -1,10 +1,11 @@
-jest.mock('mjml', () => ({
-  __esModule: true,
-  default: jest.fn(),
+import { type Mock, vi } from 'vitest';
+
+vi.mock('mjml', () => ({
+  default: vi.fn(),
 }));
 
-jest.mock('node:fs', () => ({
-  readFileSync: jest.fn(),
+vi.mock('node:fs', () => ({
+  readFileSync: vi.fn(),
 }));
 
 import { readFileSync } from 'node:fs';
@@ -42,7 +43,7 @@ describe('MjmlService', () => {
       </mjml>
     `;
 
-    (mjml as jest.Mock).mockResolvedValue({
+    (mjml as Mock).mockResolvedValue({
       html: '<!doctype html><html lang="en">Hello World</html>',
     });
     const result = await service.render(mjmlTemplate);
@@ -52,7 +53,7 @@ describe('MjmlService', () => {
   });
 
   it('should pass options to mjml render', async () => {
-    (mjml as jest.Mock).mockResolvedValue({
+    (mjml as Mock).mockResolvedValue({
       html: '<html lang="en">ok</html>',
     });
 
@@ -62,8 +63,8 @@ describe('MjmlService', () => {
   });
 
   it('should render a file by reading its contents first', async () => {
-    (readFileSync as jest.Mock).mockReturnValue('<mjml>file</mjml>');
-    (mjml as jest.Mock).mockResolvedValue({
+    (readFileSync as Mock).mockReturnValue('<mjml>file</mjml>');
+    (mjml as Mock).mockResolvedValue({
       html: '<html lang="en">file</html>',
     });
 

@@ -51,56 +51,15 @@
     "prepublishOnly": "pnpm lint && pnpm test && pnpm build",
     "sort": "sort-package-json",
     "sort:check": "sort-package-json --check",
-    "test": "jest",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:watch": "jest --watch"
+    "test": "vitest run",
+    "test:cov": "vitest run --coverage",
+    "test:debug": "vitest --inspect-brk --no-file-parallelism",
+    "test:watch": "vitest"
   },
   "lint-staged": {
     "*.{ts,tsx,md,graphql,json,html,yaml,css}": [
       "eslint \"{src,test}/**/*.ts\" --fix",
       "pnpm format"
-    ]
-  },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.(t|j)s",
-      "!src/index.ts"
-    ],
-    "coverageDirectory": "./coverage",
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "moduleNameMapper": {
-      "@/(.*)$": "<rootDir>/src/$1",
-      "^pdfjs-dist/legacy/build/pdf\\.mjs$": "<rootDir>/test/__mocks__/pdfjs-dist.ts",
-      "^jwks-rsa$": "<rootDir>/test/__mocks__/jwks-rsa.ts"
-    },
-    "reporters": [
-      "default",
-      [
-        "jest-junit",
-        {
-          "outputDirectory": "coverage"
-        }
-      ]
-    ],
-    "rootDir": ".",
-    "roots": [
-      "<rootDir>/src/"
-    ],
-    "setupFilesAfterEnv": [
-      "<rootDir>/test/setup.ts"
-    ],
-    "testEnvironment": "node",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "transformIgnorePatterns": [
-      "/node_modules/\\.pnpm/(?!(puppeteer[@+]|puppeteer-core[@+]|@puppeteer\\+))"
     ]
   },
   "dependencies": {
@@ -119,13 +78,13 @@
     "@nestjs/testing": "^12.0.0",
     "@swc/core": "^1.16.1",
     "@types/ejs": "^3.1.5",
-    "@types/jest": "^30.0.0",
     "@types/mjml": "^5.0.0",
     "@types/mjml-core": "^5.1.0",
     "@types/mustache": "^4.2.6",
     "@types/node": "^26.3.0",
     "@types/nunjucks": "^3.2.6",
     "@types/pug": "^2.0.10",
+    "@vitest/coverage-v8": "^4.1.11",
     "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
@@ -133,19 +92,16 @@
     "eslint-plugin-unused-imports": "^4.4.1",
     "globals": "^17.11.0",
     "husky": "^9.1.7",
-    "jest": "^30.4.2",
-    "jest-junit": "^17.0.0",
     "knip": "^6.32.2",
     "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
     "reflect-metadata": "^0.2.2",
     "sort-package-json": "^4.0.0",
-    "ts-jest": "^29.4.12",
-    "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
     "tsdown": "^0.22.14",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.68.0"
+    "typescript-eslint": "^8.68.0",
+    "unplugin-swc": "^1.5.11",
+    "vitest": "^4.1.11"
   },
   "peerDependencies": {
     "@nestjs/common": "^12.0.0",

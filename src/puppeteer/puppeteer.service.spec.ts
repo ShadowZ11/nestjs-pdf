@@ -1,6 +1,7 @@
 import { HandlebarsService } from '@gboutte/nestjs-hbs';
 import { Logger, type Provider } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
+import { type Mock, type Mocked, vi } from 'vitest';
 
 import { PDF_PARAMETERS } from '../helpers/tokens';
 import { BrowserService } from './browser/browser.service';
@@ -14,18 +15,18 @@ import { PuppeteerService } from './puppeteer.service';
 
 describe('PuppeteerService', () => {
   let service: PuppeteerService;
-  let browserService: jest.Mocked<BrowserService>;
-  let handlebarsService: jest.Mocked<HandlebarsService>;
+  let browserService: Mocked<BrowserService>;
+  let handlebarsService: Mocked<HandlebarsService>;
 
   const mockBrowserService = {
-    markJobStarted: jest.fn(),
-    markJobFinished: jest.fn(),
-    createContext: jest.fn(),
+    markJobStarted: vi.fn(),
+    markJobFinished: vi.fn(),
+    createContext: vi.fn(),
   };
 
   const mockHandlebarsService = {
-    render: jest.fn(),
-    renderFile: jest.fn(),
+    render: vi.fn(),
+    renderFile: vi.fn(),
   };
 
   const mockPdfParameters = {
@@ -94,12 +95,12 @@ describe('PuppeteerService', () => {
     browserService = module.get(BrowserService);
     handlebarsService = module.get(HandlebarsService);
 
-    jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
-    jest.spyOn(Logger, 'warn').mockImplementation(() => undefined);
+    vi.spyOn(Logger, 'error').mockImplementation(() => undefined);
+    vi.spyOn(Logger, 'warn').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -109,51 +110,47 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromHtml', () => {
     it('should mark job started and finished', async () => {
       const mockContext = {
-        newPage: jest.fn().mockResolvedValue({
-          setContent: jest.fn().mockResolvedValue(undefined),
-          emulateMediaType: jest.fn().mockResolvedValue(undefined),
-          waitForNetworkIdle: jest.fn().mockResolvedValue(undefined),
-          evaluate: jest.fn().mockResolvedValue(undefined),
-          pdf: jest.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
+        newPage: vi.fn().mockResolvedValue({
+          setContent: vi.fn().mockResolvedValue(undefined),
+          emulateMediaType: vi.fn().mockResolvedValue(undefined),
+          waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+          evaluate: vi.fn().mockResolvedValue(undefined),
+          pdf: vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
         }),
-        close: jest.fn().mockResolvedValue(undefined),
+        close: vi.fn().mockResolvedValue(undefined),
       };
 
-      (browserService.createContext as jest.Mock).mockResolvedValue(
-        mockContext,
-      );
+      (browserService.createContext as Mock).mockResolvedValue(mockContext);
 
       const html = '<h1>Test</h1>';
       await service.generatePdfFromHtml(html);
 
       expect(
-        (browserService.markJobStarted as jest.Mock).mock.calls.length,
+        (browserService.markJobStarted as Mock).mock.calls.length,
       ).toBeGreaterThan(0);
       expect(
-        (browserService.markJobFinished as jest.Mock).mock.calls.length,
+        (browserService.markJobFinished as Mock).mock.calls.length,
       ).toBeGreaterThan(0);
     });
 
     it('should create browser context with headless option', async () => {
       const mockContext = {
-        newPage: jest.fn().mockResolvedValue({
-          setContent: jest.fn().mockResolvedValue(undefined),
-          emulateMediaType: jest.fn().mockResolvedValue(undefined),
-          waitForNetworkIdle: jest.fn().mockResolvedValue(undefined),
-          evaluate: jest.fn().mockResolvedValue(undefined),
-          pdf: jest.fn().mockResolvedValue(new Uint8Array([1])),
+        newPage: vi.fn().mockResolvedValue({
+          setContent: vi.fn().mockResolvedValue(undefined),
+          emulateMediaType: vi.fn().mockResolvedValue(undefined),
+          waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+          evaluate: vi.fn().mockResolvedValue(undefined),
+          pdf: vi.fn().mockResolvedValue(new Uint8Array([1])),
         }),
-        close: jest.fn().mockResolvedValue(undefined),
+        close: vi.fn().mockResolvedValue(undefined),
       };
 
-      (browserService.createContext as jest.Mock).mockResolvedValue(
-        mockContext,
-      );
+      (browserService.createContext as Mock).mockResolvedValue(mockContext);
 
       const html = '<p>Content</p>';
       await service.generatePdfFromHtml(html);
 
-      expect(browserService.createContext as jest.Mock).toHaveBeenCalledWith(
+      expect(browserService.createContext as Mock).toHaveBeenCalledWith(
         expect.any(Array),
         true, // default headless value from mockPdfParameters
         undefined,
@@ -162,16 +159,16 @@ describe('PuppeteerService', () => {
 
     it('should set page content with waitUntil domcontentloaded', async () => {
       const mockPage = {
-        setContent: jest.fn().mockResolvedValue(undefined),
-        emulateMediaType: jest.fn().mockResolvedValue(undefined),
-        waitForNetworkIdle: jest.fn().mockResolvedValue(undefined),
-        evaluate: jest.fn().mockResolvedValue(undefined),
-        pdf: jest.fn().mockResolvedValue(new Uint8Array([2])),
+        setContent: vi.fn().mockResolvedValue(undefined),
+        emulateMediaType: vi.fn().mockResolvedValue(undefined),
+        waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+        evaluate: vi.fn().mockResolvedValue(undefined),
+        pdf: vi.fn().mockResolvedValue(new Uint8Array([2])),
       };
 
       const mockContext = {
-        newPage: jest.fn().mockResolvedValue(mockPage),
-        close: jest.fn().mockResolvedValue(undefined),
+        newPage: vi.fn().mockResolvedValue(mockPage),
+        close: vi.fn().mockResolvedValue(undefined),
       };
 
       browserService.createContext.mockResolvedValue(mockContext as never);
@@ -187,16 +184,16 @@ describe('PuppeteerService', () => {
     it('should return PDF buffer', async () => {
       const pdfBuffer = new Uint8Array([1, 2, 3, 4, 5]);
       const mockPage = {
-        setContent: jest.fn().mockResolvedValue(undefined),
-        emulateMediaType: jest.fn().mockResolvedValue(undefined),
-        waitForNetworkIdle: jest.fn().mockResolvedValue(undefined),
-        evaluate: jest.fn().mockResolvedValue(undefined),
-        pdf: jest.fn().mockResolvedValue(pdfBuffer),
+        setContent: vi.fn().mockResolvedValue(undefined),
+        emulateMediaType: vi.fn().mockResolvedValue(undefined),
+        waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+        evaluate: vi.fn().mockResolvedValue(undefined),
+        pdf: vi.fn().mockResolvedValue(pdfBuffer),
       };
 
       const mockContext = {
-        newPage: jest.fn().mockResolvedValue(mockPage),
-        close: jest.fn().mockResolvedValue(undefined),
+        newPage: vi.fn().mockResolvedValue(mockPage),
+        close: vi.fn().mockResolvedValue(undefined),
       };
 
       browserService.createContext.mockResolvedValue(mockContext as never);
@@ -209,28 +206,26 @@ describe('PuppeteerService', () => {
 
     it('should handle custom options', async () => {
       const mockPage = {
-        setContent: jest.fn().mockResolvedValue(undefined),
-        emulateMediaType: jest.fn().mockResolvedValue(undefined),
-        waitForNetworkIdle: jest.fn().mockResolvedValue(undefined),
-        evaluate: jest.fn().mockResolvedValue(undefined),
-        pdf: jest.fn().mockResolvedValue(new Uint8Array([1])),
+        setContent: vi.fn().mockResolvedValue(undefined),
+        emulateMediaType: vi.fn().mockResolvedValue(undefined),
+        waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+        evaluate: vi.fn().mockResolvedValue(undefined),
+        pdf: vi.fn().mockResolvedValue(new Uint8Array([1])),
       };
 
       const mockContext = {
-        newPage: jest.fn().mockResolvedValue(mockPage),
-        close: jest.fn().mockResolvedValue(undefined),
+        newPage: vi.fn().mockResolvedValue(mockPage),
+        close: vi.fn().mockResolvedValue(undefined),
       };
 
-      (browserService.createContext as jest.Mock).mockResolvedValue(
-        mockContext,
-      );
+      (browserService.createContext as Mock).mockResolvedValue(mockContext);
 
       const html = '<p>Custom</p>';
       const options = { headless: false };
 
       await service.generatePdfFromHtml(html, options);
 
-      expect(browserService.createContext as jest.Mock).toHaveBeenCalledWith(
+      expect(browserService.createContext as Mock).toHaveBeenCalledWith(
         expect.any(Array),
         false, // custom headless value,
         undefined,
@@ -239,16 +234,16 @@ describe('PuppeteerService', () => {
 
     it('should close browser context on error', async () => {
       const mockPage = {
-        setContent: jest.fn().mockRejectedValue(new Error('Page setup failed')),
-        emulateMediaType: jest.fn(),
-        waitForNetworkIdle: jest.fn(),
-        evaluate: jest.fn(),
-        pdf: jest.fn(),
+        setContent: vi.fn().mockRejectedValue(new Error('Page setup failed')),
+        emulateMediaType: vi.fn(),
+        waitForNetworkIdle: vi.fn(),
+        evaluate: vi.fn(),
+        pdf: vi.fn(),
       };
 
       const mockContext = {
-        newPage: jest.fn().mockResolvedValue(mockPage),
-        close: jest.fn().mockResolvedValue(undefined),
+        newPage: vi.fn().mockResolvedValue(mockPage),
+        close: vi.fn().mockResolvedValue(undefined),
       };
 
       browserService.createContext.mockResolvedValue(mockContext as never);
@@ -267,22 +262,20 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromTemplateHbsString', () => {
     it('should render template string to HTML', async () => {
       const mockPage = {
-        setContent: jest.fn().mockResolvedValue(undefined),
-        emulateMediaType: jest.fn().mockResolvedValue(undefined),
-        waitForNetworkIdle: jest.fn().mockResolvedValue(undefined),
-        evaluate: jest.fn().mockResolvedValue(undefined),
-        pdf: jest.fn().mockResolvedValue(new Uint8Array([1])),
+        setContent: vi.fn().mockResolvedValue(undefined),
+        emulateMediaType: vi.fn().mockResolvedValue(undefined),
+        waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+        evaluate: vi.fn().mockResolvedValue(undefined),
+        pdf: vi.fn().mockResolvedValue(new Uint8Array([1])),
       };
 
       const mockContext = {
-        newPage: jest.fn().mockResolvedValue(mockPage),
-        close: jest.fn().mockResolvedValue(undefined),
+        newPage: vi.fn().mockResolvedValue(mockPage),
+        close: vi.fn().mockResolvedValue(undefined),
       };
 
-      (browserService.createContext as jest.Mock).mockResolvedValue(
-        mockContext,
-      );
-      (handlebarsService.render as jest.Mock).mockReturnValue(
+      (browserService.createContext as Mock).mockResolvedValue(mockContext);
+      (handlebarsService.render as Mock).mockReturnValue(
         '<p>Rendered HTML</p>',
       );
 
@@ -291,7 +284,7 @@ describe('PuppeteerService', () => {
 
       await service.generatePdfFromTemplateHbsString(template, parameters);
 
-      expect(handlebarsService.render as jest.Mock).toHaveBeenCalledWith(
+      expect(handlebarsService.render as Mock).toHaveBeenCalledWith(
         template,
         parameters,
       );
@@ -302,28 +295,26 @@ describe('PuppeteerService', () => {
 
     it('should handle empty parameters', async () => {
       const mockPage = {
-        setContent: jest.fn().mockResolvedValue(undefined),
-        emulateMediaType: jest.fn().mockResolvedValue(undefined),
-        waitForNetworkIdle: jest.fn().mockResolvedValue(undefined),
-        evaluate: jest.fn().mockResolvedValue(undefined),
-        pdf: jest.fn().mockResolvedValue(new Uint8Array([1])),
+        setContent: vi.fn().mockResolvedValue(undefined),
+        emulateMediaType: vi.fn().mockResolvedValue(undefined),
+        waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+        evaluate: vi.fn().mockResolvedValue(undefined),
+        pdf: vi.fn().mockResolvedValue(new Uint8Array([1])),
       };
 
       const mockContext = {
-        newPage: jest.fn().mockResolvedValue(mockPage),
-        close: jest.fn().mockResolvedValue(undefined),
+        newPage: vi.fn().mockResolvedValue(mockPage),
+        close: vi.fn().mockResolvedValue(undefined),
       };
 
-      (browserService.createContext as jest.Mock).mockResolvedValue(
-        mockContext,
-      );
-      (handlebarsService.render as jest.Mock).mockReturnValue('<p>Static</p>');
+      (browserService.createContext as Mock).mockResolvedValue(mockContext);
+      (handlebarsService.render as Mock).mockReturnValue('<p>Static</p>');
 
       const template = '<p>Static</p>';
 
       await service.generatePdfFromTemplateHbsString(template);
 
-      expect(handlebarsService.render as jest.Mock).toHaveBeenCalledWith(
+      expect(handlebarsService.render as Mock).toHaveBeenCalledWith(
         template,
         {},
       );
@@ -331,16 +322,16 @@ describe('PuppeteerService', () => {
 
     it('should pass options to generatePdfFromHtml', async () => {
       const mockPage = {
-        setContent: jest.fn().mockResolvedValue(undefined),
-        emulateMediaType: jest.fn().mockResolvedValue(undefined),
-        waitForNetworkIdle: jest.fn().mockResolvedValue(undefined),
-        evaluate: jest.fn().mockResolvedValue(undefined),
-        pdf: jest.fn().mockResolvedValue(new Uint8Array([1])),
+        setContent: vi.fn().mockResolvedValue(undefined),
+        emulateMediaType: vi.fn().mockResolvedValue(undefined),
+        waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+        evaluate: vi.fn().mockResolvedValue(undefined),
+        pdf: vi.fn().mockResolvedValue(new Uint8Array([1])),
       };
 
       const mockContext = {
-        newPage: jest.fn().mockResolvedValue(mockPage),
-        close: jest.fn().mockResolvedValue(undefined),
+        newPage: vi.fn().mockResolvedValue(mockPage),
+        close: vi.fn().mockResolvedValue(undefined),
       };
 
       browserService.createContext.mockResolvedValue(mockContext as never);
@@ -367,22 +358,20 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromTemplateHbsFile', () => {
     it('should render template file to HTML', async () => {
       const mockPage = {
-        setContent: jest.fn().mockResolvedValue(undefined),
-        emulateMediaType: jest.fn().mockResolvedValue(undefined),
-        waitForNetworkIdle: jest.fn().mockResolvedValue(undefined),
-        evaluate: jest.fn().mockResolvedValue(undefined),
-        pdf: jest.fn().mockResolvedValue(new Uint8Array([1])),
+        setContent: vi.fn().mockResolvedValue(undefined),
+        emulateMediaType: vi.fn().mockResolvedValue(undefined),
+        waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+        evaluate: vi.fn().mockResolvedValue(undefined),
+        pdf: vi.fn().mockResolvedValue(new Uint8Array([1])),
       };
 
       const mockContext = {
-        newPage: jest.fn().mockResolvedValue(mockPage),
-        close: jest.fn().mockResolvedValue(undefined),
+        newPage: vi.fn().mockResolvedValue(mockPage),
+        close: vi.fn().mockResolvedValue(undefined),
       };
 
-      (browserService.createContext as jest.Mock).mockResolvedValue(
-        mockContext,
-      );
-      (handlebarsService.renderFile as jest.Mock).mockReturnValue(
+      (browserService.createContext as Mock).mockResolvedValue(mockContext);
+      (handlebarsService.renderFile as Mock).mockReturnValue(
         '<p>Rendered from file</p>',
       );
 
@@ -391,7 +380,7 @@ describe('PuppeteerService', () => {
 
       await service.generatePdfFromTemplateHbsFile(filePath, parameters);
 
-      expect(handlebarsService.renderFile as jest.Mock).toHaveBeenCalledWith(
+      expect(handlebarsService.renderFile as Mock).toHaveBeenCalledWith(
         filePath,
         parameters,
       );
@@ -405,30 +394,26 @@ describe('PuppeteerService', () => {
 
     it('should handle default parameters for file rendering', async () => {
       const mockPage = {
-        setContent: jest.fn().mockResolvedValue(undefined),
-        emulateMediaType: jest.fn().mockResolvedValue(undefined),
-        waitForNetworkIdle: jest.fn().mockResolvedValue(undefined),
-        evaluate: jest.fn().mockResolvedValue(undefined),
-        pdf: jest.fn().mockResolvedValue(new Uint8Array([1])),
+        setContent: vi.fn().mockResolvedValue(undefined),
+        emulateMediaType: vi.fn().mockResolvedValue(undefined),
+        waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+        evaluate: vi.fn().mockResolvedValue(undefined),
+        pdf: vi.fn().mockResolvedValue(new Uint8Array([1])),
       };
 
       const mockContext = {
-        newPage: jest.fn().mockResolvedValue(mockPage),
-        close: jest.fn().mockResolvedValue(undefined),
+        newPage: vi.fn().mockResolvedValue(mockPage),
+        close: vi.fn().mockResolvedValue(undefined),
       };
 
-      (browserService.createContext as jest.Mock).mockResolvedValue(
-        mockContext,
-      );
-      (handlebarsService.renderFile as jest.Mock).mockReturnValue(
-        '<p>Content</p>',
-      );
+      (browserService.createContext as Mock).mockResolvedValue(mockContext);
+      (handlebarsService.renderFile as Mock).mockReturnValue('<p>Content</p>');
 
       const filePath = '/path/template.hbs';
 
       await service.generatePdfFromTemplateHbsFile(filePath);
 
-      expect(handlebarsService.renderFile as jest.Mock).toHaveBeenCalledWith(
+      expect(handlebarsService.renderFile as Mock).toHaveBeenCalledWith(
         filePath,
         {},
       );
@@ -438,7 +423,7 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromMjmlString', () => {
     it('should render MJML template string to HTML', async () => {
       const mjmlService = {
-        render: jest.fn().mockResolvedValue('<p>Rendered MJML</p>'),
+        render: vi.fn().mockResolvedValue('<p>Rendered MJML</p>'),
       };
       const localService = await createServiceWithProviders([
         {
@@ -446,7 +431,7 @@ describe('PuppeteerService', () => {
           useValue: mjmlService,
         },
       ]);
-      const generatePdfSpy = jest
+      const generatePdfSpy = vi
         .spyOn(localService, 'generatePdfFromHtml')
         .mockResolvedValue(new Uint8Array([1]));
       const options = { mjmlOptions: { minify: true } };
@@ -470,7 +455,7 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromMjmlFile', () => {
     it('should render MJML file to HTML', async () => {
       const mjmlService = {
-        renderFile: jest.fn().mockResolvedValue('<p>Rendered MJML file</p>'),
+        renderFile: vi.fn().mockResolvedValue('<p>Rendered MJML file</p>'),
       };
       const localService = await createServiceWithProviders([
         {
@@ -478,7 +463,7 @@ describe('PuppeteerService', () => {
           useValue: mjmlService,
         },
       ]);
-      const generatePdfSpy = jest
+      const generatePdfSpy = vi
         .spyOn(localService, 'generatePdfFromHtml')
         .mockResolvedValue(new Uint8Array([1]));
       const options = { mjmlOptions: { minify: false } };
@@ -502,7 +487,7 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromPugString', () => {
     it('should render Pug template string to HTML', async () => {
       const pugService = {
-        render: jest.fn().mockReturnValue('<p>Rendered Pug</p>'),
+        render: vi.fn().mockReturnValue('<p>Rendered Pug</p>'),
       };
       const localService = await createServiceWithProviders([
         {
@@ -510,7 +495,7 @@ describe('PuppeteerService', () => {
           useValue: pugService,
         },
       ]);
-      const generatePdfSpy = jest
+      const generatePdfSpy = vi
         .spyOn(localService, 'generatePdfFromHtml')
         .mockResolvedValue(new Uint8Array([1]));
       const options = { pugOptions: { pretty: true } };
@@ -536,7 +521,7 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromPugFile', () => {
     it('should render Pug file to HTML', async () => {
       const pugService = {
-        renderFile: jest.fn().mockReturnValue('<p>Rendered Pug file</p>'),
+        renderFile: vi.fn().mockReturnValue('<p>Rendered Pug file</p>'),
       };
       const localService = await createServiceWithProviders([
         {
@@ -544,7 +529,7 @@ describe('PuppeteerService', () => {
           useValue: pugService,
         },
       ]);
-      const generatePdfSpy = jest
+      const generatePdfSpy = vi
         .spyOn(localService, 'generatePdfFromHtml')
         .mockResolvedValue(new Uint8Array([1]));
       const options = { pugOptions: { pretty: false } };
@@ -570,7 +555,7 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromEjsString', () => {
     it('should render EJS template string to HTML', async () => {
       const ejsService = {
-        render: jest.fn().mockResolvedValue('<p>Rendered EJS</p>'),
+        render: vi.fn().mockResolvedValue('<p>Rendered EJS</p>'),
       };
       const localService = await createServiceWithProviders([
         {
@@ -578,7 +563,7 @@ describe('PuppeteerService', () => {
           useValue: ejsService,
         },
       ]);
-      const generatePdfSpy = jest
+      const generatePdfSpy = vi
         .spyOn(localService, 'generatePdfFromHtml')
         .mockResolvedValue(new Uint8Array([1]));
       const options = { ejsOptions: { async: false } };
@@ -604,7 +589,7 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromEjsFile', () => {
     it('should render EJS file to HTML', async () => {
       const ejsService = {
-        renderFile: jest.fn().mockResolvedValue('<p>Rendered EJS file</p>'),
+        renderFile: vi.fn().mockResolvedValue('<p>Rendered EJS file</p>'),
       };
       const localService = await createServiceWithProviders([
         {
@@ -612,7 +597,7 @@ describe('PuppeteerService', () => {
           useValue: ejsService,
         },
       ]);
-      const generatePdfSpy = jest
+      const generatePdfSpy = vi
         .spyOn(localService, 'generatePdfFromHtml')
         .mockResolvedValue(new Uint8Array([1]));
       const options = { ejsOptions: { async: true } };
@@ -638,7 +623,7 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromNunjucksString', () => {
     it('should render Nunjucks template string to HTML', async () => {
       const nunjucksService = {
-        render: jest.fn().mockReturnValue('<p>Rendered Nunjucks</p>'),
+        render: vi.fn().mockReturnValue('<p>Rendered Nunjucks</p>'),
       };
       const localService = await createServiceWithProviders([
         {
@@ -646,7 +631,7 @@ describe('PuppeteerService', () => {
           useValue: nunjucksService,
         },
       ]);
-      const generatePdfSpy = jest
+      const generatePdfSpy = vi
         .spyOn(localService, 'generatePdfFromHtml')
         .mockResolvedValue(new Uint8Array([1]));
       const options = { nunjucksOptions: { throwOnUndefined: true } };
@@ -672,7 +657,7 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromNunjucksFile', () => {
     it('should render Nunjucks file to HTML', async () => {
       const nunjucksService = {
-        renderFile: jest.fn().mockReturnValue('<p>Rendered Nunjucks file</p>'),
+        renderFile: vi.fn().mockReturnValue('<p>Rendered Nunjucks file</p>'),
       };
       const localService = await createServiceWithProviders([
         {
@@ -680,7 +665,7 @@ describe('PuppeteerService', () => {
           useValue: nunjucksService,
         },
       ]);
-      const generatePdfSpy = jest
+      const generatePdfSpy = vi
         .spyOn(localService, 'generatePdfFromHtml')
         .mockResolvedValue(new Uint8Array([1]));
       const options = { nunjucksOptions: { throwOnUndefined: false } };
@@ -706,7 +691,7 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromEtaString', () => {
     it('should render Eta template string to HTML', async () => {
       const etaService = {
-        render: jest.fn().mockReturnValue('<p>Rendered Eta</p>'),
+        render: vi.fn().mockReturnValue('<p>Rendered Eta</p>'),
       };
       const localService = await createServiceWithProviders([
         {
@@ -714,7 +699,7 @@ describe('PuppeteerService', () => {
           useValue: etaService,
         },
       ]);
-      const generatePdfSpy = jest
+      const generatePdfSpy = vi
         .spyOn(localService, 'generatePdfFromHtml')
         .mockResolvedValue(new Uint8Array([1]));
       const options = { etaOptions: { cache: false } };
@@ -740,7 +725,7 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromEtaFile', () => {
     it('should render Eta file to HTML', async () => {
       const etaService = {
-        renderFile: jest.fn().mockReturnValue('<p>Rendered Eta file</p>'),
+        renderFile: vi.fn().mockReturnValue('<p>Rendered Eta file</p>'),
       };
       const localService = await createServiceWithProviders([
         {
@@ -748,7 +733,7 @@ describe('PuppeteerService', () => {
           useValue: etaService,
         },
       ]);
-      const generatePdfSpy = jest
+      const generatePdfSpy = vi
         .spyOn(localService, 'generatePdfFromHtml')
         .mockResolvedValue(new Uint8Array([1]));
       const options = { etaOptions: { cache: true } };
@@ -774,7 +759,7 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromMustacheString', () => {
     it('should render Mustache template string to HTML', async () => {
       const mustacheService = {
-        render: jest.fn().mockReturnValue('<p>Rendered Mustache</p>'),
+        render: vi.fn().mockReturnValue('<p>Rendered Mustache</p>'),
       };
       const localService = await createServiceWithProviders([
         {
@@ -782,7 +767,7 @@ describe('PuppeteerService', () => {
           useValue: mustacheService,
         },
       ]);
-      const generatePdfSpy = jest
+      const generatePdfSpy = vi
         .spyOn(localService, 'generatePdfFromHtml')
         .mockResolvedValue(new Uint8Array([1]));
       const options = {
@@ -810,7 +795,7 @@ describe('PuppeteerService', () => {
   describe('generatePdfFromMustacheFile', () => {
     it('should render Mustache file to HTML', async () => {
       const mustacheService = {
-        renderFile: jest.fn().mockReturnValue('<p>Rendered Mustache file</p>'),
+        renderFile: vi.fn().mockReturnValue('<p>Rendered Mustache file</p>'),
       };
       const localService = await createServiceWithProviders([
         {
@@ -818,7 +803,7 @@ describe('PuppeteerService', () => {
           useValue: mustacheService,
         },
       ]);
-      const generatePdfSpy = jest
+      const generatePdfSpy = vi
         .spyOn(localService, 'generatePdfFromHtml')
         .mockResolvedValue(new Uint8Array([1]));
       const options = {

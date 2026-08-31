@@ -1,18 +1,20 @@
-jest.mock('node:fs', () => ({
-  existsSync: jest.fn(),
+import { type Mock, vi } from 'vitest';
+
+vi.mock('node:fs', () => ({
+  existsSync: vi.fn(),
   promises: {
-    rm: jest.fn(),
-    readdir: jest.fn(),
+    rm: vi.fn(),
+    readdir: vi.fn(),
   },
-  readFileSync: jest.fn(),
-  writeFileSync: jest.fn(),
+  readFileSync: vi.fn(),
+  writeFileSync: vi.fn(),
 }));
 
-jest.mock('puppeteer', () => ({
-  launch: jest.fn(),
+vi.mock('puppeteer', () => ({
+  launch: vi.fn(),
 }));
 
-jest.mock('@puppeteer/browsers', () => ({
+vi.mock('@puppeteer/browsers', () => ({
   Browser: {
     CHROMIUM: 'chromium',
     CHROME: 'chrome',
@@ -20,11 +22,11 @@ jest.mock('@puppeteer/browsers', () => ({
   BrowserPlatform: {
     LINUX: 'linux',
   },
-  canDownload: jest.fn(),
-  detectBrowserPlatform: jest.fn(),
-  getInstalledBrowsers: jest.fn(),
-  resolveBuildId: jest.fn(),
-  install: jest.fn(),
+  canDownload: vi.fn(),
+  detectBrowserPlatform: vi.fn(),
+  getInstalledBrowsers: vi.fn(),
+  resolveBuildId: vi.fn(),
+  install: vi.fn(),
 }));
 
 import { existsSync, promises, readFileSync, writeFileSync } from 'node:fs';
@@ -46,9 +48,9 @@ import { BrowserService, BrowserTag } from './browser.service';
 
 type BrowserLike = {
   connected: boolean;
-  close: jest.Mock;
-  createBrowserContext: jest.Mock;
-  on: jest.Mock;
+  close: Mock;
+  createBrowserContext: Mock;
+  on: Mock;
 };
 
 type BrowserServiceTestState = {
@@ -78,22 +80,20 @@ describe('BrowserService', () => {
     overrides: Partial<BrowserLike> = {},
   ): BrowserLike => ({
     connected: true,
-    close: jest.fn().mockResolvedValue(undefined),
-    createBrowserContext: jest.fn().mockResolvedValue({}),
-    on: jest.fn(),
+    close: vi.fn().mockResolvedValue(undefined),
+    createBrowserContext: vi.fn().mockResolvedValue({}),
+    on: vi.fn(),
     ...overrides,
   });
 
   beforeEach(() => {
-    jest.restoreAllMocks();
-    jest.clearAllMocks();
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
 
-    (detectBrowserPlatform as jest.Mock).mockReturnValue(undefined);
-    (getInstalledBrowsers as jest.Mock).mockResolvedValue(
-      mockInstalledBrowsers,
-    );
-    (resolveBuildId as jest.Mock).mockResolvedValue('build-123');
-    (canDownload as jest.Mock).mockResolvedValue(true);
+    (detectBrowserPlatform as Mock).mockReturnValue(undefined);
+    (getInstalledBrowsers as Mock).mockResolvedValue(mockInstalledBrowsers);
+    (resolveBuildId as Mock).mockResolvedValue('build-123');
+    (canDownload as Mock).mockResolvedValue(true);
     const installedBrowser = {
       browser: BrowserType.CHROMIUM,
       buildId: 'build-123',
@@ -102,9 +102,9 @@ describe('BrowserService', () => {
       path: '/installed/browser',
       folderPath: '/installed',
     } as unknown as Awaited<ReturnType<typeof install>>;
-    (install as jest.Mock).mockResolvedValue(installedBrowser);
-    (existsSync as jest.Mock).mockReturnValue(false);
-    (readFileSync as jest.Mock).mockReturnValue(
+    (install as Mock).mockResolvedValue(installedBrowser);
+    (existsSync as Mock).mockReturnValue(false);
+    (readFileSync as Mock).mockReturnValue(
       Buffer.from(
         JSON.stringify({
           browser: BrowserType.CHROMIUM,
@@ -113,13 +113,13 @@ describe('BrowserService', () => {
         }),
       ),
     );
-    (promises.rm as jest.Mock).mockResolvedValue(undefined);
-    (promises.readdir as jest.Mock).mockResolvedValue([]);
-    (launch as jest.Mock).mockResolvedValue(createBrowser());
+    (promises.rm as Mock).mockResolvedValue(undefined);
+    (promises.readdir as Mock).mockResolvedValue([]);
+    (launch as Mock).mockResolvedValue(createBrowser());
 
-    jest.spyOn(Logger, 'log').mockImplementation(() => undefined);
-    jest.spyOn(Logger, 'warn').mockImplementation(() => undefined);
-    jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+    vi.spyOn(Logger, 'log').mockImplementation(() => undefined);
+    vi.spyOn(Logger, 'warn').mockImplementation(() => undefined);
+    vi.spyOn(Logger, 'error').mockImplementation(() => undefined);
 
     service = createService();
   });
@@ -186,8 +186,8 @@ describe('BrowserService', () => {
   describe('getBrowserInstance', () => {
     it('should launch a browser when none is connected', async () => {
       const browser = createBrowser();
-      (launch as jest.Mock).mockResolvedValue(browser);
-      const getExecutablePathSpy = jest
+      (launch as Mock).mockResolvedValue(browser);
+      const getExecutablePathSpy = vi
         .spyOn(service, 'getExecutablePath')
         .mockResolvedValue('/browser/bin');
 
@@ -219,10 +219,8 @@ describe('BrowserService', () => {
         }
         return browser;
       });
-      (launch as jest.Mock).mockResolvedValue(browser);
-      jest
-        .spyOn(service, 'getExecutablePath')
-        .mockResolvedValue('/browser/bin');
+      (launch as Mock).mockResolvedValue(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
 
       await service.getBrowserInstance(['--no-sandbox'], true, undefined);
       expect(testState(service)._browserInstance).toBe(browser);
@@ -246,13 +244,13 @@ describe('BrowserService', () => {
   describe('createContext', () => {
     it('should delegate to browser.createBrowserContext', async () => {
       const browser = createBrowser({
-        createBrowserContext: jest.fn().mockResolvedValue({ id: 'ctx' }),
+        createBrowserContext: vi.fn().mockResolvedValue({ id: 'ctx' }),
       });
       const puppeteerBrowser = browser as unknown as PuppeteerBrowser;
-      const getBrowserInstanceSpy = jest.spyOn(
+      const getBrowserInstanceSpy = vi.spyOn(
         service,
         'getBrowserInstance',
-      ) as unknown as jest.Mock;
+      ) as unknown as Mock;
       getBrowserInstanceSpy.mockResolvedValue(puppeteerBrowser);
 
       const result = await service.createContext(['--test'], false, undefined);
@@ -263,7 +261,7 @@ describe('BrowserService', () => {
 
     it('should relaunch once when browser closes while creating a context', async () => {
       const firstBrowser = createBrowser({
-        createBrowserContext: jest.fn().mockRejectedValueOnce(
+        createBrowserContext: vi.fn().mockRejectedValueOnce(
           Object.assign(
             new Error('Protocol error (Target.createTarget): Target closed'),
             {
@@ -273,15 +271,13 @@ describe('BrowserService', () => {
         ),
       });
       const secondBrowser = createBrowser({
-        createBrowserContext: jest.fn().mockResolvedValue({ id: 'ctx-2' }),
+        createBrowserContext: vi.fn().mockResolvedValue({ id: 'ctx-2' }),
       });
 
-      (launch as jest.Mock)
+      (launch as Mock)
         .mockResolvedValueOnce(firstBrowser)
         .mockResolvedValueOnce(secondBrowser);
-      jest
-        .spyOn(service, 'getExecutablePath')
-        .mockResolvedValue('/browser/bin');
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
 
       const result = await service.createContext(['--test'], false, undefined);
 
@@ -291,20 +287,18 @@ describe('BrowserService', () => {
 
     it('should relaunch when the target is closed in the error message', async () => {
       const firstBrowser = createBrowser({
-        createBrowserContext: jest
+        createBrowserContext: vi
           .fn()
           .mockRejectedValueOnce(new Error('Target closed')),
       });
       const secondBrowser = createBrowser({
-        createBrowserContext: jest.fn().mockResolvedValue({ id: 'ctx-3' }),
+        createBrowserContext: vi.fn().mockResolvedValue({ id: 'ctx-3' }),
       });
 
-      (launch as jest.Mock)
+      (launch as Mock)
         .mockResolvedValueOnce(firstBrowser)
         .mockResolvedValueOnce(secondBrowser);
-      jest
-        .spyOn(service, 'getExecutablePath')
-        .mockResolvedValue('/browser/bin');
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
 
       const result = await service.createContext(['--test'], false, undefined);
 
@@ -314,7 +308,7 @@ describe('BrowserService', () => {
 
     it('should relaunch when Target.createTarget appears in the error message', async () => {
       const firstBrowser = createBrowser({
-        createBrowserContext: jest
+        createBrowserContext: vi
           .fn()
           .mockRejectedValueOnce(
             new Error(
@@ -323,15 +317,13 @@ describe('BrowserService', () => {
           ),
       });
       const secondBrowser = createBrowser({
-        createBrowserContext: jest.fn().mockResolvedValue({ id: 'ctx-4' }),
+        createBrowserContext: vi.fn().mockResolvedValue({ id: 'ctx-4' }),
       });
 
-      (launch as jest.Mock)
+      (launch as Mock)
         .mockResolvedValueOnce(firstBrowser)
         .mockResolvedValueOnce(secondBrowser);
-      jest
-        .spyOn(service, 'getExecutablePath')
-        .mockResolvedValue('/browser/bin');
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
 
       const result = await service.createContext(['--test'], false, undefined);
 
@@ -341,15 +333,13 @@ describe('BrowserService', () => {
 
     it('should rethrow when the error is not a target-closed error', async () => {
       const browser = createBrowser({
-        createBrowserContext: jest
+        createBrowserContext: vi
           .fn()
           .mockRejectedValueOnce(new Error('Unexpected failure')),
       });
 
-      (launch as jest.Mock).mockResolvedValueOnce(browser);
-      jest
-        .spyOn(service, 'getExecutablePath')
-        .mockResolvedValue('/browser/bin');
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
 
       await expect(
         service.createContext(['--test'], false, undefined),
@@ -381,7 +371,7 @@ describe('BrowserService', () => {
 
     it('should keep going when browser recycle fails', async () => {
       const browser = createBrowser({
-        close: jest.fn().mockRejectedValue(new Error('boom')),
+        close: vi.fn().mockRejectedValue(new Error('boom')),
       });
       testState(service).recycleRequested = true;
       testState(service)._browserInstance = browser;
@@ -397,21 +387,21 @@ describe('BrowserService', () => {
 
   describe('install', () => {
     it('should return null when download is not allowed', async () => {
-      (canDownload as jest.Mock).mockResolvedValue(false);
+      (canDownload as Mock).mockResolvedValue(false);
       const result = await service.install();
 
       expect(result).toBeNull();
     });
 
     it('should write lock file when browser is already installed', async () => {
-      (getInstalledBrowsers as jest.Mock).mockResolvedValue([
+      (getInstalledBrowsers as Mock).mockResolvedValue([
         {
           browser: BrowserType.CHROMIUM,
           buildId: 'build-123',
           executablePath: '/already-installed',
         },
       ]);
-      const writeLockSpy = jest
+      const writeLockSpy = vi
         .spyOn(testState(service), 'writeLockFile')
         .mockImplementation(() => undefined);
 
@@ -426,7 +416,7 @@ describe('BrowserService', () => {
     });
 
     it('should install and return executable path when missing', async () => {
-      (getInstalledBrowsers as jest.Mock)
+      (getInstalledBrowsers as Mock)
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([
           {
@@ -435,7 +425,7 @@ describe('BrowserService', () => {
             executablePath: '/installed/browser',
           },
         ]);
-      const writeLockSpy = jest
+      const writeLockSpy = vi
         .spyOn(testState(service), 'writeLockFile')
         .mockImplementation(() => undefined);
 
@@ -454,7 +444,7 @@ describe('BrowserService', () => {
     });
 
     it('should call writeFileSync when the browser is already installed', async () => {
-      (getInstalledBrowsers as jest.Mock).mockResolvedValue([
+      (getInstalledBrowsers as Mock).mockResolvedValue([
         {
           browser: BrowserType.CHROMIUM,
           buildId: 'build-123',
@@ -476,8 +466,8 @@ describe('BrowserService', () => {
     it('should return a locked installed browser path when lock file exists', async () => {
       testState(service).useLockedBrowser = true;
       testState(service).browser = BrowserType.CHROMIUM;
-      (existsSync as jest.Mock).mockReturnValue(true);
-      (readFileSync as jest.Mock).mockReturnValue(
+      (existsSync as Mock).mockReturnValue(true);
+      (readFileSync as Mock).mockReturnValue(
         Buffer.from(
           JSON.stringify({
             browser: BrowserType.CHROMIUM,
@@ -486,7 +476,7 @@ describe('BrowserService', () => {
           }),
         ),
       );
-      (getInstalledBrowsers as jest.Mock).mockResolvedValue([
+      (getInstalledBrowsers as Mock).mockResolvedValue([
         {
           browser: BrowserType.CHROMIUM,
           buildId: 'locked-build',
@@ -501,7 +491,7 @@ describe('BrowserService', () => {
     });
 
     it('should install the browser when it is missing', async () => {
-      (getInstalledBrowsers as jest.Mock).mockResolvedValue([]);
+      (getInstalledBrowsers as Mock).mockResolvedValue([]);
       const installedBrowser = {
         browser: BrowserType.CHROMIUM,
         buildId: 'build-123',
@@ -510,7 +500,7 @@ describe('BrowserService', () => {
         path: '/downloaded/browser',
         folderPath: '/downloaded',
       } as unknown as InstalledBrowser;
-      const installSpy = jest.spyOn(service, 'install') as unknown as jest.Mock;
+      const installSpy = vi.spyOn(service, 'install') as unknown as Mock;
       installSpy.mockResolvedValue(installedBrowser);
 
       const result = await service.getExecutablePath();
@@ -520,10 +510,8 @@ describe('BrowserService', () => {
     });
 
     it('should throw when installation fails', async () => {
-      (getInstalledBrowsers as jest.Mock).mockResolvedValue([]);
-      (
-        jest.spyOn(service, 'install') as unknown as jest.Mock
-      ).mockResolvedValue(null);
+      (getInstalledBrowsers as Mock).mockResolvedValue([]);
+      (vi.spyOn(service, 'install') as unknown as Mock).mockResolvedValue(null);
 
       await expect(service.getExecutablePath()).rejects.toThrow(
         'Could not install browser',
@@ -535,7 +523,7 @@ describe('BrowserService', () => {
     it('should close browser on destroy and cleanup cache', async () => {
       const browser = createBrowser();
       testState(service)._browserInstance = browser;
-      (existsSync as jest.Mock).mockReturnValue(true);
+      (existsSync as Mock).mockReturnValue(true);
 
       await service.onModuleDestroy();
 
@@ -546,10 +534,8 @@ describe('BrowserService', () => {
 
     it('should retry cache cleanup on transient rm failure', async () => {
       testState(service)._browserInstance = null;
-      (existsSync as jest.Mock)
-        .mockReturnValueOnce(true)
-        .mockReturnValueOnce(false);
-      (promises.rm as jest.Mock)
+      (existsSync as Mock).mockReturnValueOnce(true).mockReturnValueOnce(false);
+      (promises.rm as Mock)
         .mockRejectedValueOnce(
           Object.assign(new Error('busy'), { code: 'EPERM' }),
         )
@@ -563,13 +549,13 @@ describe('BrowserService', () => {
 
   describe('locked browser id', () => {
     it('should return null when lock file does not exist', () => {
-      (existsSync as jest.Mock).mockReturnValue(false);
+      (existsSync as Mock).mockReturnValue(false);
 
       expect(service.getLockedBuildId(BrowserType.CHROMIUM)).toBeNull();
     });
 
     it('should read the lock file when it exists', () => {
-      (existsSync as jest.Mock).mockReturnValue(true);
+      (existsSync as Mock).mockReturnValue(true);
 
       expect(service.getLockedBuildId(BrowserType.CHROMIUM)).toBe(
         'locked-build',

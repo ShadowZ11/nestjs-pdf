@@ -1,5 +1,6 @@
 import { ConfigModule } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
+import { vi } from 'vitest';
 
 import { HANDLEBARS_PARAMETERS, PDF_PARAMETERS } from '../helpers/tokens';
 import { BrowserService, BrowserTag } from './browser/browser.service';
@@ -112,7 +113,7 @@ describe('PuppeteerModule', () => {
     });
 
     it('should inject dependencies for async factory', async () => {
-      const asyncFactory = jest.fn((): PuppeteerParameters => ({
+      const asyncFactory = vi.fn((): PuppeteerParameters => ({
         headless: true,
       }));
 
@@ -199,7 +200,7 @@ describe('PuppeteerModule', () => {
     });
 
     it('should install the browser when no executablePath is provided', async () => {
-      const install = jest.fn().mockResolvedValue(undefined);
+      const install = vi.fn().mockResolvedValue(undefined);
 
       module = await Test.createTestingModule({
         imports: [
@@ -217,7 +218,7 @@ describe('PuppeteerModule', () => {
     });
 
     it('should install the browser with the locked flag when useLockedBrowser is true', async () => {
-      const install = jest.fn().mockResolvedValue(undefined);
+      const install = vi.fn().mockResolvedValue(undefined);
 
       module = await Test.createTestingModule({
         imports: [
@@ -235,7 +236,7 @@ describe('PuppeteerModule', () => {
     });
 
     it('should not install the browser when executablePath is provided', async () => {
-      const install = jest.fn().mockResolvedValue(undefined);
+      const install = vi.fn().mockResolvedValue(undefined);
 
       module = await Test.createTestingModule({
         imports: [
