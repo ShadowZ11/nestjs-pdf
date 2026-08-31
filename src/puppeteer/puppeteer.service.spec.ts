@@ -1,4 +1,3 @@
-import { HandlebarsService } from '@gboutte/nestjs-hbs';
 import { Logger, type Provider } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { type Mock, type Mocked, vi } from 'vitest';
@@ -7,6 +6,7 @@ import { PDF_PARAMETERS } from '../helpers/tokens';
 import { BrowserService } from './browser/browser.service';
 import { EjsService } from './engines/ejs/ejs.service';
 import { EtaService } from './engines/eta/eta.service';
+import { HandlebarsService } from './engines/handlebars/handlebars.service';
 import { MjmlService } from './engines/mjml/mjml.service';
 import { MustacheService } from './engines/mustache/mustache.service';
 import { NunjucksService } from './engines/nunjucks/nunjucks.service';
@@ -287,6 +287,7 @@ describe('PuppeteerService', () => {
       expect(handlebarsService.render as Mock).toHaveBeenCalledWith(
         template,
         parameters,
+        undefined,
       );
       expect(mockPage.setContent).toHaveBeenCalledWith('<p>Rendered HTML</p>', {
         waitUntil: 'domcontentloaded',
@@ -317,6 +318,7 @@ describe('PuppeteerService', () => {
       expect(handlebarsService.render as Mock).toHaveBeenCalledWith(
         template,
         {},
+        undefined,
       );
     });
 
@@ -383,6 +385,7 @@ describe('PuppeteerService', () => {
       expect(handlebarsService.renderFile as Mock).toHaveBeenCalledWith(
         filePath,
         parameters,
+        undefined,
       );
       expect(mockPage.setContent).toHaveBeenCalledWith(
         '<p>Rendered from file</p>',
@@ -416,6 +419,7 @@ describe('PuppeteerService', () => {
       expect(handlebarsService.renderFile as Mock).toHaveBeenCalledWith(
         filePath,
         {},
+        undefined,
       );
     });
   });

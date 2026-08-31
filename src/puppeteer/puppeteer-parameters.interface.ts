@@ -1,4 +1,3 @@
-import { type HandlebarsOptions } from '@gboutte/nestjs-hbs/dist/handlebars-options.interface';
 import { type Browser } from '@puppeteer/browsers';
 import { type MJMLParsingOptions } from 'mjml-core';
 import { type PDFOptions } from 'puppeteer';
@@ -6,13 +5,13 @@ import { type PDFOptions } from 'puppeteer';
 import { type BrowserTag } from './browser/browser.service';
 import { type EjsOptions } from './engines/ejs/ejs.service';
 import { type EtaOptions } from './engines/eta/eta.service';
+import { type HandlebarsOptions } from './engines/handlebars/handlebars.service';
 import { type MustacheOptions } from './engines/mustache/mustache.service';
 import { type NunjucksOptions } from './engines/nunjucks/nunjucks.service';
 import { type PugOptions } from './engines/pug/pug.service';
 
 export interface PuppeteerParameters {
   pdfOptions?: PDFOptions;
-  //'hbsOptions' has to be used in the module initialization
   hbsOptions?: HandlebarsOptions;
   mjmlOptions?: MJMLParsingOptions;
   pugOptions?: PugOptions;

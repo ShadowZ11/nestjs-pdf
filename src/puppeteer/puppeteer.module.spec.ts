@@ -2,7 +2,7 @@ import { ConfigModule } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { vi } from 'vitest';
 
-import { HANDLEBARS_PARAMETERS, PDF_PARAMETERS } from '../helpers/tokens';
+import { PDF_PARAMETERS } from '../helpers/tokens';
 import { BrowserService, BrowserTag } from './browser/browser.service';
 import { PuppeteerModule } from './puppeteer.module';
 import { PuppeteerService } from './puppeteer.service';
@@ -46,31 +46,6 @@ describe('PuppeteerModule', () => {
       const params = module.get<typeof pdfParams>(PDF_PARAMETERS);
       expect(params).toBeDefined();
       expect(params).toEqual(pdfParams);
-    });
-
-    it('should provide HANDLEBARS_PARAMETERS token', async () => {
-      const hbsOptions = { templateDirectory: '/templates' };
-      const pdfParams: PuppeteerParameters = {
-        headless: false,
-        hbsOptions,
-      };
-
-      module = await Test.createTestingModule({
-        imports: [ConfigModule.forRoot(), PuppeteerModule.forRoot(pdfParams)],
-      }).compile();
-
-      const params = module.get<typeof hbsOptions>(HANDLEBARS_PARAMETERS);
-      expect(params).toBeDefined();
-      expect(params).toEqual(hbsOptions);
-    });
-
-    it('should provide HANDLEBARS_PARAMETERS with default empty object', async () => {
-      module = await Test.createTestingModule({
-        imports: [ConfigModule.forRoot(), PuppeteerModule.forRoot({})],
-      }).compile();
-
-      const params = module.get<Record<string, never>>(HANDLEBARS_PARAMETERS);
-      expect(params).toEqual({});
     });
 
     it('should export PuppeteerService', async () => {
@@ -148,27 +123,6 @@ describe('PuppeteerModule', () => {
 
       const params: PuppeteerParameters = module.get(PDF_PARAMETERS);
       expect(params).toEqual(expectedParams);
-    });
-
-    it('should resolve HANDLEBARS_PARAMETERS from PDF_PARAMETERS', async () => {
-      const hbsOptions = { templateDirectory: '/templates' };
-
-      const useFactory = (): PuppeteerParameters => ({
-        headless: true,
-        hbsOptions,
-      });
-
-      module = await Test.createTestingModule({
-        imports: [
-          ConfigModule.forRoot(),
-          PuppeteerModule.forRootAsync({
-            useFactory,
-          }),
-        ],
-      }).compile();
-
-      const params = module.get<typeof hbsOptions>(HANDLEBARS_PARAMETERS);
-      expect(params).toEqual(hbsOptions);
     });
 
     it('should export PuppeteerService in async mode', async () => {

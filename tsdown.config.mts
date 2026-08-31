@@ -14,7 +14,7 @@ export default defineConfig({
       'nunjucks',
       'pug',
       'mjml',
-      '@gboutte/nestjs-hbs',
+      'handlebars',
     ],
   },
   target: ['es2024'],

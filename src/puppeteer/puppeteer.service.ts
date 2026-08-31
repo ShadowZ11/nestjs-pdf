@@ -1,4 +1,3 @@
-import { HandlebarsService } from '@gboutte/nestjs-hbs';
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { Data } from 'ejs';
 import pLimit from 'p-limit';
@@ -10,6 +9,7 @@ import { PDF_PARAMETERS } from '../helpers/tokens';
 import { BrowserService } from './browser/browser.service';
 import { EjsService } from './engines/ejs/ejs.service';
 import { EtaService } from './engines/eta/eta.service';
+import { HandlebarsService } from './engines/handlebars/handlebars.service';
 import { MjmlService } from './engines/mjml/mjml.service';
 import { MustacheService } from './engines/mustache/mustache.service';
 import { NunjucksService } from './engines/nunjucks/nunjucks.service';
@@ -137,7 +137,11 @@ export class PuppeteerService {
     options?: PuppeteerParameters,
   ) {
     const hbsService = requireService(this.hbsService, 'Handlebars');
-    const html = hbsService.render(template, parameters);
+    const html = hbsService.render(
+      template,
+      parameters,
+      options?.hbsOptions ?? this.options.hbsOptions,
+    );
     return this.generatePdfFromHtml(html, options);
   }
 
@@ -147,7 +151,11 @@ export class PuppeteerService {
     options?: PuppeteerParameters,
   ) {
     const hbsService = requireService(this.hbsService, 'Handlebars');
-    const html = hbsService.renderFile(file, parameters);
+    const html = hbsService.renderFile(
+      file,
+      parameters,
+      options?.hbsOptions ?? this.options.hbsOptions,
+    );
     return this.generatePdfFromHtml(html, options);
   }
 

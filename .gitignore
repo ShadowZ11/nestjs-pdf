@@ -47,6 +47,7 @@ lerna-debug.log*
 # temp directory
 .temp
 .tmp
+/hbs-service-*
 
 # Runtime data
 pids

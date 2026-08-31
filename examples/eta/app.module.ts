@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { NestjsPdfModule } from '@shad0wz7/nestjs-pdf';
+
 import { PdfController } from './eta-example';
 
 @Module({

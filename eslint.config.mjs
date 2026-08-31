@@ -12,6 +12,7 @@ export default defineConfig([
     'node_modules/**',
     'eslint.config.mjs',
     'dist/**',
+    'examples/**',
   ]),
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
