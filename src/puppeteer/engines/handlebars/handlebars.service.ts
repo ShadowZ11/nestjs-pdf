@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { basename, extname, join } from 'node:path';
+import { basename, extname, join, resolve, sep } from 'node:path';
 
 import { Injectable } from '@nestjs/common';
 import Handlebars from 'handlebars';
@@ -60,12 +60,17 @@ export class HandlebarsService {
       );
     }
 
+    const baseDir = resolve(process.cwd(), options.templateDirectory);
+    const templatePath = resolve(baseDir, file);
+    if (templatePath !== baseDir && !templatePath.startsWith(baseDir + sep)) {
+      throw new Error(
+        `Handlebars file rendering failed: ’${file}’ resolves outside \`templateDirectory\``,
+      );
+    }
+
     let template: string;
     try {
-      template = readFileSync(
-        join(process.cwd(), options.templateDirectory, file),
-        'utf8',
-      );
+      template = readFileSync(templatePath, 'utf8');
     } catch (error) {
       throw new Error(`Handlebars file rendering failed: ${String(error)}`, {
         cause: error,

@@ -169,5 +169,11 @@ describe('HandlebarsService', () => {
         service.renderFile('missing.hbs', {}, { templateDirectory: tempDir }),
       ).toThrow(/Handlebars file rendering failed/);
     });
+
+    it('should reject a file path that escapes templateDirectory', () => {
+      expect(() =>
+        service.renderFile('../secret.hbs', {}, { templateDirectory: tempDir }),
+      ).toThrow(/resolves outside `templateDirectory`/);
+    });
   });
 });
