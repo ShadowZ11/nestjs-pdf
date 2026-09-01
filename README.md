@@ -16,6 +16,11 @@ Main features:
 - Add signature fields based on a text anchor in an existing PDF
 - Simple API (module and service) to integrate easily into a Nest application
 
+## Requirements
+
+- **Node.js** `^20.19.0`, `^22.12.0` or `>=24.0.0` (aligned with NestJS 12)
+- **NestJS** `^12.0.0` (`@nestjs/common`, `@nestjs/core`) and `rxjs ^7.8.0` as peer dependencies
+
 ## Installation
 
 To add the library inside your project :
@@ -47,7 +52,7 @@ To use a template engine, you need to install the corresponding package as a dep
 
 ```ts
 import { Module } from '@nestjs/common';
-import { NestjsPdfModule } from 'nestjs-pdf';
+import { NestjsPdfModule } from '@shad0wz7/nestjs-pdf';
 
 @Module({
   imports: [
@@ -74,7 +79,7 @@ Inject the service and generate a PDF:
 
 ```ts
 import { Controller, Get } from '@nestjs/common';
-import { NestjsPdfService } from 'nestjs-pdf';
+import { NestjsPdfService } from '@shad0wz7/nestjs-pdf';
 
 @Controller()
 export class AppController {
@@ -206,11 +211,12 @@ If you want to test locally the examples with the entire project, you can follow
 
 ## Tests
 
-This repository includes unit and integration tests (Jest). To run the tests:
+This repository includes unit tests (Vitest). To run them:
 
 ```bash
-pnpm run test
-pnpm run test:e2e
+pnpm test          # single run
+pnpm test:watch    # watch mode
+pnpm test:cov      # with coverage
 ```
 
 ## Contributing
