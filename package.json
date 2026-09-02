@@ -67,7 +67,7 @@
     "deepmerge-ts": "^8.0.2",
     "p-limit": "^7.3.1",
     "pdf-lib": "^1.17.1",
-    "pdfjs-dist": "^6.2.108",
+    "pdfjs-dist": "^6.3.289",
     "puppeteer": "^25.9.0"
   },
   "devDependencies": {
