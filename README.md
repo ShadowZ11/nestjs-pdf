@@ -1,12 +1,24 @@
 # nestjs-pdf
 
+> **⚠️ Maintenance branch — NestJS 11 / CommonJS (v2.x).**
+> This is the `v2` line: CommonJS-only, built for **NestJS 11**. It's kept for
+> maintenance/security fixes only — no new features land here.
+>
+> Active development has moved to **v3**, on the `main` branch: ESM-first with
+> a dual CJS/ESM build, and requires **NestJS 12+**. See its
+> [README](https://github.com/ShadowZ11/nestjs-pdf/blob/main/README.md) for
+> details, and pin this line explicitly if you need it:
+>
+> ```bash
+> npm install @shad0wz7/nestjs-pdf@^2
+> ```
+
 [![npm version](https://img.shields.io/npm/v/%40shad0wz7%2Fnestjs-pdf?label=npm%20version)](https://www.npmjs.com/package/%40shad0wz7%2Fnestjs-pdf)
 [![NPM License](https://img.shields.io/npm/l/%40shad0wz7%2Fnestjs-pdf)](https://github.com/ShadowZ11/nestjs-pdf?tab=MIT-1-ov-file)
 [![npm downloads](https://img.shields.io/npm/dm/%40shad0wz7%2Fnestjs-pdf?label=npm%20downloads)](https://www.npmjs.com/package/%40shad0wz7%2Fnestjs-pdf)
 [![CI](https://github.com/Shadowz11/nestjs-pdf/actions/workflows/ci.yml/badge.svg)](https://github.com/Shadowz11/nestjs-pdf/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/github/ShadowZ11/nestjs-pdf/graph/badge.svg?token=K0MNB1ZKYK)](https://codecov.io/github/ShadowZ11/nestjs-pdf)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-
 
 A NestJS library to generate and manipulate PDFs using Puppeteer and multiple template engines, including Handlebars, EJS, Pug, MJML, Nunjucks, Eta and Mustache.
 
@@ -117,9 +129,8 @@ If the anchor is not found, the signature field will be added at a default posit
 
 The library exposes Puppeteer options via the `PuppeteerParameters` interface (see `src/puppeteer/puppeteer-parameters.interface.ts`). You can configure:
 
-
 |                             | Description                                                                                                                                                                                                                                                                                    |
-|-----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pdfOptions`                | The pdf options can be found on: https://pptr.dev/api/puppeteer.pdfoptions. Native Puppeteer options for `page.pdf`                                                                                                                                                                            |
 | `hbsOptions`                | The handlebars can be found on [@gboutte/nestjs-hbs](https://github.com/gboutte/nestjs-hbs) as it use a peer dependency and not handlebars directly                                                                                                                                            |
 | `ejsOptions`                | The ejs options can be found on [EJS documentation](https://ejs.co/#options)                                                                                                                                                                                                                   |
@@ -139,6 +150,7 @@ The library exposes Puppeteer options via the `PuppeteerParameters` interface (s
 | `executablePath`            | The path to the browser executable to use. If not specified, Puppeteer will install Chromium in cache dir. (useLockedBrowser is useless with this param specified)                                                                                                                             |
 
 these are the default extra arguments passed to Puppeteer:
+
 ```ts
 [
   '--autoplay-policy=user-gesture-required',
