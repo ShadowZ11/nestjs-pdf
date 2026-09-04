@@ -1,8 +1,9 @@
-jest.mock('p-limit', () => ({
-  __esModule: true,
-  default: jest.fn(() => (fn: () => void) => fn()),
+import { afterAll, vi } from 'vitest';
+
+vi.mock('p-limit', () => ({
+  default: vi.fn(() => (fn: () => void) => fn()),
 }));
 
 afterAll(() => {
-  jest.clearAllTimers();
+  vi.clearAllTimers();
 });

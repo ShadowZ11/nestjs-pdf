@@ -6,6 +6,7 @@ export default defineConfig({
   dts: true,
   clean: true,
   deps: {
+    alwaysBundle: ['p-limit'],
     neverBundle: [
       'pdfjs-dist',
       'pdf-lib',
@@ -14,8 +15,8 @@ export default defineConfig({
       'nunjucks',
       'pug',
       'mjml',
-      '@gboutte/nestjs-hbs',
+      'handlebars',
     ],
   },
-  target: ['es2024'],
+  target: ['es2023'],
 });

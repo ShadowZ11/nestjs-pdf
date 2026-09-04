@@ -3,6 +3,7 @@ export * from './nestjs-pdf.module';
 export * from './nestjs-pdf.service';
 export * from './puppeteer/engines/ejs/ejs.service';
 export * from './puppeteer/engines/eta/eta.service';
+export * from './puppeteer/engines/handlebars/handlebars.service';
 export * from './puppeteer/engines/mjml/mjml.service';
 export * from './puppeteer/engines/mustache/mustache.service';
 export * from './puppeteer/engines/nunjucks/nunjucks.service';

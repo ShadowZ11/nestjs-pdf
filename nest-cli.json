@@ -4,7 +4,6 @@
   "sourceRoot": "src",
   "entryFile": "index",
   "compilerOptions": {
-    "deleteOutDir": true,
-    "webpack": false
+    "deleteOutDir": true
   }
 }

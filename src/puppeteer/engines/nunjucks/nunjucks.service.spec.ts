@@ -1,11 +1,10 @@
-jest.mock('nunjucks', () => ({
-  configure: jest.fn(),
-  render: jest.fn(),
-  renderString: jest.fn(),
+import { type Mock, vi } from 'vitest';
+
+vi.mock('nunjucks', () => ({
   default: {
-    configure: jest.fn(),
-    render: jest.fn(),
-    renderString: jest.fn(),
+    configure: vi.fn(),
+    render: vi.fn(),
+    renderString: vi.fn(),
   },
 }));
 
@@ -33,7 +32,7 @@ describe('NunjucksService', () => {
 
   describe('render', () => {
     it('should render a simple Nunjucks template', () => {
-      (renderString as jest.Mock).mockReturnValue('<h1>Hello World</h1>');
+      (renderString as Mock).mockReturnValue('<h1>Hello World</h1>');
       const template = '<h1>{{ title }}</h1>';
       const data = { title: 'Hello World' };
 
@@ -44,7 +43,7 @@ describe('NunjucksService', () => {
     });
 
     it('should render with conditional logic', () => {
-      (renderString as jest.Mock).mockReturnValue('<p>Visible</p>');
+      (renderString as Mock).mockReturnValue('<p>Visible</p>');
       const template = '{% if show %}<p>Visible</p>{% endif %}';
       const data = { show: true };
 
@@ -54,7 +53,7 @@ describe('NunjucksService', () => {
     });
 
     it('should render with loop', () => {
-      (renderString as jest.Mock).mockReturnValue('<li>Item 1</li>');
+      (renderString as Mock).mockReturnValue('<li>Item 1</li>');
       const template = `
         <ul>
         {% for item in items %}
@@ -70,7 +69,7 @@ describe('NunjucksService', () => {
     });
 
     it('should handle empty data', () => {
-      (renderString as jest.Mock).mockReturnValue('<h1>Static Content</h1>');
+      (renderString as Mock).mockReturnValue('<h1>Static Content</h1>');
       const template = '<h1>Static Content</h1>';
 
       const result = service.render(template);
@@ -80,7 +79,7 @@ describe('NunjucksService', () => {
     });
 
     it('should throw error on invalid template', () => {
-      (renderString as jest.Mock).mockImplementation(() => {
+      (renderString as Mock).mockImplementation(() => {
         throw new Error('bad template');
       });
       const template = '{% if invalid %}';
@@ -91,7 +90,7 @@ describe('NunjucksService', () => {
     });
 
     it('should render with filters', () => {
-      (renderString as jest.Mock).mockReturnValue('<h1>HELLO WORLD</h1>');
+      (renderString as Mock).mockReturnValue('<h1>HELLO WORLD</h1>');
       const template = '<h1>{{ title | upper }}</h1>';
       const data = { title: 'hello world' };
 
@@ -101,7 +100,7 @@ describe('NunjucksService', () => {
     });
 
     it('should render with options', () => {
-      (renderString as jest.Mock).mockReturnValue('<h1>Test</h1>');
+      (renderString as Mock).mockReturnValue('<h1>Test</h1>');
       const template = '<h1>{{ title }}</h1>';
       const data = { title: 'Test' };
 
@@ -122,7 +121,7 @@ describe('NunjucksService', () => {
 
   describe('renderFile', () => {
     it('should render a file template', () => {
-      (render as jest.Mock).mockReturnValue('<h1>File</h1>');
+      (render as Mock).mockReturnValue('<h1>File</h1>');
       const filePath = './examples/sample-template.njk';
       const data = {
         invoiceNumber: '2024-001',
@@ -145,7 +144,7 @@ describe('NunjucksService', () => {
     });
 
     it('should throw a wrapped error when rendering fails', () => {
-      (render as jest.Mock).mockImplementation(() => {
+      (render as Mock).mockImplementation(() => {
         throw new Error('render boom');
       });
 

@@ -1,17 +1,21 @@
-jest.mock('pug', () => ({
-  compile: jest.fn(),
+import { type Mock, vi } from 'vitest';
+
+vi.mock('pug', () => ({
+  default: { compile: vi.fn() },
 }));
 
-jest.mock('node:fs', () => ({
-  readFileSync: jest.fn(),
+vi.mock('node:fs', () => ({
+  readFileSync: vi.fn(),
 }));
 
 import { readFileSync } from 'node:fs';
 
 import { Test, type TestingModule } from '@nestjs/testing';
-import { compile } from 'pug';
+import pug from 'pug';
 
 import { PugService } from './pug.service';
+
+const { compile } = pug;
 
 describe('PugService', () => {
   let service: PugService;
@@ -30,8 +34,8 @@ describe('PugService', () => {
 
   describe('render', () => {
     it('should render a simple Pug template', () => {
-      const compiledFn = jest.fn().mockReturnValue('<h1>Hello World</h1>');
-      (compile as jest.Mock).mockReturnValue(compiledFn);
+      const compiledFn = vi.fn().mockReturnValue('<h1>Hello World</h1>');
+      (compile as Mock).mockReturnValue(compiledFn);
       const template = 'h1= title';
       const data = { title: 'Hello World' };
 
@@ -43,8 +47,8 @@ describe('PugService', () => {
     });
 
     it('should render with conditionals', () => {
-      const compiledFn = jest.fn().mockReturnValue('<p>Visible</p>');
-      (compile as jest.Mock).mockReturnValue(compiledFn);
+      const compiledFn = vi.fn().mockReturnValue('<p>Visible</p>');
+      (compile as Mock).mockReturnValue(compiledFn);
       const template = `if show
   p Visible`;
       const data = { show: true };
@@ -56,8 +60,8 @@ describe('PugService', () => {
     });
 
     it('should render with loops', () => {
-      const compiledFn = jest.fn().mockReturnValue('<ul><li>Item 1</li></ul>');
-      (compile as jest.Mock).mockReturnValue(compiledFn);
+      const compiledFn = vi.fn().mockReturnValue('<ul><li>Item 1</li></ul>');
+      (compile as Mock).mockReturnValue(compiledFn);
       const template = `ul
   each item in items
     li= item`;
@@ -70,8 +74,8 @@ describe('PugService', () => {
     });
 
     it('should handle empty data', () => {
-      const compiledFn = jest.fn().mockReturnValue('<h1>Static Content</h1>');
-      (compile as jest.Mock).mockReturnValue(compiledFn);
+      const compiledFn = vi.fn().mockReturnValue('<h1>Static Content</h1>');
+      (compile as Mock).mockReturnValue(compiledFn);
       const template = 'h1 Static Content';
 
       const result = service.render(template);
@@ -81,8 +85,8 @@ describe('PugService', () => {
     });
 
     it('should render with options', () => {
-      const compiledFn = jest.fn().mockReturnValue('<h1>Test</h1>');
-      (compile as jest.Mock).mockReturnValue(compiledFn);
+      const compiledFn = vi.fn().mockReturnValue('<h1>Test</h1>');
+      (compile as Mock).mockReturnValue(compiledFn);
       const template = 'h1= title';
       const data = { title: 'Test' };
 
@@ -95,7 +99,7 @@ describe('PugService', () => {
     });
 
     it('should throw a wrapped error when rendering fails', () => {
-      (compile as jest.Mock).mockImplementation(() => {
+      (compile as Mock).mockImplementation(() => {
         throw new Error('compile boom');
       });
 
@@ -107,7 +111,7 @@ describe('PugService', () => {
 
   describe('renderFile', () => {
     it('should render a file template', () => {
-      const renderSpy = jest
+      const renderSpy = vi
         .spyOn(service, 'render')
         .mockReturnValue('<h1>File</h1>');
       const filePath = './examples/sample-template.pug';
@@ -118,7 +122,7 @@ describe('PugService', () => {
         totalAmount: 100,
       };
 
-      (readFileSync as jest.Mock).mockReturnValue('h1= title');
+      (readFileSync as Mock).mockReturnValue('h1= title');
 
       const result = service.renderFile(filePath, data, { pretty: true });
 
@@ -130,7 +134,7 @@ describe('PugService', () => {
     });
 
     it('should throw a wrapped error when file reading fails', () => {
-      (readFileSync as jest.Mock).mockImplementation(() => {
+      (readFileSync as Mock).mockImplementation(() => {
         throw new Error('missing file');
       });
 

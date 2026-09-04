@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 
 import { Injectable } from '@nestjs/common';
 import mjml from 'mjml';
-import { MJMLParsingOptions } from 'mjml-core';
+import { type MJMLParsingOptions } from 'mjml-core';
 
 @Injectable()
 export class MjmlService {

@@ -1,4 +1,5 @@
 import { Test, type TestingModule } from '@nestjs/testing';
+import { type Mocked, type MockInstance, vi } from 'vitest';
 
 import * as signatureHelperModule from './helpers/signature.helper';
 import { NestjsPdfService } from './nestjs-pdf.service';
@@ -6,25 +7,25 @@ import { PuppeteerService } from './puppeteer/puppeteer.service';
 
 describe('NestjsPdfService', () => {
   let service: NestjsPdfService;
-  let puppeteerService: jest.Mocked<PuppeteerService>;
-  let signatureHelper: jest.SpyInstance;
+  let puppeteerService: Mocked<PuppeteerService>;
+  let signatureHelper: MockInstance;
 
   const mockPuppeteerService = {
-    generatePdfFromHtml: jest.fn(),
-    generatePdfFromTemplateHbsString: jest.fn(),
-    generatePdfFromTemplateHbsFile: jest.fn(),
-    generatePdfFromMjmlString: jest.fn(),
-    generatePdfFromMjmlFile: jest.fn(),
-    generatePdfFromEjsString: jest.fn(),
-    generatePdfFromEjsFile: jest.fn(),
-    generatePdfFromPugString: jest.fn(),
-    generatePdfFromPugFile: jest.fn(),
-    generatePdfFromNunjucksString: jest.fn(),
-    generatePdfFromNunjucksFile: jest.fn(),
-    generatePdfFromEtaString: jest.fn(),
-    generatePdfFromEtaFile: jest.fn(),
-    generatePdfFromMustacheString: jest.fn(),
-    generatePdfFromMustacheFile: jest.fn(),
+    generatePdfFromHtml: vi.fn(),
+    generatePdfFromTemplateHbsString: vi.fn(),
+    generatePdfFromTemplateHbsFile: vi.fn(),
+    generatePdfFromMjmlString: vi.fn(),
+    generatePdfFromMjmlFile: vi.fn(),
+    generatePdfFromEjsString: vi.fn(),
+    generatePdfFromEjsFile: vi.fn(),
+    generatePdfFromPugString: vi.fn(),
+    generatePdfFromPugFile: vi.fn(),
+    generatePdfFromNunjucksString: vi.fn(),
+    generatePdfFromNunjucksFile: vi.fn(),
+    generatePdfFromEtaString: vi.fn(),
+    generatePdfFromEtaFile: vi.fn(),
+    generatePdfFromMustacheString: vi.fn(),
+    generatePdfFromMustacheFile: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -40,14 +41,14 @@ describe('NestjsPdfService', () => {
 
     service = module.get<NestjsPdfService>(NestjsPdfService);
     puppeteerService = module.get(PuppeteerService);
-    signatureHelper = jest.spyOn(
+    signatureHelper = vi.spyOn(
       signatureHelperModule,
       'addSignatureFieldUsingAnchor',
     );
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -59,7 +60,7 @@ describe('NestjsPdfService', () => {
       const html = '<p>Hello John!</p>';
       const options = { pdfOptions: { format: 'A4' as const } };
       const mockPdf = new Uint8Array([1, 2, 3]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromHtml')
         .mockResolvedValue(mockPdf);
       const result = await service.generatePdfFromHtml(html, options);
@@ -70,7 +71,7 @@ describe('NestjsPdfService', () => {
     it('should delegate to puppeteerService.generatePdfFromHtml with undefined options by default', async () => {
       const html = '<p>Hello default!</p>';
       const mockPdf = new Uint8Array([4, 5, 6]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromHtml')
         .mockResolvedValue(mockPdf);
       const result = await service.generatePdfFromHtml(html);
@@ -81,9 +82,9 @@ describe('NestjsPdfService', () => {
     it('should propagate errors from puppeteerService.generatePdfFromHtml', async () => {
       const html = '<p>Hello error!</p>';
       const error = new Error('PDF generation failed');
-      jest
-        .spyOn(puppeteerService, 'generatePdfFromHtml')
-        .mockRejectedValue(error);
+      vi.spyOn(puppeteerService, 'generatePdfFromHtml').mockRejectedValue(
+        error,
+      );
       await expect(service.generatePdfFromHtml(html)).rejects.toThrow(
         'PDF generation failed',
       );
@@ -95,7 +96,7 @@ describe('NestjsPdfService', () => {
       const template = 'Hello {{name}}!';
       const parameters = { name: 'John' };
       const mockPdf = new Uint8Array([7, 8, 9]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromTemplateHbsString')
         .mockResolvedValue(mockPdf);
 
@@ -111,7 +112,7 @@ describe('NestjsPdfService', () => {
     it('should handle default parameters', async () => {
       const template = 'Test';
       const mockPdf = new Uint8Array([10, 11]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromTemplateHbsString')
         .mockResolvedValue(mockPdf);
 
@@ -126,7 +127,7 @@ describe('NestjsPdfService', () => {
       const parameters = { id: '12345' };
       const options = { pdfOptions: { format: 'A4' as const } };
       const mockPdf = new Uint8Array([12, 13]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromTemplateHbsString')
         .mockResolvedValue(mockPdf);
 
@@ -145,7 +146,7 @@ describe('NestjsPdfService', () => {
       const filePath = '/path/to/template.hbs';
       const parameters = { title: 'Document' };
       const mockPdf = new Uint8Array([14, 15, 16]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromTemplateHbsFile')
         .mockResolvedValue(mockPdf);
 
@@ -161,7 +162,7 @@ describe('NestjsPdfService', () => {
     it('should handle default parameters', async () => {
       const filePath = '/path/to/template.hbs';
       const mockPdf = new Uint8Array([17, 18]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromTemplateHbsFile')
         .mockResolvedValue(mockPdf);
 
@@ -175,7 +176,7 @@ describe('NestjsPdfService', () => {
       const parameters = { amount: '100' };
       const options = { headless: true };
       const mockPdf = new Uint8Array([19, 20]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromTemplateHbsFile')
         .mockResolvedValue(mockPdf);
 
@@ -194,7 +195,7 @@ describe('NestjsPdfService', () => {
       const template =
         '<mjml><mj-body><mj-section><mj-column><mj-text>Hello</mj-text></mj-column></mj-section></mj-body></mjml>';
       const mockPdf = new Uint8Array([33, 34, 35]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromMjmlString')
         .mockResolvedValue(mockPdf);
 
@@ -209,7 +210,7 @@ describe('NestjsPdfService', () => {
         '<mjml><mj-body><mj-section><mj-column><mj-text>Email</mj-text></mj-column></mj-section></mj-body></mjml>';
       const options = { pdfOptions: { format: 'A4' as const } };
       const mockPdf = new Uint8Array([36, 37, 38]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromMjmlString')
         .mockResolvedValue(mockPdf);
 
@@ -221,9 +222,9 @@ describe('NestjsPdfService', () => {
     it('should propagate errors', async () => {
       const template = '<invalid>';
       const error = new Error('Invalid MJML');
-      jest
-        .spyOn(puppeteerService, 'generatePdfFromMjmlString')
-        .mockRejectedValue(error);
+      vi.spyOn(puppeteerService, 'generatePdfFromMjmlString').mockRejectedValue(
+        error,
+      );
 
       await expect(service.generatePdfFromMjmlString(template)).rejects.toThrow(
         'Invalid MJML',
@@ -235,7 +236,7 @@ describe('NestjsPdfService', () => {
     it('should delegate to puppeteerService.generatePdfFromMjmlFile', async () => {
       const filePath = '/path/to/template.mjml';
       const mockPdf = new Uint8Array([39, 40, 41]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromMjmlFile')
         .mockResolvedValue(mockPdf);
 
@@ -249,7 +250,7 @@ describe('NestjsPdfService', () => {
       const filePath = '/templates/email.mjml';
       const options = { pdfOptions: { format: 'Letter' as const } };
       const mockPdf = new Uint8Array([42, 43, 44]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromMjmlFile')
         .mockResolvedValue(mockPdf);
 
@@ -261,9 +262,9 @@ describe('NestjsPdfService', () => {
     it('should propagate errors', async () => {
       const filePath = '/path/to/missing.mjml';
       const error = new Error('File not found');
-      jest
-        .spyOn(puppeteerService, 'generatePdfFromMjmlFile')
-        .mockRejectedValue(error);
+      vi.spyOn(puppeteerService, 'generatePdfFromMjmlFile').mockRejectedValue(
+        error,
+      );
 
       await expect(service.generatePdfFromMjmlFile(filePath)).rejects.toThrow(
         'File not found',
@@ -276,7 +277,7 @@ describe('NestjsPdfService', () => {
       const template = '<p><%= name %></p>';
       const data = { name: 'John' };
       const mockPdf = new Uint8Array([45, 46, 47]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromEjsString')
         .mockResolvedValue(mockPdf);
 
@@ -289,7 +290,7 @@ describe('NestjsPdfService', () => {
     it('should handle default data', async () => {
       const template = '<p>Hello</p>';
       const mockPdf = new Uint8Array([48, 49, 50]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromEjsString')
         .mockResolvedValue(mockPdf);
 
@@ -304,7 +305,7 @@ describe('NestjsPdfService', () => {
       const data = { title: 'Document' };
       const options = { pdfOptions: { format: 'A4' as const } };
       const mockPdf = new Uint8Array([51, 52, 53]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromEjsString')
         .mockResolvedValue(mockPdf);
 
@@ -316,9 +317,9 @@ describe('NestjsPdfService', () => {
     it('should propagate errors', async () => {
       const template = '<p><%= invalid.nested %></p>';
       const error = new Error('EJS render error');
-      jest
-        .spyOn(puppeteerService, 'generatePdfFromEjsString')
-        .mockRejectedValue(error);
+      vi.spyOn(puppeteerService, 'generatePdfFromEjsString').mockRejectedValue(
+        error,
+      );
 
       await expect(service.generatePdfFromEjsString(template)).rejects.toThrow(
         'EJS render error',
@@ -331,7 +332,7 @@ describe('NestjsPdfService', () => {
       const filePath = '/path/to/template.ejs';
       const data = { content: 'Test' };
       const mockPdf = new Uint8Array([54, 55, 56]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromEjsFile')
         .mockResolvedValue(mockPdf);
 
@@ -344,7 +345,7 @@ describe('NestjsPdfService', () => {
     it('should handle default data', async () => {
       const filePath = '/templates/document.ejs';
       const mockPdf = new Uint8Array([57, 58, 59]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromEjsFile')
         .mockResolvedValue(mockPdf);
 
@@ -358,7 +359,7 @@ describe('NestjsPdfService', () => {
       const data = { amount: '500' };
       const options = { pdfOptions: { format: 'A4' as const } };
       const mockPdf = new Uint8Array([60, 61, 62]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromEjsFile')
         .mockResolvedValue(mockPdf);
 
@@ -370,9 +371,9 @@ describe('NestjsPdfService', () => {
     it('should propagate errors', async () => {
       const filePath = '/path/to/missing.ejs';
       const error = new Error('File not found');
-      jest
-        .spyOn(puppeteerService, 'generatePdfFromEjsFile')
-        .mockRejectedValue(error);
+      vi.spyOn(puppeteerService, 'generatePdfFromEjsFile').mockRejectedValue(
+        error,
+      );
 
       await expect(service.generatePdfFromEjsFile(filePath)).rejects.toThrow(
         'File not found',
@@ -385,7 +386,7 @@ describe('NestjsPdfService', () => {
       const template = 'p= name';
       const data = { name: 'John' };
       const mockPdf = new Uint8Array([63, 64, 65]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromPugString')
         .mockResolvedValue(mockPdf);
 
@@ -398,7 +399,7 @@ describe('NestjsPdfService', () => {
     it('should handle default data', async () => {
       const template = 'p Hello';
       const mockPdf = new Uint8Array([66, 67, 68]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromPugString')
         .mockResolvedValue(mockPdf);
 
@@ -413,7 +414,7 @@ describe('NestjsPdfService', () => {
       const data = { title: 'Report' };
       const options = { pdfOptions: { format: 'A3' as const } };
       const mockPdf = new Uint8Array([69, 70, 71]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromPugString')
         .mockResolvedValue(mockPdf);
 
@@ -425,9 +426,9 @@ describe('NestjsPdfService', () => {
     it('should propagate errors', async () => {
       const template = 'invalid pug syntax [[';
       const error = new Error('Pug syntax error');
-      jest
-        .spyOn(puppeteerService, 'generatePdfFromPugString')
-        .mockRejectedValue(error);
+      vi.spyOn(puppeteerService, 'generatePdfFromPugString').mockRejectedValue(
+        error,
+      );
 
       await expect(service.generatePdfFromPugString(template)).rejects.toThrow(
         'Pug syntax error',
@@ -440,7 +441,7 @@ describe('NestjsPdfService', () => {
       const filePath = '/path/to/template.pug';
       const data = { user: 'Alice' };
       const mockPdf = new Uint8Array([72, 73, 74]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromPugFile')
         .mockResolvedValue(mockPdf);
 
@@ -453,7 +454,7 @@ describe('NestjsPdfService', () => {
     it('should handle default data', async () => {
       const filePath = '/templates/report.pug';
       const mockPdf = new Uint8Array([75, 76, 77]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromPugFile')
         .mockResolvedValue(mockPdf);
 
@@ -467,7 +468,7 @@ describe('NestjsPdfService', () => {
       const data = { recipient: 'Bob' };
       const options = { pdfOptions: { format: 'A4' as const } };
       const mockPdf = new Uint8Array([78, 79, 80]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromPugFile')
         .mockResolvedValue(mockPdf);
 
@@ -479,9 +480,9 @@ describe('NestjsPdfService', () => {
     it('should propagate errors', async () => {
       const filePath = '/path/to/missing.pug';
       const error = new Error('File not found');
-      jest
-        .spyOn(puppeteerService, 'generatePdfFromPugFile')
-        .mockRejectedValue(error);
+      vi.spyOn(puppeteerService, 'generatePdfFromPugFile').mockRejectedValue(
+        error,
+      );
 
       await expect(service.generatePdfFromPugFile(filePath)).rejects.toThrow(
         'File not found',
@@ -494,7 +495,7 @@ describe('NestjsPdfService', () => {
       const template = '<p>{{ name }}</p>';
       const data = { name: 'Emma' };
       const mockPdf = new Uint8Array([81, 82, 83]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromNunjucksString')
         .mockResolvedValue(mockPdf);
 
@@ -510,7 +511,7 @@ describe('NestjsPdfService', () => {
     it('should handle default data', async () => {
       const template = '<p>Hello World</p>';
       const mockPdf = new Uint8Array([84, 85, 86]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromNunjucksString')
         .mockResolvedValue(mockPdf);
 
@@ -525,7 +526,7 @@ describe('NestjsPdfService', () => {
       const data = { title: 'Nunjucks' };
       const options = { pdfOptions: { format: 'A4' as const } };
       const mockPdf = new Uint8Array([87, 88, 89]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromNunjucksString')
         .mockResolvedValue(mockPdf);
 
@@ -537,9 +538,10 @@ describe('NestjsPdfService', () => {
     it('should propagate errors', async () => {
       const template = '<p>{{ undefined_var }}</p>';
       const error = new Error('Nunjucks render error');
-      jest
-        .spyOn(puppeteerService, 'generatePdfFromNunjucksString')
-        .mockRejectedValue(error);
+      vi.spyOn(
+        puppeteerService,
+        'generatePdfFromNunjucksString',
+      ).mockRejectedValue(error);
 
       await expect(
         service.generatePdfFromNunjucksString(template),
@@ -552,7 +554,7 @@ describe('NestjsPdfService', () => {
       const filePath = '/path/to/template.njk';
       const data = { version: '1.0' };
       const mockPdf = new Uint8Array([90, 91, 92]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromNunjucksFile')
         .mockResolvedValue(mockPdf);
 
@@ -565,7 +567,7 @@ describe('NestjsPdfService', () => {
     it('should handle default data', async () => {
       const filePath = '/templates/page.njk';
       const mockPdf = new Uint8Array([93, 94, 95]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromNunjucksFile')
         .mockResolvedValue(mockPdf);
 
@@ -579,7 +581,7 @@ describe('NestjsPdfService', () => {
       const data = { items: ['a', 'b', 'c'] };
       const options = { pdfOptions: { format: 'A4' as const } };
       const mockPdf = new Uint8Array([96, 97, 98]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromNunjucksFile')
         .mockResolvedValue(mockPdf);
 
@@ -591,9 +593,10 @@ describe('NestjsPdfService', () => {
     it('should propagate errors', async () => {
       const filePath = '/path/to/missing.njk';
       const error = new Error('File not found');
-      jest
-        .spyOn(puppeteerService, 'generatePdfFromNunjucksFile')
-        .mockRejectedValue(error);
+      vi.spyOn(
+        puppeteerService,
+        'generatePdfFromNunjucksFile',
+      ).mockRejectedValue(error);
 
       await expect(
         service.generatePdfFromNunjucksFile(filePath),
@@ -606,7 +609,7 @@ describe('NestjsPdfService', () => {
       const template = '<p>{{name}}</p>';
       const data = { name: 'Frank' };
       const mockPdf = new Uint8Array([99, 100, 101]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromMustacheString')
         .mockResolvedValue(mockPdf);
 
@@ -622,7 +625,7 @@ describe('NestjsPdfService', () => {
     it('should handle default data', async () => {
       const template = '<p>Hello Mustache</p>';
       const mockPdf = new Uint8Array([102, 103, 104]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromMustacheString')
         .mockResolvedValue(mockPdf);
 
@@ -637,7 +640,7 @@ describe('NestjsPdfService', () => {
       const data = { title: 'Mustache Template' };
       const options = { pdfOptions: { format: 'A4' as const } };
       const mockPdf = new Uint8Array([105, 106, 107]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromMustacheString')
         .mockResolvedValue(mockPdf);
 
@@ -649,9 +652,10 @@ describe('NestjsPdfService', () => {
     it('should propagate errors', async () => {
       const template = '<p>{{invalid}}</p>';
       const error = new Error('Mustache render error');
-      jest
-        .spyOn(puppeteerService, 'generatePdfFromMustacheString')
-        .mockRejectedValue(error);
+      vi.spyOn(
+        puppeteerService,
+        'generatePdfFromMustacheString',
+      ).mockRejectedValue(error);
 
       await expect(
         service.generatePdfFromMustacheString(template),
@@ -664,7 +668,7 @@ describe('NestjsPdfService', () => {
       const filePath = '/path/to/template.mustache';
       const data = { user: 'Charlie' };
       const mockPdf = new Uint8Array([108, 109, 110]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromMustacheFile')
         .mockResolvedValue(mockPdf);
 
@@ -677,7 +681,7 @@ describe('NestjsPdfService', () => {
     it('should handle default data', async () => {
       const filePath = '/templates/document.mustache';
       const mockPdf = new Uint8Array([111, 112, 113]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromMustacheFile')
         .mockResolvedValue(mockPdf);
 
@@ -691,7 +695,7 @@ describe('NestjsPdfService', () => {
       const data = { amount: '750' };
       const options = { pdfOptions: { format: 'A4' as const } };
       const mockPdf = new Uint8Array([114, 115, 116]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromMustacheFile')
         .mockResolvedValue(mockPdf);
 
@@ -703,9 +707,10 @@ describe('NestjsPdfService', () => {
     it('should propagate errors', async () => {
       const filePath = '/path/to/missing.mustache';
       const error = new Error('File not found');
-      jest
-        .spyOn(puppeteerService, 'generatePdfFromMustacheFile')
-        .mockRejectedValue(error);
+      vi.spyOn(
+        puppeteerService,
+        'generatePdfFromMustacheFile',
+      ).mockRejectedValue(error);
 
       await expect(
         service.generatePdfFromMustacheFile(filePath),
@@ -718,7 +723,7 @@ describe('NestjsPdfService', () => {
       const template = '<p><%= it.name %></p>';
       const data = { name: 'Diana' };
       const mockPdf = new Uint8Array([99, 100, 101]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromEtaString')
         .mockResolvedValue(mockPdf);
 
@@ -731,7 +736,7 @@ describe('NestjsPdfService', () => {
     it('should handle default data', async () => {
       const template = '<p>Hello from Eta</p>';
       const mockPdf = new Uint8Array([102, 103, 104]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromEtaString')
         .mockResolvedValue(mockPdf);
 
@@ -746,7 +751,7 @@ describe('NestjsPdfService', () => {
       const data = { title: 'Eta Template' };
       const options = { pdfOptions: { format: 'A4' as const } };
       const mockPdf = new Uint8Array([105, 106, 107]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromEtaString')
         .mockResolvedValue(mockPdf);
 
@@ -758,9 +763,9 @@ describe('NestjsPdfService', () => {
     it('should propagate errors', async () => {
       const template = '<p><%= it.invalid %></p>';
       const error = new Error('Eta render error');
-      jest
-        .spyOn(puppeteerService, 'generatePdfFromEtaString')
-        .mockRejectedValue(error);
+      vi.spyOn(puppeteerService, 'generatePdfFromEtaString').mockRejectedValue(
+        error,
+      );
 
       await expect(service.generatePdfFromEtaString(template)).rejects.toThrow(
         'Eta render error',
@@ -773,7 +778,7 @@ describe('NestjsPdfService', () => {
       const filePath = '/path/to/template.eta';
       const data = { user: 'George' };
       const mockPdf = new Uint8Array([108, 109, 110]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromEtaFile')
         .mockResolvedValue(mockPdf);
 
@@ -786,7 +791,7 @@ describe('NestjsPdfService', () => {
     it('should handle default data', async () => {
       const filePath = '/templates/document.eta';
       const mockPdf = new Uint8Array([111, 112, 113]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromEtaFile')
         .mockResolvedValue(mockPdf);
 
@@ -800,7 +805,7 @@ describe('NestjsPdfService', () => {
       const data = { amount: '999' };
       const options = { pdfOptions: { format: 'A4' as const } };
       const mockPdf = new Uint8Array([114, 115, 116]);
-      const spy = jest
+      const spy = vi
         .spyOn(puppeteerService, 'generatePdfFromEtaFile')
         .mockResolvedValue(mockPdf);
 
@@ -812,9 +817,9 @@ describe('NestjsPdfService', () => {
     it('should propagate errors', async () => {
       const filePath = '/path/to/missing.eta';
       const error = new Error('File not found');
-      jest
-        .spyOn(puppeteerService, 'generatePdfFromEtaFile')
-        .mockRejectedValue(error);
+      vi.spyOn(puppeteerService, 'generatePdfFromEtaFile').mockRejectedValue(
+        error,
+      );
 
       await expect(service.generatePdfFromEtaFile(filePath)).rejects.toThrow(
         'File not found',

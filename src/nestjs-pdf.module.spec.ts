@@ -1,5 +1,6 @@
 import { ConfigModule } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
+import { vi } from 'vitest';
 
 import { NestjsPdfModule } from './nestjs-pdf.module';
 import { NestjsPdfService } from './nestjs-pdf.service';
@@ -103,7 +104,7 @@ describe('NestjsPdfModule', () => {
     });
 
     it('should handle async factory with parameters', async () => {
-      const asyncFactory = jest.fn().mockResolvedValue({
+      const asyncFactory = vi.fn().mockResolvedValue({
         headless: true,
         browserTag: 'latest' as const,
       });

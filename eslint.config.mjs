@@ -12,6 +12,7 @@ export default defineConfig([
     'node_modules/**',
     'eslint.config.mjs',
     'dist/**',
+    'examples/**',
   ]),
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -20,9 +21,9 @@ export default defineConfig([
     languageOptions: {
       globals: {
         ...globals.node,
-        ...globals.jest,
+        ...globals.vitest,
       },
-      sourceType: 'commonjs',
+      sourceType: 'module',
       parserOptions: {
         projectService: true,
         tsconfigRootDir: import.meta.dirname,

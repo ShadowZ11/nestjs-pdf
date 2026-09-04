@@ -22,7 +22,7 @@
   },
   "license": "MIT",
   "author": "Emmanuel Boisset",
-  "type": "commonjs",
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.cts",
@@ -51,10 +51,10 @@
     "prepublishOnly": "pnpm lint && pnpm test && pnpm build",
     "sort": "sort-package-json",
     "sort:check": "sort-package-json --check",
-    "test": "jest",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:watch": "jest --watch"
+    "test": "vitest run",
+    "test:cov": "vitest run --coverage",
+    "test:debug": "vitest --inspect-brk --no-file-parallelism",
+    "test:watch": "vitest"
   },
   "lint-staged": {
     "*.{ts,tsx,md,graphql,json,html,yaml,css}": [
@@ -62,107 +62,67 @@
       "pnpm format"
     ]
   },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.(t|j)s",
-      "!src/index.ts"
-    ],
-    "coverageDirectory": "./coverage",
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "moduleNameMapper": {
-      "@/(.*)$": "<rootDir>/src/$1",
-      "^pdfjs-dist/legacy/build/pdf\\.mjs$": "<rootDir>/test/__mocks__/pdfjs-dist.ts",
-      "^jwks-rsa$": "<rootDir>/test/__mocks__/jwks-rsa.ts"
-    },
-    "reporters": [
-      "default",
-      [
-        "jest-junit",
-        {
-          "outputDirectory": "coverage"
-        }
-      ]
-    ],
-    "rootDir": ".",
-    "roots": [
-      "<rootDir>/src/"
-    ],
-    "setupFilesAfterEnv": [
-      "<rootDir>/test/setup.ts"
-    ],
-    "testEnvironment": "node",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "transformIgnorePatterns": [
-      "/node_modules/\\.pnpm/(?!(puppeteer[@+]|puppeteer-core[@+]|@puppeteer\\+))"
-    ]
-  },
   "dependencies": {
     "@puppeteer/browsers": "^3.2.1",
     "deepmerge-ts": "^8.0.2",
-    "p-limit": "^7.3.1",
+    "p-limit": "^7.3.2",
     "pdf-lib": "^1.17.1",
-    "pdfjs-dist": "^6.2.108",
+    "pdfjs-dist": "^6.3.289",
     "puppeteer": "^25.9.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@nestjs/config": "^4.0.4",
-    "@nestjs/schematics": "^11.1.0",
-    "@nestjs/testing": "^11.2.3",
+    "@nestjs/cli": "^12.0.0",
+    "@nestjs/config": "^12.0.0",
+    "@nestjs/schematics": "^12.0.0",
+    "@nestjs/testing": "^12.0.1",
     "@swc/core": "^1.16.1",
     "@types/ejs": "^3.1.5",
-    "@types/jest": "^30.0.0",
     "@types/mjml": "^5.0.0",
     "@types/mjml-core": "^5.1.0",
     "@types/mustache": "^4.2.6",
-    "@types/node": "^26.3.0",
+    "@types/node": "^26.4.0",
     "@types/nunjucks": "^3.2.6",
     "@types/pug": "^2.0.10",
+    "@vitest/coverage-v8": "^4.1.11",
     "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "eslint-plugin-unused-imports": "^4.4.1",
-    "globals": "^17.11.0",
+    "globals": "^17.12.0",
     "husky": "^9.1.7",
-    "jest": "^30.4.2",
-    "jest-junit": "^17.0.0",
-    "knip": "^6.32.2",
-    "lint-staged": "^17.3.0",
+    "knip": "^6.34.0",
+    "lint-staged": "^17.4.1",
     "prettier": "^3.9.6",
     "reflect-metadata": "^0.2.2",
     "sort-package-json": "^4.0.0",
-    "ts-jest": "^29.4.12",
-    "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
     "tsdown": "^0.22.14",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.68.0"
+    "typescript-eslint": "^8.69.0",
+    "unplugin-swc": "^1.5.11",
+    "vitest": "^4.1.11"
   },
   "peerDependencies": {
-    "@nestjs/common": "^11.0.0",
-    "@nestjs/core": "^11.0.0",
+    "@nestjs/common": "^12.0.0",
+    "@nestjs/core": "^12.0.0",
     "rxjs": "^7.8.0"
   },
   "optionalDependencies": {
-    "@gboutte/nestjs-hbs": "^0.2.0",
     "@napi-rs/canvas": "^1.0.8",
     "ejs": "^6.0.1",
     "eta": "^4.6.0",
+    "handlebars": "^4.7.9",
     "mjml": "^5.4.0",
     "mjml-core": "^5.4.0",
     "mustache": "^4.2.0",
     "nunjucks": "^3.2.4",
     "pug": "^3.0.4"
   },
-  "packageManager": "pnpm@11.22.0+sha512.1ff870c4c6133dfd88fb2afc46dd13d47f09c9794b438c6fdb47ca98caf3bc16381ee0be93a091b8e3824cf01f889f46d7d9e20910fb0be1ab0fb5baa80dd621",
+  "packageManager": "pnpm@11.25.0+sha512.5cde925b4f075f725eb71fbae18a42ffe784524789f19b61c731cb8721ec28aaee160e01a8d5af4fedb2a42cdbf300efe23db356b0d4a17b4d63e11f8ab7c956",
+  "engines": {
+    "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
+  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
