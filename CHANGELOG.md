@@ -1,5 +1,36 @@
 # Changelog
 
+## [3.0.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.5.2...v3.0.0) (2026-09-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* rework on handlebars adapter to use handlebars homemade
+* migrate from Jest to Vitest
+* update tsconfig.json to keep cjs and esm bundled
+* bump dependencies to nest v12
+
+### test
+
+* migrate from Jest to Vitest ([58591f8](https://github.com/ShadowZ11/nestjs-pdf/commit/58591f8b0a2bffb1bd6de6cfe7b6c673506d26b6))
+
+
+### ✨ Features
+
+* bump dependencies to nest v12 ([49d12e3](https://github.com/ShadowZ11/nestjs-pdf/commit/49d12e39d96c1f4463feecf6378b4ac63ffe94b6))
+* update tsconfig.json to keep cjs and esm bundled ([4e71ab0](https://github.com/ShadowZ11/nestjs-pdf/commit/4e71ab08496fe57b4fc33992df5e85d4cabde94b))
+
+
+### 🐛 Bug Fixes
+
+* ejs, pug and mjml same error as nunjucks ([2a2a9e6](https://github.com/ShadowZ11/nestjs-pdf/commit/2a2a9e6caae04d86fa80fbde680618a3ba75fe50))
+
+
+### 🔧 Refactoring
+
+* browser service module destroy shutdown and waiting pdf job to finish ([61e52a3](https://github.com/ShadowZ11/nestjs-pdf/commit/61e52a33314494f91310ec95ba282b7aa1679628))
+* rework on handlebars adapter to use handlebars homemade ([51d5209](https://github.com/ShadowZ11/nestjs-pdf/commit/51d52092330009ea5f39d9e6283b64dd29a3b9d0))
+
 ## [2.5.2](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.5.1...v2.5.2) (2026-08-31)
 
 
