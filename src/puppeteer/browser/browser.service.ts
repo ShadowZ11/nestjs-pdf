@@ -73,6 +73,10 @@ export class BrowserService implements OnModuleDestroy {
   private recycleRequested = false;
   private recycling = false;
 
+  private shuttingDown = false;
+  /** Max time to wait for in-flight PDF jobs to finish before closing the browser on shutdown. */
+  public shutdownDrainTimeoutMs = 15_000;
+
   private browserTag: BrowserTag;
   private useLockedBrowser: boolean;
   private buildId: string | undefined;
@@ -81,10 +85,6 @@ export class BrowserService implements OnModuleDestroy {
     this.cacheDir = resolve('.cache/puppeteer-browser');
     this.options = pdfParams;
 
-    if (pdfParams.cleanupBrowserCacheOnExit) {
-      this.registerCleanupHooks();
-    }
-
     this.loadBuildId();
     this.loadBrowser();
     this.loadBrowserTag();
@@ -92,6 +92,9 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   async onModuleDestroy() {
+    this.shuttingDown = true;
+    await this.waitForIdle(this.shutdownDrainTimeoutMs);
+
     if (this._browserInstance?.connected) {
       try {
         await this._browserInstance.close();
@@ -105,6 +108,20 @@ export class BrowserService implements OnModuleDestroy {
     }
 
     await this.cleanupCacheBestEffort();
+  }
+
+  /** Wait until no PDF job is in flight, or until the timeout elapses. */
+  private async waitForIdle(timeoutMs: number): Promise<void> {
+    const start = Date.now();
+    while (this.activeJobs > 0 && Date.now() - start < timeoutMs) {
+      await sleep(50);
+    }
+
+    if (this.activeJobs > 0) {
+      Logger.warn(
+        `Shutdown: ${this.activeJobs} PDF job(s) still running after ${timeoutMs}ms, closing the browser anyway`,
+      );
+    }
   }
 
   async getBrowserInstance(
@@ -155,6 +172,10 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   markJobStarted() {
+    if (this.shuttingDown) {
+      throw new Error('nestjs-pdf is shutting down, refusing new PDF jobs');
+    }
+
     this.activeJobs += 1;
     this.totalJobs += 1;
 
@@ -203,7 +224,7 @@ export class BrowserService implements OnModuleDestroy {
     try {
       if (!existsSync(dir)) return;
 
-      logger.log(`Cleanup puppeteer cache on signal: ${dir}`);
+      logger.log(`Cleanup puppeteer cache: ${dir}`);
 
       await rmWithRetries(dir, 6);
       if (existsSync(dir)) {
@@ -283,29 +304,6 @@ export class BrowserService implements OnModuleDestroy {
       }
     }
     return null;
-  }
-
-  private registerCleanupHooks() {
-    const cleanup = async (signal: string) => {
-      try {
-        Logger.log(
-          `Received ${signal}, cleaning up puppeteer cache...`,
-          'NestJsPdf',
-        );
-        await this.cleanupCacheBestEffort();
-        process.exit(0);
-      } catch {
-        process.exit(1);
-      }
-    };
-
-    const cleanupHandler = (signal: string) => {
-      void cleanup(signal);
-    };
-
-    process.once('SIGTERM', cleanupHandler);
-    process.once('SIGINT', cleanupHandler); // ctrl+c
-    process.once('exit', cleanupHandler);
   }
 
   private loadBrowser(): void {
