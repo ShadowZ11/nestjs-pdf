@@ -1,5 +1,18 @@
 # nestjs-pdf
 
+> **v3 — ESM-first, NestJS 12.** This is the active `main` line: authored in
+> ESM, published as a dual CJS/ESM package, and targets **NestJS 12+**.
+>
+> Still on **NestJS 11** or need a pure CommonJS package? Use the maintenance
+> `v2` branch instead:
+>
+> ```bash
+> npm install @shad0wz7/nestjs-pdf@^2
+> ```
+>
+> See the [`v2` branch README](https://github.com/ShadowZ11/nestjs-pdf/blob/v2/README.md)
+> for details. It receives maintenance/security fixes only — new features land on v3.
+
 [![npm version](https://img.shields.io/npm/v/%40shad0wz7%2Fnestjs-pdf?label=npm%20version)](https://www.npmjs.com/package/%40shad0wz7%2Fnestjs-pdf)
 [![NPM License](https://img.shields.io/npm/l/%40shad0wz7%2Fnestjs-pdf)](https://github.com/ShadowZ11/nestjs-pdf?tab=MIT-1-ov-file)
 [![npm downloads](https://img.shields.io/npm/dm/%40shad0wz7%2Fnestjs-pdf?label=npm%20downloads)](https://www.npmjs.com/package/%40shad0wz7%2Fnestjs-pdf)
