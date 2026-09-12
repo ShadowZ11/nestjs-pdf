@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v3.0.0...v3.0.1) (2026-09-12)
+
+
+### 🧹 Maintenance
+
+* upgrade test to 100% code coverage and optimize code (dead code and others) ([a8748e5](https://github.com/ShadowZ11/nestjs-pdf/commit/a8748e522c780fa92be1c34fba08b7e804a9da3e))
+
 ## [3.0.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.5.2...v3.0.0) (2026-09-04)
 
 
