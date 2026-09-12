@@ -104,19 +104,19 @@
     ]
   },
   "dependencies": {
-    "@puppeteer/browsers": "^3.2.1",
+    "@puppeteer/browsers": "^3.2.2",
     "deepmerge-ts": "^8.0.2",
     "p-limit": "^7.3.2",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.3.289",
-    "puppeteer": "^25.9.0"
+    "puppeteer": "^25.10.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/schematics": "^11.1.0",
     "@nestjs/testing": "^11.2.3",
-    "@swc/core": "^1.16.1",
+    "@swc/core": "^1.16.2",
     "@types/ejs": "^3.1.5",
     "@types/jest": "^30.0.0",
     "@types/mjml": "^5.0.0",
@@ -125,26 +125,26 @@
     "@types/node": "^26.3.0",
     "@types/nunjucks": "^3.2.6",
     "@types/pug": "^2.0.10",
-    "eslint": "^10.9.1",
+    "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "eslint-plugin-unused-imports": "^4.4.1",
-    "globals": "^17.11.0",
+    "globals": "^17.12.0",
     "husky": "^9.1.7",
-    "jest": "^30.4.2",
+    "jest": "^30.5.1",
     "jest-junit": "^17.0.0",
-    "knip": "^6.32.2",
-    "lint-staged": "^17.3.0",
+    "knip": "^6.35.1",
+    "lint-staged": "^17.5.0",
     "prettier": "^3.9.6",
     "reflect-metadata": "^0.2.2",
     "sort-package-json": "^4.0.0",
     "ts-jest": "^29.4.12",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "tsdown": "^0.22.14",
+    "tsdown": "^0.23.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.68.0"
+    "typescript-eslint": "^8.70.0"
   },
   "peerDependencies": {
     "@nestjs/common": "^11.0.0",
@@ -153,7 +153,7 @@
   },
   "optionalDependencies": {
     "@gboutte/nestjs-hbs": "^0.2.0",
-    "@napi-rs/canvas": "^1.0.8",
+    "@napi-rs/canvas": "^1.0.9",
     "ejs": "^6.0.1",
     "eta": "^4.6.0",
     "mjml": "^5.4.0",
@@ -162,7 +162,7 @@
     "nunjucks": "^3.2.4",
     "pug": "^3.0.4"
   },
-  "packageManager": "pnpm@11.22.0+sha512.1ff870c4c6133dfd88fb2afc46dd13d47f09c9794b438c6fdb47ca98caf3bc16381ee0be93a091b8e3824cf01f889f46d7d9e20910fb0be1ab0fb5baa80dd621",
+  "packageManager": "pnpm@11.27.0+sha512.ad12821463bb143295f1fa3ecde77a6b9b97a7990386da800ff57bffc3964dc64b7b1c7559d5dbe5c337aea659ed9c8937d4370bd198ca2009bc6fa0249808e7",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
