@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - v2
   workflow_dispatch:
 
 permissions:
@@ -21,4 +22,5 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          target-branch: ${{ github.ref_name }}
 
