@@ -1,19 +1,13 @@
-// @ts-check
 import eslint from '@eslint/js';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
 import eslintPluginSimpleImportSort from 'eslint-plugin-simple-import-sort';
 import unusedImports from 'eslint-plugin-unused-imports';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores([
-    'node_modules/**',
-    'eslint.config.mjs',
-    'dist/**',
-    'examples/**',
-  ]),
+  globalIgnores(['node_modules/**', 'dist/**', 'examples/**']),
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   eslintPluginPrettierRecommended,
@@ -67,5 +61,5 @@ export default defineConfig([
       'no-shadow': 'off',
       '@typescript-eslint/array-type': ['error', { default: 'generic' }],
     },
-  },]
-);
+  },
+]);
