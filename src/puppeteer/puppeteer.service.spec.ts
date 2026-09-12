@@ -257,6 +257,101 @@ describe('PuppeteerService', () => {
       expect(mockContext.close).toHaveBeenCalled();
       expect(browserService.markJobFinished).toHaveBeenCalled();
     });
+
+    it('should default headless to true when it is undefined everywhere', async () => {
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          PuppeteerService,
+          {
+            provide: BrowserService,
+            useValue: mockBrowserService,
+          },
+          {
+            provide: PDF_PARAMETERS,
+            useValue: {},
+          },
+        ],
+      }).compile();
+      const localService = module.get<PuppeteerService>(PuppeteerService);
+
+      const mockContext = {
+        newPage: vi.fn().mockResolvedValue({
+          setContent: vi.fn().mockResolvedValue(undefined),
+          emulateMediaType: vi.fn().mockResolvedValue(undefined),
+          waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+          evaluate: vi.fn().mockResolvedValue(undefined),
+          pdf: vi.fn().mockResolvedValue(new Uint8Array([1])),
+        }),
+        close: vi.fn().mockResolvedValue(undefined),
+      };
+      (mockBrowserService.createContext as Mock).mockResolvedValue(mockContext);
+
+      await localService.generatePdfFromHtml('<h1>Test</h1>');
+
+      expect(mockBrowserService.createContext).toHaveBeenCalledWith(
+        expect.any(Array),
+        true,
+        undefined,
+      );
+    });
+
+    it('should warn when chromiumRevision option is provided', async () => {
+      const mockContext = {
+        newPage: vi.fn().mockResolvedValue({
+          setContent: vi.fn().mockResolvedValue(undefined),
+          emulateMediaType: vi.fn().mockResolvedValue(undefined),
+          waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+          evaluate: vi.fn().mockResolvedValue(undefined),
+          pdf: vi.fn().mockResolvedValue(new Uint8Array([1])),
+        }),
+        close: vi.fn().mockResolvedValue(undefined),
+      };
+
+      (browserService.createContext as Mock).mockResolvedValue(mockContext);
+
+      await service.generatePdfFromHtml('<h1>Test</h1>', {
+        chromiumRevision: '123456',
+      });
+
+      expect(Logger.warn).toHaveBeenCalledWith(
+        'Using `chromiumRevision` is no longer supported since the puppeteer update.',
+      );
+    });
+
+    it('should skip closing the context when it was never created', async () => {
+      (browserService.createContext as Mock).mockRejectedValue(
+        new Error('failed to create context'),
+      );
+
+      await expect(
+        service.generatePdfFromHtml('<h1>Test</h1>'),
+      ).rejects.toThrow('failed to create context');
+
+      expect(browserService.markJobFinished).toHaveBeenCalled();
+    });
+
+    it('should log and swallow errors thrown while closing the context', async () => {
+      const mockPage = {
+        setContent: vi.fn().mockResolvedValue(undefined),
+        emulateMediaType: vi.fn().mockResolvedValue(undefined),
+        waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+        evaluate: vi.fn().mockResolvedValue(undefined),
+        pdf: vi.fn().mockResolvedValue(new Uint8Array([1])),
+      };
+
+      const mockContext = {
+        newPage: vi.fn().mockResolvedValue(mockPage),
+        close: vi.fn().mockRejectedValue(new Error('close failed')),
+      };
+
+      (browserService.createContext as Mock).mockResolvedValue(mockContext);
+
+      const result = await service.generatePdfFromHtml('<h1>Test</h1>');
+
+      expect(result).toEqual(new Uint8Array([1]));
+      expect(Logger.error).toHaveBeenCalledWith(new Error('close failed'));
+      expect(browserService.markJobFinished).toHaveBeenCalled();
+    });
   });
 
   describe('generatePdfFromTemplateHbsString', () => {
@@ -454,6 +549,28 @@ describe('PuppeteerService', () => {
         options,
       );
     });
+
+    it('should fall back to the global mjmlOptions when no options are passed', async () => {
+      const mjmlService = {
+        render: vi.fn().mockResolvedValue('<p>Rendered MJML</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: MjmlService,
+          useValue: mjmlService,
+        },
+      ]);
+      vi.spyOn(localService, 'generatePdfFromHtml').mockResolvedValue(
+        new Uint8Array([1]),
+      );
+
+      await localService.generatePdfFromMjmlString('<mjml>Hello</mjml>');
+
+      expect(mjmlService.render).toHaveBeenCalledWith(
+        '<mjml>Hello</mjml>',
+        undefined,
+      );
+    });
   });
 
   describe('generatePdfFromMjmlFile', () => {
@@ -484,6 +601,28 @@ describe('PuppeteerService', () => {
       expect(generatePdfSpy).toHaveBeenCalledWith(
         '<p>Rendered MJML file</p>',
         options,
+      );
+    });
+
+    it('should fall back to the global mjmlOptions when no options are passed', async () => {
+      const mjmlService = {
+        renderFile: vi.fn().mockResolvedValue('<p>Rendered MJML file</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: MjmlService,
+          useValue: mjmlService,
+        },
+      ]);
+      vi.spyOn(localService, 'generatePdfFromHtml').mockResolvedValue(
+        new Uint8Array([1]),
+      );
+
+      await localService.generatePdfFromMjmlFile('/templates/invoice.mjml');
+
+      expect(mjmlService.renderFile).toHaveBeenCalledWith(
+        '/templates/invoice.mjml',
+        undefined,
       );
     });
   });
@@ -520,6 +659,31 @@ describe('PuppeteerService', () => {
         options,
       );
     });
+
+    it('should fall back to the global pugOptions when no options are passed', async () => {
+      const pugService = {
+        render: vi.fn().mockReturnValue('<p>Rendered Pug</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: PugService,
+          useValue: pugService,
+        },
+      ]);
+      vi.spyOn(localService, 'generatePdfFromHtml').mockResolvedValue(
+        new Uint8Array([1]),
+      );
+
+      await localService.generatePdfFromPugString('p Hello', {
+        name: 'World',
+      });
+
+      expect(pugService.render).toHaveBeenCalledWith(
+        'p Hello',
+        { name: 'World' },
+        undefined,
+      );
+    });
   });
 
   describe('generatePdfFromPugFile', () => {
@@ -552,6 +716,31 @@ describe('PuppeteerService', () => {
       expect(generatePdfSpy).toHaveBeenCalledWith(
         '<p>Rendered Pug file</p>',
         options,
+      );
+    });
+
+    it('should fall back to the global pugOptions when no options are passed', async () => {
+      const pugService = {
+        renderFile: vi.fn().mockReturnValue('<p>Rendered Pug file</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: PugService,
+          useValue: pugService,
+        },
+      ]);
+      vi.spyOn(localService, 'generatePdfFromHtml').mockResolvedValue(
+        new Uint8Array([1]),
+      );
+
+      await localService.generatePdfFromPugFile('/templates/invoice.pug', {
+        name: 'World',
+      });
+
+      expect(pugService.renderFile).toHaveBeenCalledWith(
+        '/templates/invoice.pug',
+        { name: 'World' },
+        undefined,
       );
     });
   });
@@ -588,6 +777,31 @@ describe('PuppeteerService', () => {
         options,
       );
     });
+
+    it('should fall back to the global ejsOptions when no options are passed', async () => {
+      const ejsService = {
+        render: vi.fn().mockResolvedValue('<p>Rendered EJS</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: EjsService,
+          useValue: ejsService,
+        },
+      ]);
+      vi.spyOn(localService, 'generatePdfFromHtml').mockResolvedValue(
+        new Uint8Array([1]),
+      );
+
+      await localService.generatePdfFromEjsString('<h1><%= title %></h1>', {
+        title: 'Hello',
+      });
+
+      expect(ejsService.render).toHaveBeenCalledWith(
+        '<h1><%= title %></h1>',
+        { title: 'Hello' },
+        undefined,
+      );
+    });
   });
 
   describe('generatePdfFromEjsFile', () => {
@@ -620,6 +834,31 @@ describe('PuppeteerService', () => {
       expect(generatePdfSpy).toHaveBeenCalledWith(
         '<p>Rendered EJS file</p>',
         options,
+      );
+    });
+
+    it('should fall back to the global ejsOptions when no options are passed', async () => {
+      const ejsService = {
+        renderFile: vi.fn().mockResolvedValue('<p>Rendered EJS file</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: EjsService,
+          useValue: ejsService,
+        },
+      ]);
+      vi.spyOn(localService, 'generatePdfFromHtml').mockResolvedValue(
+        new Uint8Array([1]),
+      );
+
+      await localService.generatePdfFromEjsFile('/templates/invoice.ejs', {
+        title: 'Hello',
+      });
+
+      expect(ejsService.renderFile).toHaveBeenCalledWith(
+        '/templates/invoice.ejs',
+        { title: 'Hello' },
+        undefined,
       );
     });
   });
@@ -656,6 +895,31 @@ describe('PuppeteerService', () => {
         options,
       );
     });
+
+    it('should fall back to the global nunjucksOptions when no options are passed', async () => {
+      const nunjucksService = {
+        render: vi.fn().mockReturnValue('<p>Rendered Nunjucks</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: NunjucksService,
+          useValue: nunjucksService,
+        },
+      ]);
+      vi.spyOn(localService, 'generatePdfFromHtml').mockResolvedValue(
+        new Uint8Array([1]),
+      );
+
+      await localService.generatePdfFromNunjucksString('{{ title }}', {
+        title: 'Hello',
+      });
+
+      expect(nunjucksService.render).toHaveBeenCalledWith(
+        '{{ title }}',
+        { title: 'Hello' },
+        undefined,
+      );
+    });
   });
 
   describe('generatePdfFromNunjucksFile', () => {
@@ -688,6 +952,31 @@ describe('PuppeteerService', () => {
       expect(generatePdfSpy).toHaveBeenCalledWith(
         '<p>Rendered Nunjucks file</p>',
         options,
+      );
+    });
+
+    it('should fall back to the global nunjucksOptions when no options are passed', async () => {
+      const nunjucksService = {
+        renderFile: vi.fn().mockReturnValue('<p>Rendered Nunjucks file</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: NunjucksService,
+          useValue: nunjucksService,
+        },
+      ]);
+      vi.spyOn(localService, 'generatePdfFromHtml').mockResolvedValue(
+        new Uint8Array([1]),
+      );
+
+      await localService.generatePdfFromNunjucksFile('/templates/invoice.njk', {
+        title: 'Hello',
+      });
+
+      expect(nunjucksService.renderFile).toHaveBeenCalledWith(
+        '/templates/invoice.njk',
+        { title: 'Hello' },
+        undefined,
       );
     });
   });
@@ -724,6 +1013,31 @@ describe('PuppeteerService', () => {
         options,
       );
     });
+
+    it('should fall back to the global etaOptions when no options are passed', async () => {
+      const etaService = {
+        render: vi.fn().mockReturnValue('<p>Rendered Eta</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: EtaService,
+          useValue: etaService,
+        },
+      ]);
+      vi.spyOn(localService, 'generatePdfFromHtml').mockResolvedValue(
+        new Uint8Array([1]),
+      );
+
+      await localService.generatePdfFromEtaString('<%~ it.title %>', {
+        title: 'Hello',
+      });
+
+      expect(etaService.render).toHaveBeenCalledWith(
+        '<%~ it.title %>',
+        { title: 'Hello' },
+        undefined,
+      );
+    });
   });
 
   describe('generatePdfFromEtaFile', () => {
@@ -756,6 +1070,31 @@ describe('PuppeteerService', () => {
       expect(generatePdfSpy).toHaveBeenCalledWith(
         '<p>Rendered Eta file</p>',
         options,
+      );
+    });
+
+    it('should fall back to the global etaOptions when no options are passed', async () => {
+      const etaService = {
+        renderFile: vi.fn().mockReturnValue('<p>Rendered Eta file</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: EtaService,
+          useValue: etaService,
+        },
+      ]);
+      vi.spyOn(localService, 'generatePdfFromHtml').mockResolvedValue(
+        new Uint8Array([1]),
+      );
+
+      await localService.generatePdfFromEtaFile('/templates/invoice.eta', {
+        title: 'Hello',
+      });
+
+      expect(etaService.renderFile).toHaveBeenCalledWith(
+        '/templates/invoice.eta',
+        { title: 'Hello' },
+        undefined,
       );
     });
   });
@@ -794,6 +1133,31 @@ describe('PuppeteerService', () => {
         options,
       );
     });
+
+    it('should fall back to the global mustacheOptions when no options are passed', async () => {
+      const mustacheService = {
+        render: vi.fn().mockReturnValue('<p>Rendered Mustache</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: MustacheService,
+          useValue: mustacheService,
+        },
+      ]);
+      vi.spyOn(localService, 'generatePdfFromHtml').mockResolvedValue(
+        new Uint8Array([1]),
+      );
+
+      await localService.generatePdfFromMustacheString('<% title %>', {
+        title: 'Hello',
+      });
+
+      expect(mustacheService.render).toHaveBeenCalledWith(
+        '<% title %>',
+        { title: 'Hello' },
+        undefined,
+      );
+    });
   });
 
   describe('generatePdfFromMustacheFile', () => {
@@ -828,6 +1192,32 @@ describe('PuppeteerService', () => {
       expect(generatePdfSpy).toHaveBeenCalledWith(
         '<p>Rendered Mustache file</p>',
         options,
+      );
+    });
+
+    it('should fall back to the global mustacheOptions when no options are passed', async () => {
+      const mustacheService = {
+        renderFile: vi.fn().mockReturnValue('<p>Rendered Mustache file</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: MustacheService,
+          useValue: mustacheService,
+        },
+      ]);
+      vi.spyOn(localService, 'generatePdfFromHtml').mockResolvedValue(
+        new Uint8Array([1]),
+      );
+
+      await localService.generatePdfFromMustacheFile(
+        '/templates/invoice.mustache',
+        { title: 'Hello' },
+      );
+
+      expect(mustacheService.renderFile).toHaveBeenCalledWith(
+        '/templates/invoice.mustache',
+        { title: 'Hello' },
+        undefined,
       );
     });
   });

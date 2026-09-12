@@ -55,6 +55,37 @@ describe('EtaService', () => {
       const result = service.render(template, data);
       expect(result).toBeDefined();
     });
+
+    it('should wrap runtime errors thrown while rendering', () => {
+      const template = '<%= it.foo.bar %>';
+      expect(() => service.render(template, {})).toThrow(
+        /Eta rendering failed/,
+      );
+    });
+
+    it('should build a dedicated Eta instance when options are provided', () => {
+      const template = 'Hello <%= it.name %>!';
+      const result = service.render(
+        template,
+        { name: 'World' },
+        {
+          autoEscape: false,
+        },
+      );
+      expect(result).toBe('Hello World!');
+    });
+
+    it('should honor an explicit varName option', () => {
+      const template = 'Hello <%= data.name %>!';
+      const result = service.render(
+        template,
+        { name: 'World' },
+        {
+          varName: 'data',
+        },
+      );
+      expect(result).toBe('Hello World!');
+    });
   });
 
   describe('renderFile', () => {
@@ -89,6 +120,12 @@ describe('EtaService', () => {
     it('should throw error on non-existent file', () => {
       const nonExistentPath = join(__dirname, 'non-existent.eta');
       expect(() => service.renderFile(nonExistentPath, {})).toThrow();
+    });
+
+    it('should not use the cache when cache option is false', () => {
+      expect(service.getCacheSize()).toBe(0);
+      service.renderFile(testFilePath, { name: 'File' }, { cache: false });
+      expect(service.getCacheSize()).toBe(0);
     });
   });
 

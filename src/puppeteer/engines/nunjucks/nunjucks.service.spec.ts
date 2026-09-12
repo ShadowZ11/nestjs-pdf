@@ -117,6 +117,28 @@ describe('NunjucksService', () => {
       });
       expect(result).toBe('<h1>Test</h1>');
     });
+
+    it('should honor explicit falsy config option values', () => {
+      (renderString as Mock).mockReturnValue('<h1>Test</h1>');
+      const template = '<h1>{{ title }}</h1>';
+      const data = { title: 'Test' };
+
+      const result = service.render(template, data, {
+        watch: true,
+        throwOnUndefined: true,
+        trimBlocks: false,
+        lstripBlocks: false,
+      });
+
+      expect(configure).toHaveBeenCalledWith({
+        noCache: true,
+        watch: true,
+        throwOnUndefined: true,
+        trimBlocks: false,
+        lstripBlocks: false,
+      });
+      expect(result).toBe('<h1>Test</h1>');
+    });
   });
 
   describe('renderFile', () => {
@@ -151,6 +173,30 @@ describe('NunjucksService', () => {
       expect(() => service.renderFile('./missing.njk')).toThrow(
         'Nunjucks file rendering failed: Error: render boom',
       );
+    });
+
+    it('should honor explicit falsy config option values', () => {
+      (render as Mock).mockReturnValue('<h1>File</h1>');
+      const filePath = './examples/sample-template.njk';
+
+      const result = service.renderFile(
+        filePath,
+        {},
+        {
+          throwOnUndefined: true,
+          trimBlocks: false,
+          lstripBlocks: false,
+        },
+      );
+
+      expect(configure).toHaveBeenCalledWith({
+        noCache: true,
+        watch: false,
+        throwOnUndefined: true,
+        trimBlocks: false,
+        lstripBlocks: false,
+      });
+      expect(result).toBe('<h1>File</h1>');
     });
   });
 });
