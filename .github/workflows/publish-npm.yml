@@ -88,12 +88,28 @@ jobs:
         id: dist_tag
         shell: bash
         run: |
+          PKG_NAME="$(node -p "require('./package.json').name")"
           PKG_VERSION="$(node -p "require('./package.json').version")"
 
           if [[ "$PKG_VERSION" == *-* ]]; then
             echo "npm_tag=next" >> "$GITHUB_OUTPUT"
           else
-            echo "npm_tag=latest" >> "$GITHUB_OUTPUT"
+            LATEST_VERSION="$(npm view "$PKG_NAME" dist-tags.latest --registry=https://registry.npmjs.org/ 2>/dev/null || true)"
+
+            if [ -z "$LATEST_VERSION" ]; then
+              echo "npm_tag=latest" >> "$GITHUB_OUTPUT"
+            else
+              HIGHEST="$(printf '%s\n%s\n' "$PKG_VERSION" "$LATEST_VERSION" | sort -V | tail -n1)"
+
+              if [ "$HIGHEST" = "$PKG_VERSION" ]; then
+                echo "npm_tag=latest" >> "$GITHUB_OUTPUT"
+              else
+                # Published version is older than the current "latest" on npm:
+                # tag it as v<major> instead of overwriting "latest" with an outdated release.
+                MAJOR="${PKG_VERSION%%.*}"
+                echo "npm_tag=v$MAJOR" >> "$GITHUB_OUTPUT"
+              fi
+            fi
           fi
 
       - name: Debug npm context
