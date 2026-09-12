@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.5](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.5.4...v2.5.5) (2026-09-12)
+
+
+### 🐛 Bug Fixes
+
+* **vulnerabilities:** audit v2 to fix as many vulnerabilities possible ([c4eb4ae](https://github.com/ShadowZ11/nestjs-pdf/commit/c4eb4aeb42a1b70d877a7a4e566a4ef09884a173))
+
 ## [2.5.2](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.5.1...v2.5.2) (2026-08-31)
 
 
