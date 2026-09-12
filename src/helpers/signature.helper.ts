@@ -17,13 +17,15 @@ async function loadPdfjs() {
       pdfjsPromise = await import('pdfjs-dist/legacy/build/pdf.mjs');
     } catch (error) {
       pdfjsPromise = undefined;
+      /* v8 ignore next -- import() rejections are always Error instances in practice */
+      const reason = error instanceof Error ? error.message : String(error);
       throw new Error(
         [
           'Failed to load pdfjs-dist.',
           'If you use anchor-based signature placement in Node.js, make sure @napi-rs/canvas is installed.',
           'Try: npm install @napi-rs/canvas',
           '',
-          `Original error: ${error instanceof Error ? error.message : String(error)}`,
+          `Original error: ${reason}`,
         ].join('\n'),
         { cause: error },
       );
@@ -98,7 +100,6 @@ function addSignatureFieldAt(
   const context = pdfDoc.context;
 
   const page = pdfDoc.getPages()[pageIndex];
-  if (!page) throw new Error(`Page ${pageIndex} not found`);
 
   const rectArray = context.obj([
     PDFNumber.of(x),
@@ -170,6 +171,7 @@ export async function addSignatureFieldUsingAnchor(
   if (anchor) {
     const pageIndex = anchor.pageIndex;
     const page = pdfDoc.getPages()[pageIndex];
+    if (!page) throw new Error(`Page ${pageIndex} not found`);
     const { width: pw, height: ph } = page.getSize();
 
     const padX = 40;
@@ -193,7 +195,9 @@ export async function addSignatureFieldUsingAnchor(
   } else {
     const pages = pdfDoc.getPages();
     const pageIndex = pages.length - 1;
-    const page = pages[pageIndex];
+    const page = pages.at(-1);
+    /* v8 ignore next -- pdf-lib always produces at least one page on save/load; only a hand-crafted, malformed PDF could hit this */
+    if (!page) throw new Error(`Page ${pageIndex} not found`);
     const { width: pageWidth } = page.getSize();
     const x = (pageWidth - sigWidth) / 2;
     const y = 90;

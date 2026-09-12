@@ -112,6 +112,8 @@ export class PuppeteerService {
         await page.setContent(html, { waitUntil: 'domcontentloaded' });
         await page.emulateMediaType('screen');
         await page.waitForNetworkIdle({ idleTime: 500, timeout: 30000 });
+        // Executes inside the browser page context via Puppeteer, not in Node — unreachable by unit tests.
+        /* v8 ignore next */
         await page.evaluate(() => document.fonts.ready);
 
         return await page.pdf(pdfOptions);
