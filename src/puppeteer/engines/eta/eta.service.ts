@@ -17,12 +17,12 @@ export interface EtaOptions extends Partial<EtaConfig> {
 
 @Injectable()
 export class EtaService {
-  private readonly eta: Eta;
-  private readonly templateCache: Map<string, string> = new Map();
-  private readonly maxCacheSize = 100;
+  readonly #eta: Eta;
+  readonly #templateCache: Map<string, string> = new Map();
+  readonly #maxCacheSize = 100;
 
   constructor() {
-    this.eta = new Eta({
+    this.#eta = new Eta({
       cache: true,
       autoEscape: true,
       useWith: true,
@@ -51,7 +51,7 @@ export class EtaService {
               ...options,
               varName: options.varName ?? 'it',
             })
-          : this.eta;
+          : this.#eta;
 
       return eta.renderString(template, data);
     } catch (error) {
@@ -79,14 +79,14 @@ export class EtaService {
       const resolvedPath = resolve(filePath);
       const useCache = options?.cache ?? true;
       let template = useCache
-        ? this.templateCache.get(resolvedPath)
+        ? this.#templateCache.get(resolvedPath)
         : undefined;
 
       if (!template) {
         template = readFileSync(resolvedPath, 'utf-8');
 
-        if (useCache && this.templateCache.size < this.maxCacheSize) {
-          this.templateCache.set(resolvedPath, template);
+        if (useCache && this.#templateCache.size < this.#maxCacheSize) {
+          this.#templateCache.set(resolvedPath, template);
         }
       }
       return this.render(template, data, options);
@@ -103,7 +103,7 @@ export class EtaService {
    * Clear the template cache
    */
   clearCache(): void {
-    this.templateCache.clear();
+    this.#templateCache.clear();
   }
 
   /**
@@ -111,6 +111,6 @@ export class EtaService {
    * @returns The number of cached templates
    */
   getCacheSize(): number {
-    return this.templateCache.size;
+    return this.#templateCache.size;
   }
 }

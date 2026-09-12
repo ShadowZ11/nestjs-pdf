@@ -8,7 +8,11 @@ import { PuppeteerParameters } from './puppeteer/puppeteer-parameters.interface'
 
 @Injectable()
 export class NestjsPdfService {
-  constructor(private readonly puppeteerService: PuppeteerService) {}
+  readonly #puppeteerService: PuppeteerService;
+
+  constructor(puppeteerService: PuppeteerService) {
+    this.#puppeteerService = puppeteerService;
+  }
 
   /**
    * @param html HTML string to convert to PDF
@@ -17,7 +21,7 @@ export class NestjsPdfService {
    * @description This method uses the Puppeteer service to generate a PDF from an HTML string. Generation options can be customized by passing a `PuppeteerParameters` object as the second argument. This allows you to control various aspects of PDF rendering, such as page size, margins, background display, etc. If no options are provided, the default parameters defined in the Puppeteer service will be used.
    */
   generatePdfFromHtml(html: string, options?: PuppeteerParameters) {
-    return this.puppeteerService.generatePdfFromHtml(html, options);
+    return this.#puppeteerService.generatePdfFromHtml(html, options);
   }
 
   /**
@@ -32,7 +36,7 @@ export class NestjsPdfService {
     parameters: any = {},
     options?: PuppeteerParameters,
   ) {
-    return this.puppeteerService.generatePdfFromTemplateHbsString(
+    return this.#puppeteerService.generatePdfFromTemplateHbsString(
       template,
       parameters,
       options,
@@ -51,7 +55,7 @@ export class NestjsPdfService {
     parameters: any = {},
     options?: PuppeteerParameters,
   ) {
-    return this.puppeteerService.generatePdfFromTemplateHbsFile(
+    return this.#puppeteerService.generatePdfFromTemplateHbsFile(
       file,
       parameters,
       options,
@@ -65,7 +69,7 @@ export class NestjsPdfService {
    * @description This method generates a PDF from an MJML template provided as a string. MJML (MJML Markup Language) is a markup language designed to reduce the pain of coding a responsive email. The template is first rendered to HTML using the MJML renderer, then converted to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the second argument.
    */
   generatePdfFromMjmlString(template: string, options?: PuppeteerParameters) {
-    return this.puppeteerService.generatePdfFromMjmlString(template, options);
+    return this.#puppeteerService.generatePdfFromMjmlString(template, options);
   }
 
   /**
@@ -75,7 +79,7 @@ export class NestjsPdfService {
    * @description This method generates a PDF from an MJML template located at the specified file path. The file path is passed as a string in the `file` parameter. The template is first rendered to HTML using the MJML renderer, then converted to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the second argument.
    */
   generatePdfFromMjmlFile(file: string, options?: PuppeteerParameters) {
-    return this.puppeteerService.generatePdfFromMjmlFile(file, options);
+    return this.#puppeteerService.generatePdfFromMjmlFile(file, options);
   }
 
   /**
@@ -90,7 +94,7 @@ export class NestjsPdfService {
     data: Data = {},
     options?: PuppeteerParameters,
   ) {
-    return this.puppeteerService.generatePdfFromEjsString(
+    return this.#puppeteerService.generatePdfFromEjsString(
       template,
       data,
       options,
@@ -109,7 +113,7 @@ export class NestjsPdfService {
     data: Data = {},
     options?: PuppeteerParameters,
   ) {
-    return this.puppeteerService.generatePdfFromEjsFile(file, data, options);
+    return this.#puppeteerService.generatePdfFromEjsFile(file, data, options);
   }
 
   /**
@@ -124,7 +128,7 @@ export class NestjsPdfService {
     data: LocalsObject = {},
     options?: PuppeteerParameters,
   ) {
-    return this.puppeteerService.generatePdfFromPugString(
+    return this.#puppeteerService.generatePdfFromPugString(
       template,
       data,
       options,
@@ -143,7 +147,7 @@ export class NestjsPdfService {
     data: LocalsObject = {},
     options?: PuppeteerParameters,
   ) {
-    return this.puppeteerService.generatePdfFromPugFile(file, data, options);
+    return this.#puppeteerService.generatePdfFromPugFile(file, data, options);
   }
 
   /**
@@ -158,7 +162,7 @@ export class NestjsPdfService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    return this.puppeteerService.generatePdfFromNunjucksString(
+    return this.#puppeteerService.generatePdfFromNunjucksString(
       template,
       data,
       options,
@@ -177,7 +181,7 @@ export class NestjsPdfService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    return this.puppeteerService.generatePdfFromNunjucksFile(
+    return this.#puppeteerService.generatePdfFromNunjucksFile(
       file,
       data,
       options,
@@ -196,7 +200,7 @@ export class NestjsPdfService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    return this.puppeteerService.generatePdfFromEtaString(
+    return this.#puppeteerService.generatePdfFromEtaString(
       template,
       data,
       options,
@@ -215,7 +219,7 @@ export class NestjsPdfService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    return this.puppeteerService.generatePdfFromEtaFile(file, data, options);
+    return this.#puppeteerService.generatePdfFromEtaFile(file, data, options);
   }
 
   /**
@@ -230,7 +234,7 @@ export class NestjsPdfService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    return this.puppeteerService.generatePdfFromMustacheString(
+    return this.#puppeteerService.generatePdfFromMustacheString(
       template,
       data,
       options,
@@ -249,7 +253,7 @@ export class NestjsPdfService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    return this.puppeteerService.generatePdfFromMustacheFile(
+    return this.#puppeteerService.generatePdfFromMustacheFile(
       file,
       data,
       options,

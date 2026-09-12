@@ -34,8 +34,8 @@ export interface HandlebarsOptions {
 
 @Injectable()
 export class HandlebarsService {
-  private cachedOptions?: HandlebarsOptions;
-  private cachedEnv?: typeof Handlebars;
+  #cachedOptions?: HandlebarsOptions;
+  #cachedEnv?: typeof Handlebars;
 
   render(
     template: string,
@@ -43,7 +43,7 @@ export class HandlebarsService {
     options: HandlebarsOptions = {},
   ): string {
     try {
-      const compiled = this.getEnv(options).compile(
+      const compiled = this.#getEnv(options).compile(
         template,
         options.compileOptions,
       );
@@ -98,9 +98,9 @@ export class HandlebarsService {
    * nothing leaks into the global Handlebars. Memoised for the common case where
    * the same options object is reused across calls (e.g. the module `hbsOptions`).
    */
-  private getEnv(options: HandlebarsOptions): typeof Handlebars {
-    if (this.cachedEnv && this.cachedOptions === options) {
-      return this.cachedEnv;
+  #getEnv(options: HandlebarsOptions): typeof Handlebars {
+    if (this.#cachedEnv && this.#cachedOptions === options) {
+      return this.#cachedEnv;
     }
 
     const env = Handlebars.create();
@@ -108,14 +108,14 @@ export class HandlebarsService {
     for (const helper of options.helpers ?? []) {
       env.registerHelper(helper.name, helper.fn);
     }
-    this.registerPartials(env, options.partialDirectory);
+    this.#registerPartials(env, options.partialDirectory);
 
-    this.cachedOptions = options;
-    this.cachedEnv = env;
+    this.#cachedOptions = options;
+    this.#cachedEnv = env;
     return env;
   }
 
-  private registerPartials(
+  #registerPartials(
     env: typeof Handlebars,
     partialDirectory: string | undefined,
   ): void {

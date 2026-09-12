@@ -13,8 +13,8 @@ export interface MustacheOptions {
 
 @Injectable()
 export class MustacheService {
-  private readonly templateCache: Map<string, string> = new Map();
-  private readonly maxCacheSize = 100;
+  readonly #templateCache: Map<string, string> = new Map();
+  readonly #maxCacheSize = 100;
 
   /**
    * Render a Mustache template from a string
@@ -57,13 +57,13 @@ export class MustacheService {
   ): string {
     try {
       const resolvedPath = resolve(filePath);
-      let template = this.templateCache.get(resolvedPath);
+      let template = this.#templateCache.get(resolvedPath);
 
       if (!template) {
         template = readFileSync(resolvedPath, 'utf-8');
 
-        if (this.templateCache.size < this.maxCacheSize) {
-          this.templateCache.set(resolvedPath, template);
+        if (this.#templateCache.size < this.#maxCacheSize) {
+          this.#templateCache.set(resolvedPath, template);
         }
       }
 
@@ -81,7 +81,7 @@ export class MustacheService {
    * Clear the template cache
    */
   clearCache(): void {
-    this.templateCache.clear();
+    this.#templateCache.clear();
   }
 
   /**
@@ -89,6 +89,6 @@ export class MustacheService {
    * @returns The number of cached templates
    */
   getCacheSize(): number {
-    return this.templateCache.size;
+    return this.#templateCache.size;
   }
 }

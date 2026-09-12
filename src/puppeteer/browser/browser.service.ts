@@ -66,43 +66,43 @@ function isTargetClosedError(error: unknown): boolean {
 
 @Injectable()
 export class BrowserService implements OnModuleDestroy {
-  private readonly cacheDir: string;
-  private readonly options?: PuppeteerParameters;
+  readonly #cacheDir: string;
+  readonly #options?: PuppeteerParameters;
 
-  private _browserInstance: Browser | null = null;
-  private browser: BrowserType;
+  #browserInstance: Browser | null = null;
+  #browser: BrowserType;
 
   public activeJobs = 0;
   public totalJobs = 0;
 
-  private recycleRequested = false;
-  private recycling = false;
+  #recycleRequested = false;
+  #recycling = false;
 
-  private shuttingDown = false;
+  #shuttingDown = false;
   /** Max time to wait for in-flight PDF jobs to finish before closing the browser on shutdown. */
   public shutdownDrainTimeoutMs = 15_000;
 
-  private browserTag: BrowserTag;
-  private useLockedBrowser: boolean;
-  private buildId: string | undefined;
+  #browserTag: BrowserTag;
+  #useLockedBrowser: boolean;
+  #buildId: string | undefined;
 
   constructor(@Inject('PDF_PARAMETERS') pdfParams: PuppeteerParameters) {
-    this.cacheDir = resolve('.cache/puppeteer-browser');
-    this.options = pdfParams;
+    this.#cacheDir = resolve('.cache/puppeteer-browser');
+    this.#options = pdfParams;
 
-    this.loadBuildId();
-    this.loadBrowser();
-    this.loadBrowserTag();
-    this.loadUseLockedBrowser();
+    this.#loadBuildId();
+    this.#loadBrowser();
+    this.#loadBrowserTag();
+    this.#loadUseLockedBrowser();
   }
 
   async onModuleDestroy() {
-    this.shuttingDown = true;
-    await this.waitForIdle(this.shutdownDrainTimeoutMs);
+    this.#shuttingDown = true;
+    await this.#waitForIdle(this.shutdownDrainTimeoutMs);
 
-    if (this._browserInstance?.connected) {
+    if (this.#browserInstance?.connected) {
       try {
-        await this._browserInstance.close();
+        await this.#browserInstance.close();
       } catch (error) {
         Logger.warn(
           `Failed to close browser on module destroy: ${
@@ -112,13 +112,13 @@ export class BrowserService implements OnModuleDestroy {
       }
     }
 
-    if (this.options?.cleanupBrowserCacheOnExit !== false) {
-      await this.cleanupCacheBestEffort();
+    if (this.#options?.cleanupBrowserCacheOnExit !== false) {
+      await this.#cleanupCacheBestEffort();
     }
   }
 
   /** Wait until no PDF job is in flight, or until the timeout elapses. */
-  private async waitForIdle(timeoutMs: number): Promise<void> {
+  async #waitForIdle(timeoutMs: number): Promise<void> {
     const start = Date.now();
     while (this.activeJobs > 0 && Date.now() - start < timeoutMs) {
       await sleep(50);
@@ -136,15 +136,15 @@ export class BrowserService implements OnModuleDestroy {
     headless: boolean | 'shell' | undefined,
     executablePathBin: string | undefined,
   ) {
-    if (!this._browserInstance?.connected) {
-      this._browserInstance = await this.launchBrowser(
+    if (!this.#browserInstance?.connected) {
+      this.#browserInstance = await this.#launchBrowser(
         args,
         headless,
         executablePathBin,
       );
     }
 
-    return this._browserInstance;
+    return this.#browserInstance;
   }
 
   async createContext(
@@ -168,7 +168,7 @@ export class BrowserService implements OnModuleDestroy {
         'Puppeteer browser closed while creating a context, retrying once',
       );
 
-      this._browserInstance = null;
+      this.#browserInstance = null;
       const freshBrowser = await this.getBrowserInstance(
         args,
         headless,
@@ -179,7 +179,7 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   markJobStarted() {
-    if (this.shuttingDown) {
+    if (this.#shuttingDown) {
       throw new BrowserUnavailableException(
         'nestjs-pdf is shutting down, refusing new PDF jobs',
       );
@@ -189,7 +189,7 @@ export class BrowserService implements OnModuleDestroy {
     this.totalJobs += 1;
 
     if (this.totalJobs >= 200) {
-      this.recycleRequested = true;
+      this.#recycleRequested = true;
     }
   }
 
@@ -199,21 +199,21 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   async recycleBrowserIfNeeded() {
-    if (!this.recycleRequested) return;
-    if (this.recycling) return;
+    if (!this.#recycleRequested) return;
+    if (this.#recycling) return;
     if (this.activeJobs > 0) return;
-    if (!this._browserInstance) return;
+    if (!this.#browserInstance) return;
 
-    this.recycling = true;
+    this.#recycling = true;
 
     try {
-      if (this._browserInstance.connected) {
-        await this._browserInstance.close();
+      if (this.#browserInstance.connected) {
+        await this.#browserInstance.close();
       }
 
-      this._browserInstance = null;
+      this.#browserInstance = null;
       this.totalJobs = 0;
-      this.recycleRequested = false;
+      this.#recycleRequested = false;
 
       Logger.log('Puppeteer browser recycled successfully');
     } catch (error) {
@@ -223,13 +223,13 @@ export class BrowserService implements OnModuleDestroy {
         }`,
       );
     } finally {
-      this.recycling = false;
+      this.#recycling = false;
     }
   }
 
-  private async cleanupCacheBestEffort() {
+  async #cleanupCacheBestEffort() {
     const logger = new Logger('NestJsPdf');
-    const dir = this.cacheDir;
+    const dir = this.#cacheDir;
     try {
       if (!existsSync(dir)) return;
 
@@ -271,16 +271,16 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   private async doInstall(lock: boolean) {
-    const browser: BrowserType = this.browser;
-    const versionTag: BrowserTag = this.browserTag;
+    const browser: BrowserType = this.#browser;
+    const versionTag: BrowserTag = this.#browserTag;
 
     const browserPlatform = detectBrowserPlatform() ?? BrowserPlatform.LINUX;
 
     let buildId: string;
-    if (this.buildId === undefined) {
+    if (this.#buildId === undefined) {
       buildId = await resolveBuildId(browser, browserPlatform, versionTag);
     } else {
-      buildId = this.buildId;
+      buildId = this.#buildId;
     }
 
     Logger.log(
@@ -291,17 +291,17 @@ export class BrowserService implements OnModuleDestroy {
     if (await this.hasBrowserInstalled(browser, buildId)) {
       Logger.log('Browser already installed', 'NestJsPdf');
       if (lock) {
-        this.writeLockFile(browser, buildId);
+        this.#writeLockFile(browser, buildId);
       }
       return;
     } else {
       Logger.log('Starting browser installation', 'NestJsPdf');
 
       const installOption = {
-        cacheDir: this.cacheDir,
+        cacheDir: this.#cacheDir,
         browser: browser,
         buildId: buildId,
-        baseUrl: this.options?.browserInstallBaseUrl ?? undefined,
+        baseUrl: this.#options?.browserInstallBaseUrl ?? undefined,
       };
 
       if (await canDownload(installOption)) {
@@ -313,7 +313,7 @@ export class BrowserService implements OnModuleDestroy {
         if (await this.hasBrowserInstalled(browser, buildId)) {
           Logger.log('Browser installed successfully', 'NestJsPdf');
           if (lock) {
-            this.writeLockFile(browser, buildId);
+            this.#writeLockFile(browser, buildId);
           }
           return installedBrowser;
         } else {
@@ -329,69 +329,69 @@ export class BrowserService implements OnModuleDestroy {
     return null;
   }
 
-  private loadBrowser(): void {
+  #loadBrowser(): void {
     let browser: BrowserType;
-    if (this.options?.browser === undefined) {
+    if (this.#options?.browser === undefined) {
       browser = BrowserType.CHROMIUM;
     } else {
-      browser = this.options.browser;
+      browser = this.#options.browser;
     }
-    this.browser = browser;
+    this.#browser = browser;
   }
 
   public getBrowser(): BrowserType {
-    return this.browser;
+    return this.#browser;
   }
 
-  private loadBrowserTag(): void {
+  #loadBrowserTag(): void {
     let versionTag: BrowserTag;
-    if (this.options?.browserTag === undefined) {
-      if (this.browser === BrowserType.CHROMIUM) {
+    if (this.#options?.browserTag === undefined) {
+      if (this.#browser === BrowserType.CHROMIUM) {
         versionTag = BrowserTag.LATEST;
       } else {
         versionTag = BrowserTag.STABLE;
       }
     } else {
-      versionTag = this.options.browserTag;
+      versionTag = this.#options.browserTag;
     }
-    this.browserTag = versionTag;
+    this.#browserTag = versionTag;
   }
 
-  private loadBuildId(): void {
+  #loadBuildId(): void {
     let buildId: string | undefined;
-    if (this.options?.buildId === undefined) {
+    if (this.#options?.buildId === undefined) {
       buildId = undefined;
     } else {
-      buildId = this.options.buildId;
+      buildId = this.#options.buildId;
     }
-    this.buildId = buildId;
+    this.#buildId = buildId;
   }
 
   public setBrowserTag(browserTag: BrowserTag): void {
-    this.browserTag = browserTag;
+    this.#browserTag = browserTag;
   }
 
   public getBrowserTag(): BrowserTag {
-    return this.browserTag;
+    return this.#browserTag;
   }
 
   getBuildId(): string | undefined {
-    return this.buildId;
+    return this.#buildId;
   }
 
-  private loadUseLockedBrowser(): void {
+  #loadUseLockedBrowser(): void {
     let useLockedBrowser: boolean;
-    if (this.options?.useLockedBrowser === undefined) {
+    if (this.#options?.useLockedBrowser === undefined) {
       useLockedBrowser = false;
     } else {
-      useLockedBrowser = this.options.useLockedBrowser;
+      useLockedBrowser = this.#options.useLockedBrowser;
     }
-    this.useLockedBrowser = useLockedBrowser;
+    this.#useLockedBrowser = useLockedBrowser;
   }
 
   async hasBrowserInstalled(browser: BrowserType, buildId: string) {
     const installedBrowserlist = await getInstalledBrowsers({
-      cacheDir: this.cacheDir,
+      cacheDir: this.#cacheDir,
     });
 
     const installedBrowser = installedBrowserlist.find((insBrowser) => {
@@ -401,17 +401,17 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   async getExecutablePath(): Promise<string> {
-    const browser: BrowserType = this.browser;
-    const versionTag: BrowserTag = this.browserTag;
+    const browser: BrowserType = this.#browser;
+    const versionTag: BrowserTag = this.#browserTag;
     const browserPlatform = detectBrowserPlatform() ?? BrowserPlatform.LINUX;
     let buildId: string | null = null;
-    if (this.useLockedBrowser) {
+    if (this.#useLockedBrowser) {
       buildId = this.getLockedBuildId(browser);
       Logger.log(`Using locked browser ${buildId}`, 'NestJsPdf');
     }
     buildId ??= await resolveBuildId(browser, browserPlatform, versionTag);
     const installedBrowserlist = await getInstalledBrowsers({
-      cacheDir: this.cacheDir,
+      cacheDir: this.#cacheDir,
     });
     const installedBrowser = installedBrowserlist.find((insBrowser) => {
       return insBrowser.browser === browser && insBrowser.buildId === buildId;
@@ -427,7 +427,7 @@ export class BrowserService implements OnModuleDestroy {
     return installedBrowser.executablePath;
   }
 
-  private async launchBrowser(
+  async #launchBrowser(
     args: Array<string>,
     headless: Headless,
     executablePathBin: string | undefined,
@@ -443,16 +443,16 @@ export class BrowserService implements OnModuleDestroy {
 
     browser.on('disconnected', () => {
       Logger.warn('Puppeteer browser disconnected');
-      if (this._browserInstance === browser) {
-        this._browserInstance = null;
+      if (this.#browserInstance === browser) {
+        this.#browserInstance = null;
       }
     });
 
     return browser;
   }
 
-  private writeLockFile(browser: BrowserType, buildId: string) {
-    const lockFile = resolve(this.cacheDir, `${browser}.lock`);
+  #writeLockFile(browser: BrowserType, buildId: string) {
+    const lockFile = resolve(this.#cacheDir, `${browser}.lock`);
     const data = JSON.stringify({
       browser: browser,
       buildId: buildId,
@@ -464,7 +464,7 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   getLockedBuildId(browser: BrowserType): string | null {
-    const lockFile = resolve(this.cacheDir, `${browser}.lock`);
+    const lockFile = resolve(this.#cacheDir, `${browser}.lock`);
     if (existsSync(lockFile)) {
       const data = readFileSync(lockFile);
       const lock = JSON.parse(data.toString()) as {

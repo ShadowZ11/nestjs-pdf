@@ -20,27 +20,47 @@ import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 
 @Injectable()
 export class PuppeteerService {
-  constructor(
-    private readonly browserService: BrowserService,
-    @Inject(PDF_PARAMETERS) private readonly options: PuppeteerParameters,
-    @Optional() private readonly hbsService?: HandlebarsService,
-    @Optional() private readonly mjmlService?: MjmlService,
-    @Optional() private readonly pugService?: PugService,
-    @Optional() private readonly ejsService?: EjsService,
-    @Optional() private readonly nunjucksService?: NunjucksService,
-    @Optional() private readonly etaService?: EtaService,
-    @Optional() private readonly mustacheService?: MustacheService,
-  ) {}
+  readonly #browserService: BrowserService;
+  readonly #options: PuppeteerParameters;
+  readonly #hbsService?: HandlebarsService;
+  readonly #mjmlService?: MjmlService;
+  readonly #pugService?: PugService;
+  readonly #ejsService?: EjsService;
+  readonly #nunjucksService?: NunjucksService;
+  readonly #etaService?: EtaService;
+  readonly #mustacheService?: MustacheService;
 
-  private readonly limit = pLimit(3);
+  constructor(
+    browserService: BrowserService,
+    @Inject(PDF_PARAMETERS) options: PuppeteerParameters,
+    @Optional() hbsService?: HandlebarsService,
+    @Optional() mjmlService?: MjmlService,
+    @Optional() pugService?: PugService,
+    @Optional() ejsService?: EjsService,
+    @Optional() nunjucksService?: NunjucksService,
+    @Optional() etaService?: EtaService,
+    @Optional() mustacheService?: MustacheService,
+  ) {
+    this.#browserService = browserService;
+    this.#options = options;
+    this.#hbsService = hbsService;
+    this.#mjmlService = mjmlService;
+    this.#pugService = pugService;
+    this.#ejsService = ejsService;
+    this.#nunjucksService = nunjucksService;
+    this.#etaService = etaService;
+    this.#mustacheService = mustacheService;
+  }
+
+  readonly #limit = pLimit(3);
 
   async generatePdfFromHtml(
     html: string,
     options?: PuppeteerParameters,
   ): Promise<Uint8Array> {
-    return this.limit(async () => {
+    return this.#limit(async () => {
       const mergePuppeteerOptions = mergePuppeteerParameters(
-        this.options,
+        this.#options,
         options,
       );
       if (mergePuppeteerOptions.chromiumRevision !== undefined) {
@@ -94,12 +114,12 @@ export class PuppeteerService {
         '--disable-gpu',
       ];
 
-      this.browserService.markJobStarted();
+      this.#browserService.markJobStarted();
       let context: Awaited<ReturnType<BrowserService['createContext']>> | null =
         null;
 
       try {
-        context = await this.browserService.createContext(
+        context = await this.#browserService.createContext(
           args,
           headless,
           executablePath,
@@ -135,7 +155,7 @@ export class PuppeteerService {
             Logger.error(error);
           }
         }
-        await this.browserService.markJobFinished();
+        await this.#browserService.markJobFinished();
       }
     });
   }
@@ -145,11 +165,11 @@ export class PuppeteerService {
     parameters: any = {},
     options?: PuppeteerParameters,
   ) {
-    const hbsService = requireService(this.hbsService, 'Handlebars');
+    const hbsService = requireService(this.#hbsService, 'Handlebars');
     const html = hbsService.render(
       template,
       parameters,
-      options?.hbsOptions ?? this.options.hbsOptions,
+      options?.hbsOptions ?? this.#options.hbsOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
@@ -159,11 +179,11 @@ export class PuppeteerService {
     parameters: any = {},
     options?: PuppeteerParameters,
   ) {
-    const hbsService = requireService(this.hbsService, 'Handlebars');
+    const hbsService = requireService(this.#hbsService, 'Handlebars');
     const html = hbsService.renderFile(
       file,
       parameters,
-      options?.hbsOptions ?? this.options.hbsOptions,
+      options?.hbsOptions ?? this.#options.hbsOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
@@ -172,19 +192,19 @@ export class PuppeteerService {
     template: string,
     options?: PuppeteerParameters,
   ) {
-    const mjmlService = requireService(this.mjmlService, 'MJML');
+    const mjmlService = requireService(this.#mjmlService, 'MJML');
     const html = await mjmlService.render(
       template,
-      options?.mjmlOptions ?? this.options.mjmlOptions,
+      options?.mjmlOptions ?? this.#options.mjmlOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
 
   async generatePdfFromMjmlFile(file: string, options?: PuppeteerParameters) {
-    const mjmlService = requireService(this.mjmlService, 'MJML');
+    const mjmlService = requireService(this.#mjmlService, 'MJML');
     const html = await mjmlService.renderFile(
       file,
-      options?.mjmlOptions ?? this.options.mjmlOptions,
+      options?.mjmlOptions ?? this.#options.mjmlOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
@@ -194,11 +214,11 @@ export class PuppeteerService {
     data: LocalsObject = {},
     options?: PuppeteerParameters,
   ) {
-    const pugService = requireService(this.pugService, 'Pug');
+    const pugService = requireService(this.#pugService, 'Pug');
     const html = pugService.render(
       template,
       data,
-      options?.pugOptions ?? this.options.pugOptions,
+      options?.pugOptions ?? this.#options.pugOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
@@ -208,11 +228,11 @@ export class PuppeteerService {
     data: LocalsObject = {},
     options?: PuppeteerParameters,
   ) {
-    const pugService = requireService(this.pugService, 'Pug');
+    const pugService = requireService(this.#pugService, 'Pug');
     const html = pugService.renderFile(
       file,
       data,
-      options?.pugOptions ?? this.options.pugOptions,
+      options?.pugOptions ?? this.#options.pugOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
@@ -222,11 +242,11 @@ export class PuppeteerService {
     data: Data = {},
     options?: PuppeteerParameters,
   ) {
-    const ejsService = requireService(this.ejsService, 'EJS');
+    const ejsService = requireService(this.#ejsService, 'EJS');
     const html = await ejsService.render(
       template,
       data,
-      options?.ejsOptions ?? this.options.ejsOptions,
+      options?.ejsOptions ?? this.#options.ejsOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
@@ -236,11 +256,11 @@ export class PuppeteerService {
     data: Data = {},
     options?: PuppeteerParameters,
   ) {
-    const ejsService = requireService(this.ejsService, 'EJS');
+    const ejsService = requireService(this.#ejsService, 'EJS');
     const html = await ejsService.renderFile(
       file,
       data,
-      options?.ejsOptions ?? this.options.ejsOptions,
+      options?.ejsOptions ?? this.#options.ejsOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
@@ -250,11 +270,11 @@ export class PuppeteerService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    const nunjucksService = requireService(this.nunjucksService, 'Nunjucks');
+    const nunjucksService = requireService(this.#nunjucksService, 'Nunjucks');
     const html = nunjucksService.render(
       template,
       data,
-      options?.nunjucksOptions ?? this.options.nunjucksOptions,
+      options?.nunjucksOptions ?? this.#options.nunjucksOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
@@ -264,11 +284,11 @@ export class PuppeteerService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    const nunjucksService = requireService(this.nunjucksService, 'Nunjucks');
+    const nunjucksService = requireService(this.#nunjucksService, 'Nunjucks');
     const html = nunjucksService.renderFile(
       file,
       data,
-      options?.nunjucksOptions ?? this.options.nunjucksOptions,
+      options?.nunjucksOptions ?? this.#options.nunjucksOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
@@ -278,11 +298,11 @@ export class PuppeteerService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    const etaService = requireService(this.etaService, 'Eta');
+    const etaService = requireService(this.#etaService, 'Eta');
     const html = etaService.render(
       template,
       data,
-      options?.etaOptions ?? this.options.etaOptions,
+      options?.etaOptions ?? this.#options.etaOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
@@ -292,11 +312,11 @@ export class PuppeteerService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    const etaService = requireService(this.etaService, 'Eta');
+    const etaService = requireService(this.#etaService, 'Eta');
     const html = etaService.renderFile(
       file,
       data,
-      options?.etaOptions ?? this.options.etaOptions,
+      options?.etaOptions ?? this.#options.etaOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
@@ -306,11 +326,11 @@ export class PuppeteerService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    const mustacheService = requireService(this.mustacheService, 'Mustache');
+    const mustacheService = requireService(this.#mustacheService, 'Mustache');
     const html = mustacheService.render(
       template,
       data,
-      options?.mustacheOptions ?? this.options.mustacheOptions,
+      options?.mustacheOptions ?? this.#options.mustacheOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
@@ -320,11 +340,11 @@ export class PuppeteerService {
     data: Record<string, unknown> = {},
     options?: PuppeteerParameters,
   ) {
-    const mustacheService = requireService(this.mustacheService, 'Mustache');
+    const mustacheService = requireService(this.#mustacheService, 'Mustache');
     const html = mustacheService.renderFile(
       file,
       data,
-      options?.mustacheOptions ?? this.options.mustacheOptions,
+      options?.mustacheOptions ?? this.#options.mustacheOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }
