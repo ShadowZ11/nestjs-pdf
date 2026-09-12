@@ -4,6 +4,8 @@ import { resolve } from 'node:path';
 import { Injectable } from '@nestjs/common';
 import mustache, { EscapeFunction } from 'mustache';
 
+import { TemplateRenderException } from '../../../exceptions';
+
 export interface MustacheOptions {
   tags?: [string, string];
   escape?: EscapeFunction;
@@ -33,9 +35,11 @@ export class MustacheService {
         escape: options?.escape,
       });
     } catch (error) {
-      throw new Error(`Mustache rendering failed: ${String(error)}`, {
-        cause: error,
-      });
+      throw new TemplateRenderException(
+        'Mustache',
+        `Mustache rendering failed: ${String(error)}`,
+        { cause: error },
+      );
     }
   }
 
@@ -65,11 +69,10 @@ export class MustacheService {
 
       return this.render(template, data, options);
     } catch (error) {
-      throw new Error(
+      throw new TemplateRenderException(
+        'Mustache',
         `Mustache file rendering failed for ${filePath}: ${String(error)}`,
-        {
-          cause: error,
-        },
+        { cause: error },
       );
     }
   }

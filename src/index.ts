@@ -1,3 +1,4 @@
+export * from './exceptions';
 export * from './helpers/getRelativePath.helper';
 export * from './nestjs-pdf.module';
 export * from './nestjs-pdf.service';

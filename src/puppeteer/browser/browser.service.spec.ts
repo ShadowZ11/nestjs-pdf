@@ -43,6 +43,11 @@ import {
 } from '@puppeteer/browsers';
 import { type Browser as PuppeteerBrowser, launch } from 'puppeteer';
 
+import {
+  BrowserInstallationException,
+  BrowserUnavailableException,
+  NestjsPdfErrorCode,
+} from '../../exceptions';
 import type { PuppeteerParameters } from '../puppeteer-parameters.interface';
 import { BrowserService, BrowserTag } from './browser.service';
 
@@ -668,6 +673,12 @@ describe('BrowserService', () => {
       await expect(service.getExecutablePath()).rejects.toThrow(
         'Could not install browser',
       );
+      await expect(service.getExecutablePath()).rejects.toBeInstanceOf(
+        BrowserInstallationException,
+      );
+      await expect(service.getExecutablePath()).rejects.toMatchObject({
+        code: NestjsPdfErrorCode.BROWSER_INSTALLATION_ERROR,
+      });
     });
   });
 
@@ -761,6 +772,18 @@ describe('BrowserService', () => {
       await service.onModuleDestroy();
 
       expect(() => service.markJobStarted()).toThrow(/shutting down/);
+      expect(() => service.markJobStarted()).toThrow(
+        BrowserUnavailableException,
+      );
+      try {
+        service.markJobStarted();
+        expect.unreachable();
+      } catch (error) {
+        expect(error).toBeInstanceOf(BrowserUnavailableException);
+        expect(error).toMatchObject({
+          code: NestjsPdfErrorCode.BROWSER_UNAVAILABLE,
+        });
+      }
     });
 
     it('should skip cache cleanup when cleanupBrowserCacheOnExit is false', async () => {

@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import nunjucks, { type ConfigureOptions } from 'nunjucks';
 
+import { TemplateRenderException } from '../../../exceptions';
+
 export interface NunjucksOptions extends Partial<ConfigureOptions> {
   noCache?: boolean;
   watch?: boolean;
@@ -38,9 +40,11 @@ export class NunjucksService {
       }
       return nunjucks.renderString(template, data);
     } catch (error) {
-      throw new Error(`Nunjucks rendering failed: ${String(error)}`, {
-        cause: error,
-      });
+      throw new TemplateRenderException(
+        'Nunjucks',
+        `Nunjucks rendering failed: ${String(error)}`,
+        { cause: error },
+      );
     }
   }
 
@@ -62,9 +66,11 @@ export class NunjucksService {
       }
       return nunjucks.render(filePath, data);
     } catch (error) {
-      throw new Error(`Nunjucks file rendering failed: ${String(error)}`, {
-        cause: error,
-      });
+      throw new TemplateRenderException(
+        'Nunjucks',
+        `Nunjucks file rendering failed: ${String(error)}`,
+        { cause: error },
+      );
     }
   }
 }

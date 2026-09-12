@@ -4,6 +4,11 @@ import { basename, extname, join, resolve, sep } from 'node:path';
 import { Injectable } from '@nestjs/common';
 import Handlebars from 'handlebars';
 
+import {
+  TemplateConfigurationException,
+  TemplateRenderException,
+} from '../../../exceptions';
+
 export type HandlebarsHelper = {
   name: string;
   fn: Handlebars.HelperDelegate;
@@ -43,9 +48,11 @@ export class HandlebarsService {
       );
       return compiled(parameters, options.templateOptions);
     } catch (error) {
-      throw new Error(`Handlebars rendering failed: ${String(error)}`, {
-        cause: error,
-      });
+      throw new TemplateRenderException(
+        'Handlebars',
+        `Handlebars rendering failed: ${String(error)}`,
+        { cause: error },
+      );
     }
   }
 
@@ -55,7 +62,7 @@ export class HandlebarsService {
     options: HandlebarsOptions = {},
   ): string {
     if (options.templateDirectory === undefined) {
-      throw new Error(
+      throw new TemplateConfigurationException(
         'Handlebars file rendering failed: option `templateDirectory` is not set',
       );
     }
@@ -63,7 +70,7 @@ export class HandlebarsService {
     const baseDir = resolve(process.cwd(), options.templateDirectory);
     const templatePath = resolve(baseDir, file);
     if (templatePath !== baseDir && !templatePath.startsWith(baseDir + sep)) {
-      throw new Error(
+      throw new TemplateConfigurationException(
         `Handlebars file rendering failed: ’${file}’ resolves outside \`templateDirectory\``,
       );
     }
@@ -72,9 +79,11 @@ export class HandlebarsService {
     try {
       template = readFileSync(templatePath, 'utf8');
     } catch (error) {
-      throw new Error(`Handlebars file rendering failed: ${String(error)}`, {
-        cause: error,
-      });
+      throw new TemplateRenderException(
+        'Handlebars',
+        `Handlebars file rendering failed: ${String(error)}`,
+        { cause: error },
+      );
     }
 
     return this.render(template, parameters, options);
@@ -110,7 +119,7 @@ export class HandlebarsService {
 
     const partialPath = join(process.cwd(), partialDirectory);
     if (!existsSync(partialPath)) {
-      throw new Error(
+      throw new TemplateConfigurationException(
         `Handlebars partial directory does not exist: ${partialPath}`,
       );
     }
