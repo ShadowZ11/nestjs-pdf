@@ -258,7 +258,7 @@ export class BrowserService implements OnModuleDestroy {
 
   async install(lock: boolean = false) {
     try {
-      return await this.doInstall(lock);
+      return await this.#doInstall(lock);
     } catch (error) {
       if (error instanceof NestjsPdfException) {
         throw error;
@@ -270,7 +270,7 @@ export class BrowserService implements OnModuleDestroy {
     }
   }
 
-  private async doInstall(lock: boolean) {
+  async #doInstall(lock: boolean) {
     const browser: BrowserType = this.#browser;
     const versionTag: BrowserTag = this.#browserTag;
 
