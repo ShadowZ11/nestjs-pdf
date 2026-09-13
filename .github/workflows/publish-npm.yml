@@ -107,7 +107,7 @@ jobs:
                 # Published version is older than the current "latest" on npm:
                 # tag it as v<major> instead of overwriting "latest" with an outdated release.
                 MAJOR="${PKG_VERSION%%.*}"
-                echo "npm_tag=v$MAJOR" >> "$GITHUB_OUTPUT"
+                echo "npm_tag=nestjs-pdf-v$MAJOR" >> "$GITHUB_OUTPUT"
               fi
             fi
           fi

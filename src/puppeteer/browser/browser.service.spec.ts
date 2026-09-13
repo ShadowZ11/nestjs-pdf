@@ -58,18 +58,6 @@ type BrowserLike = {
   on: Mock;
 };
 
-type BrowserServiceTestState = {
-  _browserInstance: BrowserLike | null;
-  recycleRequested: boolean;
-  recycling: boolean;
-  useLockedBrowser: boolean;
-  browser: BrowserType;
-  writeLockFile(browser: BrowserType, buildId: string): void;
-};
-
-const testState = (instance: BrowserService) =>
-  instance as unknown as BrowserServiceTestState;
-
 describe('BrowserService', () => {
   let service: BrowserService;
 
@@ -171,13 +159,21 @@ describe('BrowserService', () => {
       expect(service.totalJobs).toBe(2);
     });
 
-    it('should request recycle when total jobs reaches 200', () => {
+    it('should recycle the browser once 200 jobs have run and it goes idle', async () => {
+      const browser = createBrowser();
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
+      await service.getBrowserInstance([], true, undefined);
+
       for (let i = 0; i < 200; i++) {
         service.markJobStarted();
       }
+      for (let i = 0; i < 200; i++) {
+        await service.markJobFinished();
+      }
 
-      const recycleRequested = testState(service).recycleRequested;
-      expect(recycleRequested).toBe(true);
+      expect(browser.close).toHaveBeenCalled();
+      expect(service.totalJobs).toBe(0);
     });
 
     it('should decrement active jobs on markJobFinished', async () => {
@@ -232,19 +228,34 @@ describe('BrowserService', () => {
         }
         return browser;
       });
-      (launch as Mock).mockResolvedValue(browser);
+      const secondBrowser = createBrowser();
+      (launch as Mock)
+        .mockResolvedValueOnce(browser)
+        .mockResolvedValueOnce(secondBrowser);
       vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
 
       await service.getBrowserInstance(['--no-sandbox'], true, undefined);
-      expect(testState(service)._browserInstance).toBe(browser);
 
       disconnectedHandler?.();
 
-      expect(testState(service)._browserInstance).toBeNull();
+      const result = await service.getBrowserInstance(
+        ['--no-sandbox'],
+        true,
+        undefined,
+      );
+
+      expect(launch).toHaveBeenCalledTimes(2);
+      expect(result).toBe(secondBrowser);
     });
 
     it('should not clear a newer browser instance when a stale one disconnects', async () => {
-      const staleBrowser = createBrowser();
+      const staleBrowser = createBrowser({
+        createBrowserContext: vi.fn().mockRejectedValueOnce(
+          Object.assign(new Error('Target closed'), {
+            name: 'TargetCloseError',
+          }),
+        ),
+      });
       let disconnectedHandler: (() => void) | undefined;
       staleBrowser.on.mockImplementation(
         (event: string, handler: () => void) => {
@@ -254,26 +265,40 @@ describe('BrowserService', () => {
           return staleBrowser;
         },
       );
-      (launch as Mock).mockResolvedValue(staleBrowser);
+      const newerBrowser = createBrowser({
+        createBrowserContext: vi.fn().mockResolvedValue({ id: 'ctx' }),
+      });
+      (launch as Mock)
+        .mockResolvedValueOnce(staleBrowser)
+        .mockResolvedValueOnce(newerBrowser);
       vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
 
       await service.getBrowserInstance(['--no-sandbox'], true, undefined);
+      // Relaunching via createContext replaces the cached instance with the newer browser.
+      await service.createContext(['--no-sandbox'], true, undefined);
 
-      const newerBrowser = createBrowser();
-      testState(service)._browserInstance = newerBrowser;
-
+      // The stale browser's disconnect handler fires after the replacement.
       disconnectedHandler?.();
 
-      expect(testState(service)._browserInstance).toBe(newerBrowser);
+      const result = await service.getBrowserInstance(
+        ['--no-sandbox'],
+        true,
+        undefined,
+      );
+
+      expect(launch).toHaveBeenCalledTimes(2);
+      expect(result).toBe(newerBrowser);
     });
 
     it('should reuse the existing browser instance when connected', async () => {
       const browser = createBrowser();
-      testState(service)._browserInstance = browser;
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
+      await service.getBrowserInstance([], true, '/custom/bin');
 
       const result = await service.getBrowserInstance([], true, '/custom/bin');
 
-      expect(launch).not.toHaveBeenCalled();
+      expect(launch).toHaveBeenCalledTimes(1);
       expect(result).toBe(browser);
     });
   });
@@ -406,21 +431,34 @@ describe('BrowserService', () => {
       expect(launch).not.toHaveBeenCalled();
     });
 
+    /** Marks the service as recycle-requested via the public API, without touching internal state. */
+    const requestRecycle = () => {
+      for (let i = 0; i < 200; i++) {
+        service.markJobStarted();
+      }
+      service.activeJobs = 0;
+    };
+
     it('should do nothing when already recycling', async () => {
       const browser = createBrowser();
-      testState(service).recycleRequested = true;
-      testState(service).recycling = true;
-      testState(service)._browserInstance = browser;
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
+      await service.getBrowserInstance([], true, undefined);
+      requestRecycle();
 
-      await service.recycleBrowserIfNeeded();
+      const first = service.recycleBrowserIfNeeded();
+      const second = service.recycleBrowserIfNeeded();
+      await Promise.all([first, second]);
 
-      expect(browser.close).not.toHaveBeenCalled();
+      expect(browser.close).toHaveBeenCalledTimes(1);
     });
 
     it('should do nothing while jobs are still active', async () => {
       const browser = createBrowser();
-      testState(service).recycleRequested = true;
-      testState(service)._browserInstance = browser;
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
+      await service.getBrowserInstance([], true, undefined);
+      requestRecycle();
       service.activeJobs = 1;
 
       await service.recycleBrowserIfNeeded();
@@ -429,61 +467,72 @@ describe('BrowserService', () => {
     });
 
     it('should do nothing when there is no browser instance', async () => {
-      testState(service).recycleRequested = true;
-      testState(service)._browserInstance = null;
+      requestRecycle();
 
       await expect(service.recycleBrowserIfNeeded()).resolves.toBeUndefined();
     });
 
     it('should reset state without closing when the browser is already disconnected', async () => {
       const browser = createBrowser({ connected: false });
-      testState(service).recycleRequested = true;
-      testState(service)._browserInstance = browser;
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
+      await service.getBrowserInstance([], true, undefined);
+      requestRecycle();
 
       await service.recycleBrowserIfNeeded();
 
       expect(browser.close).not.toHaveBeenCalled();
       expect(service.totalJobs).toBe(0);
-      expect(
-        (service as unknown as { recycleRequested: boolean }).recycleRequested,
-      ).toBe(false);
+
+      // recycleRequested should have been reset: a further call is a no-op.
+      await service.recycleBrowserIfNeeded();
+      expect(browser.close).not.toHaveBeenCalled();
     });
 
     it('should recycle a connected browser when requested', async () => {
       const browser = createBrowser();
-      testState(service).recycleRequested = true;
-      testState(service)._browserInstance = browser;
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
+      await service.getBrowserInstance([], true, undefined);
+      requestRecycle();
 
       await service.recycleBrowserIfNeeded();
 
-      expect(browser.close).toHaveBeenCalled();
+      expect(browser.close).toHaveBeenCalledTimes(1);
       expect(service.totalJobs).toBe(0);
-      expect(
-        (service as unknown as { recycleRequested: boolean }).recycleRequested,
-      ).toBe(false);
+
+      // recycleRequested should have been reset: a further call does not close again.
+      await service.recycleBrowserIfNeeded();
+      expect(browser.close).toHaveBeenCalledTimes(1);
     });
 
     it('should keep going when browser recycle fails', async () => {
       const browser = createBrowser({
         close: vi.fn().mockRejectedValue(new Error('boom')),
       });
-      testState(service).recycleRequested = true;
-      testState(service)._browserInstance = browser;
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
+      await service.getBrowserInstance([], true, undefined);
+      requestRecycle();
 
       await service.recycleBrowserIfNeeded();
 
       expect(Logger.warn).toHaveBeenCalled();
-      expect((service as unknown as { recycling: boolean }).recycling).toBe(
-        false,
-      );
+
+      // the `recycling` guard should have been reset: a second attempt is not blocked.
+      requestRecycle();
+      await service.recycleBrowserIfNeeded();
+      expect(browser.close).toHaveBeenCalledTimes(2);
     });
 
     it('should keep going when browser recycle fails with a non-Error value', async () => {
       const browser = createBrowser({
         close: vi.fn().mockRejectedValue('boom'),
       });
-      testState(service).recycleRequested = true;
-      testState(service)._browserInstance = browser;
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
+      await service.getBrowserInstance([], true, undefined);
+      requestRecycle();
 
       await service.recycleBrowserIfNeeded();
 
@@ -541,16 +590,12 @@ describe('BrowserService', () => {
           executablePath: '/already-installed',
         },
       ]);
-      const writeLockSpy = vi
-        .spyOn(testState(service), 'writeLockFile')
-        .mockImplementation(() => undefined);
-
       const result = await service.install(true);
 
       expect(resolveBuildId).toHaveBeenCalled();
-      expect(writeLockSpy).toHaveBeenCalledWith(
-        BrowserType.CHROMIUM,
-        'build-123',
+      expect(writeFileSync).toHaveBeenCalledWith(
+        expect.stringContaining('chromium.lock'),
+        expect.stringContaining('"buildId":"build-123"'),
       );
       expect(result).toBeUndefined();
     });
@@ -565,16 +610,12 @@ describe('BrowserService', () => {
             executablePath: '/installed/browser',
           },
         ]);
-      const writeLockSpy = vi
-        .spyOn(testState(service), 'writeLockFile')
-        .mockImplementation(() => undefined);
-
       const result = await service.install(true);
 
       expect(install).toHaveBeenCalled();
-      expect(writeLockSpy).toHaveBeenCalledWith(
-        BrowserType.CHROMIUM,
-        'build-123',
+      expect(writeFileSync).toHaveBeenCalledWith(
+        expect.stringContaining('chromium.lock'),
+        expect.stringContaining('"buildId":"build-123"'),
       );
       expect(result).toEqual(
         expect.objectContaining({
@@ -609,13 +650,9 @@ describe('BrowserService', () => {
             executablePath: '/installed/browser',
           },
         ]);
-      const writeLockSpy = vi
-        .spyOn(testState(service), 'writeLockFile')
-        .mockImplementation(() => undefined);
-
       const result = await service.install();
 
-      expect(writeLockSpy).not.toHaveBeenCalled();
+      expect(writeFileSync).not.toHaveBeenCalled();
       expect(result).toEqual(
         expect.objectContaining({ executablePath: '/installed/browser' }),
       );
@@ -655,8 +692,7 @@ describe('BrowserService', () => {
 
   describe('getExecutablePath', () => {
     it('should return a locked installed browser path when lock file exists', async () => {
-      testState(service).useLockedBrowser = true;
-      testState(service).browser = BrowserType.CHROMIUM;
+      const localService = createService({ useLockedBrowser: true });
       (existsSync as Mock).mockReturnValue(true);
       (readFileSync as Mock).mockReturnValue(
         Buffer.from(
@@ -675,7 +711,7 @@ describe('BrowserService', () => {
         },
       ]);
 
-      const result = await service.getExecutablePath();
+      const result = await localService.getExecutablePath();
 
       expect(resolveBuildId).not.toHaveBeenCalled();
       expect(result).toBe('/locked/browser');
@@ -723,7 +759,9 @@ describe('BrowserService', () => {
 
     it('should close browser on destroy and cleanup cache', async () => {
       const browser = createBrowser();
-      testState(service)._browserInstance = browser;
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
+      await service.getBrowserInstance([], true, undefined);
       (existsSync as Mock).mockReturnValue(true);
 
       await service.onModuleDestroy();
@@ -734,7 +772,6 @@ describe('BrowserService', () => {
     });
 
     it('should log a stringified message when cache cleanup fails with a non-Error', async () => {
-      testState(service)._browserInstance = null;
       (existsSync as Mock).mockReturnValue(true);
       (promises.rm as Mock).mockRejectedValue('denied');
       (promises.readdir as Mock).mockResolvedValue([]);
@@ -745,7 +782,6 @@ describe('BrowserService', () => {
     });
 
     it('should retry cache cleanup on transient rm failure', async () => {
-      testState(service)._browserInstance = null;
       (existsSync as Mock).mockReturnValueOnce(true).mockReturnValueOnce(false);
       (promises.rm as Mock)
         .mockRejectedValueOnce(
@@ -759,7 +795,6 @@ describe('BrowserService', () => {
     });
 
     it('should not throw and still attempt to read leftovers when cache cleanup fails permanently', async () => {
-      testState(service)._browserInstance = null;
       (existsSync as Mock).mockReturnValue(true);
       (promises.rm as Mock).mockRejectedValue(
         Object.assign(new Error('denied'), { code: 'EACCES' }),
@@ -776,7 +811,9 @@ describe('BrowserService', () => {
       const browser = createBrowser({
         close: vi.fn().mockRejectedValue(new Error('close boom')),
       });
-      testState(service)._browserInstance = browser;
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
+      await service.getBrowserInstance([], true, undefined);
       (existsSync as Mock).mockReturnValue(false);
 
       await service.onModuleDestroy();
@@ -790,7 +827,9 @@ describe('BrowserService', () => {
       const browser = createBrowser({
         close: vi.fn().mockRejectedValue('close boom'),
       });
-      testState(service)._browserInstance = browser;
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
+      await service.getBrowserInstance([], true, undefined);
       (existsSync as Mock).mockReturnValue(false);
 
       await service.onModuleDestroy();
@@ -822,7 +861,12 @@ describe('BrowserService', () => {
 
     it('should skip cache cleanup when cleanupBrowserCacheOnExit is false', async () => {
       const localService = createService({ cleanupBrowserCacheOnExit: false });
-      testState(localService)._browserInstance = createBrowser();
+      const browser = createBrowser();
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(localService, 'getExecutablePath').mockResolvedValue(
+        '/browser/bin',
+      );
+      await localService.getBrowserInstance([], true, undefined);
       (existsSync as Mock).mockReturnValue(true);
 
       await localService.onModuleDestroy();
@@ -832,7 +876,9 @@ describe('BrowserService', () => {
 
     it('should wait for in-flight jobs before closing the browser', async () => {
       const browser = createBrowser();
-      testState(service)._browserInstance = browser;
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
+      await service.getBrowserInstance([], true, undefined);
       service.markJobStarted();
 
       const destroy = service.onModuleDestroy();
@@ -847,7 +893,9 @@ describe('BrowserService', () => {
 
     it('should close the browser anyway once the drain timeout elapses', async () => {
       const browser = createBrowser();
-      testState(service)._browserInstance = browser;
+      (launch as Mock).mockResolvedValueOnce(browser);
+      vi.spyOn(service, 'getExecutablePath').mockResolvedValue('/browser/bin');
+      await service.getBrowserInstance([], true, undefined);
       service.shutdownDrainTimeoutMs = 60;
       service.markJobStarted();
 

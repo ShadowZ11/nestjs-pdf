@@ -54,15 +54,21 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
   ],
 })
 export class PuppeteerModule implements OnModuleInit {
+  readonly #browserService: BrowserService;
+  readonly #pdfParams: PuppeteerParameters;
+
   constructor(
-    private readonly browserService: BrowserService,
-    @Inject(PDF_PARAMETERS) private readonly pdfParams: PuppeteerParameters,
-  ) {}
+    browserService: BrowserService,
+    @Inject(PDF_PARAMETERS) pdfParams: PuppeteerParameters,
+  ) {
+    this.#browserService = browserService;
+    this.#pdfParams = pdfParams;
+  }
 
   async onModuleInit() {
-    if (!this.pdfParams.executablePath) {
-      await this.browserService.install(
-        this.pdfParams.useLockedBrowser ?? false,
+    if (!this.#pdfParams.executablePath) {
+      await this.#browserService.install(
+        this.#pdfParams.useLockedBrowser ?? false,
       );
     }
   }
