@@ -492,6 +492,40 @@ describe('BrowserService', () => {
   });
 
   describe('install', () => {
+    it('should wrap a rejection from browser resolution as BrowserInstallationException', async () => {
+      const networkError = new Error('network down');
+      (resolveBuildId as Mock).mockRejectedValue(networkError);
+
+      let caught: unknown;
+      try {
+        await service.install();
+      } catch (error) {
+        caught = error;
+      }
+
+      expect(caught).toBeInstanceOf(BrowserInstallationException);
+      expect(caught).toMatchObject({
+        code: NestjsPdfErrorCode.BROWSER_INSTALLATION_ERROR,
+        cause: networkError,
+      });
+    });
+
+    it('should not re-wrap a NestjsPdfException raised during resolution', async () => {
+      const originalError = new BrowserUnavailableException(
+        'already shut down',
+      );
+      (resolveBuildId as Mock).mockRejectedValue(originalError);
+
+      let caught: unknown;
+      try {
+        await service.install();
+      } catch (error) {
+        caught = error;
+      }
+
+      expect(caught).toBe(originalError);
+    });
+
     it('should return null when download is not allowed', async () => {
       (canDownload as Mock).mockResolvedValue(false);
       const result = await service.install();

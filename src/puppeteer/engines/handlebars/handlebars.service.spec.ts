@@ -132,6 +132,20 @@ describe('HandlebarsService', () => {
       expect(() =>
         service.render('{{> x}}', {}, { partialDirectory: 'does/not/exist' }),
       ).toThrow(/partial directory does not exist/);
+      // Must surface as a configuration error, not be re-wrapped into a
+      // TemplateRenderException by the surrounding render() try/catch.
+      expect(() =>
+        service.render('{{> x}}', {}, { partialDirectory: 'does/not/exist' }),
+      ).toThrow(TemplateConfigurationException);
+      try {
+        service.render('{{> x}}', {}, { partialDirectory: 'does/not/exist' });
+        expect.unreachable();
+      } catch (error) {
+        expect(error).not.toBeInstanceOf(TemplateRenderException);
+        expect(error).toMatchObject({
+          code: NestjsPdfErrorCode.TEMPLATE_CONFIGURATION_ERROR,
+        });
+      }
     });
 
     it('should skip entries in partialDirectory that are not files', () => {

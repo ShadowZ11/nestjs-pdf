@@ -16,6 +16,7 @@ import { Browser, BrowserContext, launch } from 'puppeteer';
 import {
   BrowserInstallationException,
   BrowserUnavailableException,
+  NestjsPdfException,
 } from '../../exceptions';
 import type { PuppeteerParameters } from '../puppeteer-parameters.interface';
 
@@ -256,6 +257,20 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   async install(lock: boolean = false) {
+    try {
+      return await this.doInstall(lock);
+    } catch (error) {
+      if (error instanceof NestjsPdfException) {
+        throw error;
+      }
+      throw new BrowserInstallationException(
+        `Could not install browser: ${String(error)}`,
+        { cause: error },
+      );
+    }
+  }
+
+  private async doInstall(lock: boolean) {
     const browser: BrowserType = this.browser;
     const versionTag: BrowserTag = this.browserTag;
 

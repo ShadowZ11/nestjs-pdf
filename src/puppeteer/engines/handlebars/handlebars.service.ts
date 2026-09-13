@@ -5,6 +5,7 @@ import { Injectable } from '@nestjs/common';
 import Handlebars from 'handlebars';
 
 import {
+  NestjsPdfException,
   TemplateConfigurationException,
   TemplateRenderException,
 } from '../../../exceptions';
@@ -48,6 +49,9 @@ export class HandlebarsService {
       );
       return compiled(parameters, options.templateOptions);
     } catch (error) {
+      if (error instanceof NestjsPdfException) {
+        throw error;
+      }
       throw new TemplateRenderException(
         'Handlebars',
         `Handlebars rendering failed: ${String(error)}`,
