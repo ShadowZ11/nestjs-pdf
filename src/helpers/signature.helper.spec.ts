@@ -2,6 +2,7 @@ import { PDFArray, PDFDocument, PDFName, PDFNumber } from 'pdf-lib';
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { type Mocked, vi } from 'vitest';
 
+import { NestjsPdfErrorCode, SignaturePlacementException } from '../exceptions';
 import {
   __setPdfjsForTests,
   addSignatureFieldUsingAnchor,
@@ -239,9 +240,17 @@ describe('signature.helper', () => {
 
     __setPdfjsForTests(pdfjsMock);
 
-    await expect(addSignatureFieldUsingAnchor(bytes)).rejects.toThrow(
-      'Page 1 not found',
-    );
+    let caught: unknown;
+    try {
+      await addSignatureFieldUsingAnchor(bytes);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(SignaturePlacementException);
+    expect(caught).toMatchObject({
+      message: 'Page 1 not found',
+      code: NestjsPdfErrorCode.SIGNATURE_PLACEMENT_ERROR,
+    });
   });
 
   it('throws when called outside of the test environment', () => {

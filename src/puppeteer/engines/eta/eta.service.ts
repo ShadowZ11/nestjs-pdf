@@ -4,6 +4,8 @@ import { resolve } from 'node:path';
 import { Injectable } from '@nestjs/common';
 import { Eta, EtaConfig } from 'eta';
 
+import { TemplateRenderException } from '../../../exceptions';
+
 export interface EtaOptions extends Partial<EtaConfig> {
   cache?: boolean;
   autoEscape?: boolean;
@@ -53,9 +55,11 @@ export class EtaService {
 
       return eta.renderString(template, data);
     } catch (error) {
-      throw new Error(`Eta rendering failed: ${String(error)}`, {
-        cause: error,
-      });
+      throw new TemplateRenderException(
+        'Eta',
+        `Eta rendering failed: ${String(error)}`,
+        { cause: error },
+      );
     }
   }
 
@@ -87,11 +91,10 @@ export class EtaService {
       }
       return this.render(template, data, options);
     } catch (error) {
-      throw new Error(
+      throw new TemplateRenderException(
+        'Eta',
         `Eta file rendering failed for ${filePath}: ${String(error)}`,
-        {
-          cause: error,
-        },
+        { cause: error },
       );
     }
   }

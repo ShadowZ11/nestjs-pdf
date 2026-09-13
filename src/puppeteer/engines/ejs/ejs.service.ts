@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import ejs, { type Data, type Options } from 'ejs';
 
+import { TemplateRenderException } from '../../../exceptions';
+
 export interface EjsOptions extends Omit<Options, 'async'> {
   async?: boolean;
 }
@@ -14,9 +16,11 @@ export class EjsService {
         ...options,
       });
     } catch (error) {
-      throw new Error(`EJS rendering failed: ${String(error)}`, {
-        cause: error,
-      });
+      throw new TemplateRenderException(
+        'EJS',
+        `EJS rendering failed: ${String(error)}`,
+        { cause: error },
+      );
     }
   }
 
@@ -27,9 +31,11 @@ export class EjsService {
         ...options,
       });
     } catch (error) {
-      throw new Error(`EJS file rendering failed: ${String(error)}`, {
-        cause: error,
-      });
+      throw new TemplateRenderException(
+        'EJS',
+        `EJS file rendering failed: ${String(error)}`,
+        { cause: error },
+      );
     }
   }
 }

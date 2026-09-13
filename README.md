@@ -208,6 +208,31 @@ these are the default extra arguments passed to Puppeteer:
 
 You can use `forRootAsync(...)` if you need to provide configuration asynchronously.
 
+## Error handling
+
+All errors thrown by the library (missing template engine, template rendering failures, browser installation issues, PDF generation failures, signature placement issues, ...) are typed exceptions extending the abstract `NestjsPdfException` class, exported from the package root alongside a stable `NestjsPdfErrorCode` enum:
+
+```typescript
+import {
+  NestjsPdfException,
+  NestjsPdfErrorCode,
+  TemplateRenderException,
+} from '@shad0wz7/nestjs-pdf';
+
+try {
+  await pdfService.generatePdfFromTemplateHbsString(template, data);
+} catch (error) {
+  if (error instanceof TemplateRenderException) {
+    logger.error(`${error.engine} rendering failed`, error.cause);
+  } else if (error instanceof NestjsPdfException) {
+    logger.error(error.code, error.message);
+  }
+  throw error;
+}
+```
+
+See [docs/ERROR_HANDLING.md](docs/ERROR_HANDLING.md) for the full list of exceptions, their `code`, and an example NestJS exception filter.
+
 ## Examples
 
 If you want to see a working example, check the `examples` folder and choose one of the subfolders with the engine you want to use.

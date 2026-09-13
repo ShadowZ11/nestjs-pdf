@@ -1,0 +1,19 @@
+export enum NestjsPdfErrorCode {
+  ENGINE_NOT_AVAILABLE = 'ENGINE_NOT_AVAILABLE',
+  TEMPLATE_CONFIGURATION_ERROR = 'TEMPLATE_CONFIGURATION_ERROR',
+  TEMPLATE_RENDER_ERROR = 'TEMPLATE_RENDER_ERROR',
+  BROWSER_INSTALLATION_ERROR = 'BROWSER_INSTALLATION_ERROR',
+  BROWSER_UNAVAILABLE = 'BROWSER_UNAVAILABLE',
+  PDF_GENERATION_ERROR = 'PDF_GENERATION_ERROR',
+  SIGNATURE_DEPENDENCY_ERROR = 'SIGNATURE_DEPENDENCY_ERROR',
+  SIGNATURE_PLACEMENT_ERROR = 'SIGNATURE_PLACEMENT_ERROR',
+}
+
+export abstract class NestjsPdfException extends Error {
+  abstract readonly code: NestjsPdfErrorCode;
+
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
+    this.name = this.constructor.name;
+  }
+}

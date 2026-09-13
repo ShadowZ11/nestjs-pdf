@@ -13,6 +13,11 @@ import {
 } from '@puppeteer/browsers';
 import { Browser, BrowserContext, launch } from 'puppeteer';
 
+import {
+  BrowserInstallationException,
+  BrowserUnavailableException,
+  NestjsPdfException,
+} from '../../exceptions';
 import type { PuppeteerParameters } from '../puppeteer-parameters.interface';
 
 export enum BrowserTag {
@@ -175,7 +180,9 @@ export class BrowserService implements OnModuleDestroy {
 
   markJobStarted() {
     if (this.shuttingDown) {
-      throw new Error('nestjs-pdf is shutting down, refusing new PDF jobs');
+      throw new BrowserUnavailableException(
+        'nestjs-pdf is shutting down, refusing new PDF jobs',
+      );
     }
 
     this.activeJobs += 1;
@@ -250,6 +257,20 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   async install(lock: boolean = false) {
+    try {
+      return await this.doInstall(lock);
+    } catch (error) {
+      if (error instanceof NestjsPdfException) {
+        throw error;
+      }
+      throw new BrowserInstallationException(
+        `Could not install browser: ${String(error)}`,
+        { cause: error },
+      );
+    }
+  }
+
+  private async doInstall(lock: boolean) {
     const browser: BrowserType = this.browser;
     const versionTag: BrowserTag = this.browserTag;
 
@@ -398,7 +419,7 @@ export class BrowserService implements OnModuleDestroy {
     if (installedBrowser === undefined) {
       const newinstalledBrowser = await this.install();
       if (newinstalledBrowser === null || newinstalledBrowser === undefined) {
-        throw new Error('Could not install browser');
+        throw new BrowserInstallationException('Could not install browser');
       } else {
         return newinstalledBrowser.executablePath;
       }

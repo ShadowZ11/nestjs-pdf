@@ -8,6 +8,11 @@ import {
 } from 'pdf-lib';
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
+import {
+  SignatureDependencyException,
+  SignaturePlacementException,
+} from '../exceptions';
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 let pdfjsPromise: typeof import('pdfjs-dist/legacy/build/pdf.mjs') | undefined;
 
@@ -19,7 +24,7 @@ async function loadPdfjs() {
       pdfjsPromise = undefined;
       /* v8 ignore next -- import() rejections are always Error instances in practice */
       const reason = error instanceof Error ? error.message : String(error);
-      throw new Error(
+      throw new SignatureDependencyException(
         [
           'Failed to load pdfjs-dist.',
           'If you use anchor-based signature placement in Node.js, make sure @napi-rs/canvas is installed.',
@@ -171,7 +176,9 @@ export async function addSignatureFieldUsingAnchor(
   if (anchor) {
     const pageIndex = anchor.pageIndex;
     const page = pdfDoc.getPages()[pageIndex];
-    if (!page) throw new Error(`Page ${pageIndex} not found`);
+    if (!page) {
+      throw new SignaturePlacementException(`Page ${pageIndex} not found`);
+    }
     const { width: pw, height: ph } = page.getSize();
 
     const padX = 40;
@@ -197,7 +204,9 @@ export async function addSignatureFieldUsingAnchor(
     const pageIndex = pages.length - 1;
     const page = pages.at(-1);
     /* v8 ignore next -- pdf-lib always produces at least one page on save/load; only a hand-crafted, malformed PDF could hit this */
-    if (!page) throw new Error(`Page ${pageIndex} not found`);
+    if (!page) {
+      throw new SignaturePlacementException(`Page ${pageIndex} not found`);
+    }
     const { width: pageWidth } = page.getSize();
     const x = (pageWidth - sigWidth) / 2;
     const y = 90;

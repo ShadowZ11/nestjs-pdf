@@ -2,6 +2,11 @@ import { Logger, type Provider } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { type Mock, type Mocked, vi } from 'vitest';
 
+import {
+  EngineNotAvailableException,
+  NestjsPdfErrorCode,
+  PdfGenerationException,
+} from '../exceptions';
 import { PDF_PARAMETERS } from '../helpers/tokens';
 import { BrowserService } from './browser/browser.service';
 import { EjsService } from './engines/ejs/ejs.service';
@@ -253,9 +258,50 @@ describe('PuppeteerService', () => {
       await expect(service.generatePdfFromHtml(html)).rejects.toThrow(
         'Page setup failed',
       );
+      await expect(service.generatePdfFromHtml(html)).rejects.toBeInstanceOf(
+        PdfGenerationException,
+      );
+      let caught: unknown;
+      try {
+        await service.generatePdfFromHtml(html);
+      } catch (error) {
+        caught = error;
+      }
+      const generationError = caught as PdfGenerationException;
+      expect(generationError.code).toBe(
+        NestjsPdfErrorCode.PDF_GENERATION_ERROR,
+      );
+      expect(generationError.cause).toBeInstanceOf(Error);
 
       expect(mockContext.close).toHaveBeenCalled();
       expect(browserService.markJobFinished).toHaveBeenCalled();
+    });
+
+    it('should not re-wrap an error that is already a NestjsPdfException', async () => {
+      const originalError = new EngineNotAvailableException('Handlebars');
+      const mockPage = {
+        setContent: vi.fn().mockRejectedValue(originalError),
+        emulateMediaType: vi.fn(),
+        waitForNetworkIdle: vi.fn(),
+        evaluate: vi.fn(),
+        pdf: vi.fn(),
+      };
+
+      const mockContext = {
+        newPage: vi.fn().mockResolvedValue(mockPage),
+        close: vi.fn().mockResolvedValue(undefined),
+      };
+
+      browserService.createContext.mockResolvedValue(mockContext as never);
+
+      let caught: unknown;
+      try {
+        await service.generatePdfFromHtml('<h1>Error</h1>');
+      } catch (error) {
+        caught = error;
+      }
+
+      expect(caught).toBe(originalError);
     });
 
     it('should default headless to true when it is undefined everywhere', async () => {
@@ -1245,6 +1291,12 @@ describe('PuppeteerService', () => {
       await expect(invoke(localService)).rejects.toThrow(
         'Handlebars service is not available. If the problem persists, open an issue in the repo.',
       );
+      await expect(invoke(localService)).rejects.toBeInstanceOf(
+        EngineNotAvailableException,
+      );
+      await expect(invoke(localService)).rejects.toMatchObject({
+        code: NestjsPdfErrorCode.ENGINE_NOT_AVAILABLE,
+      });
     });
   });
 });

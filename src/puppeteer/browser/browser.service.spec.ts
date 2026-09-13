@@ -43,6 +43,11 @@ import {
 } from '@puppeteer/browsers';
 import { type Browser as PuppeteerBrowser, launch } from 'puppeteer';
 
+import {
+  BrowserInstallationException,
+  BrowserUnavailableException,
+  NestjsPdfErrorCode,
+} from '../../exceptions';
 import type { PuppeteerParameters } from '../puppeteer-parameters.interface';
 import { BrowserService, BrowserTag } from './browser.service';
 
@@ -487,6 +492,40 @@ describe('BrowserService', () => {
   });
 
   describe('install', () => {
+    it('should wrap a rejection from browser resolution as BrowserInstallationException', async () => {
+      const networkError = new Error('network down');
+      (resolveBuildId as Mock).mockRejectedValue(networkError);
+
+      let caught: unknown;
+      try {
+        await service.install();
+      } catch (error) {
+        caught = error;
+      }
+
+      expect(caught).toBeInstanceOf(BrowserInstallationException);
+      expect(caught).toMatchObject({
+        code: NestjsPdfErrorCode.BROWSER_INSTALLATION_ERROR,
+        cause: networkError,
+      });
+    });
+
+    it('should not re-wrap a NestjsPdfException raised during resolution', async () => {
+      const originalError = new BrowserUnavailableException(
+        'already shut down',
+      );
+      (resolveBuildId as Mock).mockRejectedValue(originalError);
+
+      let caught: unknown;
+      try {
+        await service.install();
+      } catch (error) {
+        caught = error;
+      }
+
+      expect(caught).toBe(originalError);
+    });
+
     it('should return null when download is not allowed', async () => {
       (canDownload as Mock).mockResolvedValue(false);
       const result = await service.install();
@@ -668,6 +707,12 @@ describe('BrowserService', () => {
       await expect(service.getExecutablePath()).rejects.toThrow(
         'Could not install browser',
       );
+      await expect(service.getExecutablePath()).rejects.toBeInstanceOf(
+        BrowserInstallationException,
+      );
+      await expect(service.getExecutablePath()).rejects.toMatchObject({
+        code: NestjsPdfErrorCode.BROWSER_INSTALLATION_ERROR,
+      });
     });
   });
 
@@ -761,6 +806,18 @@ describe('BrowserService', () => {
       await service.onModuleDestroy();
 
       expect(() => service.markJobStarted()).toThrow(/shutting down/);
+      expect(() => service.markJobStarted()).toThrow(
+        BrowserUnavailableException,
+      );
+      try {
+        service.markJobStarted();
+        expect.unreachable();
+      } catch (error) {
+        expect(error).toBeInstanceOf(BrowserUnavailableException);
+        expect(error).toMatchObject({
+          code: NestjsPdfErrorCode.BROWSER_UNAVAILABLE,
+        });
+      }
     });
 
     it('should skip cache cleanup when cleanupBrowserCacheOnExit is false', async () => {

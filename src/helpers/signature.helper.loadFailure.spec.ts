@@ -1,6 +1,8 @@
 import { PDFDocument } from 'pdf-lib';
 import { vi } from 'vitest';
 
+import { NestjsPdfErrorCode } from '../exceptions';
+
 describe('signature.helper loadPdfjs failure', () => {
   beforeEach(() => {
     vi.resetModules();
@@ -21,5 +23,20 @@ describe('signature.helper loadPdfjs failure', () => {
     await expect(addSignatureFieldUsingAnchor(bytes)).rejects.toThrow(
       /Failed to load pdfjs-dist\./,
     );
+
+    let caught: unknown;
+    try {
+      await addSignatureFieldUsingAnchor(bytes);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(Error);
+    const depError = caught as Error & {
+      code: NestjsPdfErrorCode;
+      cause: unknown;
+    };
+    expect(depError.name).toBe('SignatureDependencyException');
+    expect(depError.code).toBe(NestjsPdfErrorCode.SIGNATURE_DEPENDENCY_ERROR);
+    expect(depError.cause).toBeInstanceOf(Error);
   });
 });

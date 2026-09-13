@@ -4,6 +4,7 @@ import pLimit from 'p-limit';
 import { LocalsObject } from 'pug';
 import { PDFOptions } from 'puppeteer';
 
+import { NestjsPdfException, PdfGenerationException } from '../exceptions';
 import { mergePuppeteerParameters } from '../helpers/deepMergePdfparams';
 import { PDF_PARAMETERS } from '../helpers/tokens';
 import { BrowserService } from './browser/browser.service';
@@ -119,7 +120,13 @@ export class PuppeteerService {
         return await page.pdf(pdfOptions);
       } catch (e) {
         Logger.error(e);
-        throw e;
+        if (e instanceof NestjsPdfException) {
+          throw e;
+        }
+        throw new PdfGenerationException(
+          `PDF generation failed: ${String(e)}`,
+          { cause: e },
+        );
       } finally {
         if (context) {
           try {

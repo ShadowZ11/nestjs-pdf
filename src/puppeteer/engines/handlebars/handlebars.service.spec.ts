@@ -7,6 +7,11 @@ import {
 } from 'node:fs';
 import { join } from 'node:path';
 
+import {
+  NestjsPdfErrorCode,
+  TemplateConfigurationException,
+  TemplateRenderException,
+} from '../../../exceptions';
 import { HandlebarsService } from './handlebars.service';
 
 // Temp dirs are created under the project cwd so that `templateDirectory` /
@@ -72,6 +77,19 @@ describe('HandlebarsService', () => {
       expect(() => service.render('{{#if open}}no end')).toThrow(
         /Handlebars rendering failed/,
       );
+      expect(() => service.render('{{#if open}}no end')).toThrow(
+        TemplateRenderException,
+      );
+      try {
+        service.render('{{#if open}}no end');
+        expect.unreachable();
+      } catch (error) {
+        expect(error).toBeInstanceOf(TemplateRenderException);
+        const renderError = error as TemplateRenderException;
+        expect(renderError.engine).toBe('Handlebars');
+        expect(renderError.code).toBe(NestjsPdfErrorCode.TEMPLATE_RENDER_ERROR);
+        expect(renderError.cause).toBeDefined();
+      }
     });
 
     it('should reuse the compiled environment when the same options object is passed', () => {
@@ -114,6 +132,20 @@ describe('HandlebarsService', () => {
       expect(() =>
         service.render('{{> x}}', {}, { partialDirectory: 'does/not/exist' }),
       ).toThrow(/partial directory does not exist/);
+      // Must surface as a configuration error, not be re-wrapped into a
+      // TemplateRenderException by the surrounding render() try/catch.
+      expect(() =>
+        service.render('{{> x}}', {}, { partialDirectory: 'does/not/exist' }),
+      ).toThrow(TemplateConfigurationException);
+      try {
+        service.render('{{> x}}', {}, { partialDirectory: 'does/not/exist' });
+        expect.unreachable();
+      } catch (error) {
+        expect(error).not.toBeInstanceOf(TemplateRenderException);
+        expect(error).toMatchObject({
+          code: NestjsPdfErrorCode.TEMPLATE_CONFIGURATION_ERROR,
+        });
+      }
     });
 
     it('should skip entries in partialDirectory that are not files', () => {
@@ -162,6 +194,17 @@ describe('HandlebarsService', () => {
       expect(() => service.renderFile('invoice.hbs')).toThrow(
         /`templateDirectory` is not set/,
       );
+      expect(() => service.renderFile('invoice.hbs')).toThrow(
+        TemplateConfigurationException,
+      );
+      try {
+        service.renderFile('invoice.hbs');
+        expect.unreachable();
+      } catch (error) {
+        expect(error).toMatchObject({
+          code: NestjsPdfErrorCode.TEMPLATE_CONFIGURATION_ERROR,
+        });
+      }
     });
 
     it('should throw a wrapped error when the file cannot be read', () => {
