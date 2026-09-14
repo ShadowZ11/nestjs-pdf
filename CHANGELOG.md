@@ -1,5 +1,23 @@
 # Changelog
 
+## [3.1.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v3.0.1...v3.1.0) (2026-09-13)
+
+
+### ✨ Features
+
+* add new system of catch exception with multiples signature ([0d4c265](https://github.com/ShadowZ11/nestjs-pdf/commit/0d4c265ac706d987e02e3c81890bdc002e6f9b70))
+
+
+### 🐛 Bug Fixes
+
+* preserve exception classification on already-typed errors ([a94cf0b](https://github.com/ShadowZ11/nestjs-pdf/commit/a94cf0b96e6ace4ea11883174e6b8732ab4a2dd4))
+* **vulnerabilities:** upgrade all transitive packages and fix all remains vulnerabilities ([44f230d](https://github.com/ShadowZ11/nestjs-pdf/commit/44f230d1093b486e9d6ff6d89c21c5c1997de42e))
+
+
+### 🔧 Refactoring
+
+* use ES private fields (#) instead of TypeScript-only private modifiers ([fc11532](https://github.com/ShadowZ11/nestjs-pdf/commit/fc115321e2f9a88aa6edbcf0bf486e9d82c8f4fa))
+
 ## [3.0.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v3.0.0...v3.0.1) (2026-09-12)
 
 
