@@ -13,6 +13,11 @@ import { type PugOptions } from './engines/pug/pug.service';
 
 export interface PuppeteerParameters {
   pdfOptions?: PDFOptions;
+  /**
+   * Cancels the generation when aborted, including while it waits for a free slot.
+   * The promise rejects with `signal.reason`; use `AbortSignal.timeout(ms)` for a timeout.
+   */
+  signal?: AbortSignal;
   /** Watermark stamped on the generated PDF. */
   watermark?: WatermarkOptions;
   hbsOptions?: HandlebarsOptions;
