@@ -2,6 +2,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { type Mocked, type MockInstance, vi } from 'vitest';
 
 import * as signatureHelperModule from './helpers/signature.helper';
+import * as watermarkHelperModule from './helpers/watermark.helper';
 import { NestjsPdfService } from './nestjs-pdf.service';
 import { PuppeteerService } from './puppeteer/puppeteer.service';
 
@@ -870,6 +871,22 @@ describe('NestjsPdfService', () => {
       await expect(
         service.addSignatureFieldSignatureDebtorRaw(pdf),
       ).rejects.toThrow(error);
+    });
+  });
+
+  describe('addWatermark', () => {
+    it('should delegate to the watermark helper', async () => {
+      const pdf = new Uint8Array([1, 2, 3]);
+      const stamped = new Uint8Array([4, 5, 6]);
+      const helper = vi
+        .spyOn(watermarkHelperModule, 'addWatermark')
+        .mockResolvedValue(stamped);
+
+      await expect(service.addWatermark(pdf, { text: 'DRAFT' })).resolves.toBe(
+        stamped,
+      );
+
+      expect(helper).toHaveBeenCalledWith(pdf, { text: 'DRAFT' });
     });
   });
 });

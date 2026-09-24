@@ -7,3 +7,4 @@ export * from './signature-dependency.exception';
 export * from './signature-placement.exception';
 export * from './template-configuration.exception';
 export * from './template-render.exception';
+export * from './watermark.exception';

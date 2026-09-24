@@ -2,6 +2,7 @@ import { type Browser } from '@puppeteer/browsers';
 import { type MJMLParsingOptions } from 'mjml-core';
 import { type PDFOptions } from 'puppeteer';
 
+import { type WatermarkOptions } from '../helpers/watermark.helper';
 import { type BrowserTag } from './browser/browser.service';
 import { type EjsOptions } from './engines/ejs/ejs.service';
 import { type EtaOptions } from './engines/eta/eta.service';
@@ -12,6 +13,8 @@ import { type PugOptions } from './engines/pug/pug.service';
 
 export interface PuppeteerParameters {
   pdfOptions?: PDFOptions;
+  /** Watermark stamped on the generated PDF. */
+  watermark?: WatermarkOptions;
   hbsOptions?: HandlebarsOptions;
   mjmlOptions?: MJMLParsingOptions;
   pugOptions?: PugOptions;
