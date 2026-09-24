@@ -6,6 +6,7 @@ import { PDFOptions } from 'puppeteer';
 
 import { NestjsPdfException, PdfGenerationException } from '../exceptions';
 import { mergePuppeteerParameters } from '../helpers/deepMergePdfparams';
+import { installRequestGuard } from '../helpers/request-guard.helper';
 import { PDF_PARAMETERS } from '../helpers/tokens';
 import { addWatermark } from '../helpers/watermark.helper';
 import { BrowserService } from './browser/browser.service';
@@ -100,7 +101,6 @@ export class PuppeteerService {
         '--disable-ipc-flooding-protection',
         '--disable-notifications',
         '--disable-offer-store-unmasked-wallet-cards',
-        '--disable-popup-blocking',
         '--disable-print-preview',
         '--disable-prompt-on-repost',
         '--disable-renderer-backgrounding',
@@ -142,6 +142,13 @@ export class PuppeteerService {
         );
         signal?.throwIfAborted();
         const page = await context.newPage();
+        if (mergePuppeteerOptions.security) {
+          await installRequestGuard(
+            context,
+            page,
+            mergePuppeteerOptions.security,
+          );
+        }
 
         const pdfOptions: PDFOptions = mergePuppeteerOptions.pdfOptions ?? {
           format: 'A4',

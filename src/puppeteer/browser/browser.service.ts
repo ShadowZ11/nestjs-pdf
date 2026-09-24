@@ -439,6 +439,9 @@ export class BrowserService implements OnModuleDestroy {
       executablePath,
       headless,
       args,
+      // Puppeteer disables Chrome's popup blocker by default, which lets a
+      // script open a window that escapes the request filter.
+      ignoreDefaultArgs: ['--disable-popup-blocking'],
     });
 
     browser.on('disconnected', () => {

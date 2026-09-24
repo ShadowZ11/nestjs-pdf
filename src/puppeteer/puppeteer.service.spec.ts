@@ -10,6 +10,7 @@ import {
   PdfGenerationException,
   WatermarkException,
 } from '../exceptions';
+import * as requestGuardModule from '../helpers/request-guard.helper';
 import { PDF_PARAMETERS } from '../helpers/tokens';
 import { BrowserService } from './browser/browser.service';
 import { EjsService } from './engines/ejs/ejs.service';
@@ -529,6 +530,68 @@ describe('PuppeteerService', () => {
 
         await expect(promise).rejects.toThrow('stop');
         expect(Logger.error).toHaveBeenCalledWith(closeError);
+      });
+    });
+
+    describe('security', () => {
+      const setup = () => {
+        const page = {
+          setContent: vi.fn().mockResolvedValue(undefined),
+          emulateMediaType: vi.fn().mockResolvedValue(undefined),
+          waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+          evaluate: vi.fn().mockResolvedValue(undefined),
+          pdf: vi.fn().mockResolvedValue(new Uint8Array([1])),
+        };
+        const context = {
+          newPage: vi.fn().mockResolvedValue(page),
+          close: vi.fn().mockResolvedValue(undefined),
+        };
+        browserService.createContext.mockResolvedValue(context as never);
+        return { page, context };
+      };
+
+      it('should not filter requests unless security is configured', async () => {
+        const guard = vi
+          .spyOn(requestGuardModule, 'installRequestGuard')
+          .mockResolvedValue(undefined);
+        setup();
+
+        await service.generatePdfFromHtml('<p>x</p>');
+
+        expect(guard).not.toHaveBeenCalled();
+      });
+
+      it('should install the request guard before loading the content', async () => {
+        const guard = vi
+          .spyOn(requestGuardModule, 'installRequestGuard')
+          .mockResolvedValue(undefined);
+        const { page, context } = setup();
+
+        await service.generatePdfFromHtml('<p>x</p>', {
+          security: { allowedHosts: ['example.com'] },
+        });
+
+        expect(guard).toHaveBeenCalledWith(context, page, {
+          allowedHosts: ['example.com'],
+        });
+        expect(guard.mock.invocationCallOrder[0]).toBeLessThan(
+          page.setContent.mock.invocationCallOrder[0],
+        );
+      });
+
+      it('should accept an empty security object as "defaults on"', async () => {
+        const guard = vi
+          .spyOn(requestGuardModule, 'installRequestGuard')
+          .mockResolvedValue(undefined);
+        setup();
+
+        await service.generatePdfFromHtml('<p>x</p>', { security: {} });
+
+        expect(guard).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          {},
+        );
       });
     });
 
