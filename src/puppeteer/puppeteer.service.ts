@@ -126,7 +126,6 @@ export class PuppeteerService {
       let context: Awaited<ReturnType<BrowserService['createContext']>> | null =
         null;
 
-      // Closing the context makes any pending Puppeteer call fail right away.
       let closing: Promise<void> | undefined;
       const onAbort = () => {
         if (!context) return;
@@ -162,7 +161,6 @@ export class PuppeteerService {
           : pdf;
       } catch (e) {
         if (signal?.aborted) {
-          // Whatever Puppeteer threw after the context was closed, report the abort reason.
           throw signal.reason;
         }
         Logger.error(e);
@@ -177,7 +175,8 @@ export class PuppeteerService {
         signal?.removeEventListener('abort', onAbort);
         if (context) {
           try {
-            await (closing ?? context.close());
+            if (closing) await closing;
+            else await context.close();
           } catch (error) {
             Logger.error(error);
           }
@@ -190,8 +189,6 @@ export class PuppeteerService {
       return job;
     }
 
-    // Reject right away when aborted while waiting for a slot; once started,
-    // the job rejects by itself after cleaning up its browser context.
     let onQueuedAbort!: () => void;
     const abortedWhileQueued = new Promise<never>((_, reject) => {
       onQueuedAbort = () => {
