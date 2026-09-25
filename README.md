@@ -27,6 +27,7 @@ Main features:
 - Generate PDFs from HTML, Handlebars, EJS, Pug, MJML, Nunjucks, Eta or Mustache templates
 - Concurrency limiting for Puppeteer jobs (p-limit)
 - Add signature fields based on a text anchor in an existing PDF
+- Text or image watermarks (centered or tiled) on generated or existing PDFs
 - Simple API (module and service) to integrate easily into a Nest application
 
 ## Requirements
@@ -139,6 +140,43 @@ If the anchor is not found, the signature field will be added at a default posit
 
 **Warning:** if you encounter issues like "Failed to load pdfjs-dist." Make sure to install `@napi-rs/canvas` as a dependency in your project, as it's required by the library for PDF manipulation.
 
+### Watermark
+
+Stamp a text or image watermark while generating a PDF, with the `watermark` option (per call or in `forRoot`):
+
+```ts
+const pdf = await pdfService.generatePdfFromHtml(html, {
+  watermark: { text: 'CONFIDENTIAL', color: '#ff0000', opacity: 0.2 },
+});
+```
+
+or on an existing PDF:
+
+```ts
+const stamped = await pdfService.addWatermark(pdf, {
+  image: logoPngBytes, // PNG or JPEG
+  imageWidth: 200,
+  position: 'tile',
+  pages: [1, 2],
+});
+```
+
+| Option        | Default         | Description                                                  |
+| ------------- | --------------- | ------------------------------------------------------------ |
+| `text`        |                 | Text to stamp (`text` or `image` is required)                |
+| `image`       |                 | PNG or JPEG bytes                                            |
+| `opacity`     | `0.15`          | 0 to 1                                                       |
+| `rotation`    | `45`            | Degrees, counter-clockwise                                   |
+| `fontSize`    | `60`            | Text only                                                    |
+| `font`        | `HelveticaBold` | A PDF standard font (`StandardFonts` key, WinAnsi text only) |
+| `color`       | `#808080`       | `#rgb` or `#rrggbb`, text only                               |
+| `imageWidth`  | 50% of page     | In points, aspect ratio preserved                            |
+| `position`    | `center`        | `center` or `tile`                                           |
+| `tileSpacing` | `100`           | Gap in points between tiles                                  |
+| `pages`       | all             | 1-based page numbers                                         |
+
+Invalid options or unreadable PDFs throw a `WatermarkException` (`WATERMARK_ERROR`).
+
 ## Options and configuration
 
 The library exposes Puppeteer options via the `PuppeteerParameters` interface (see `src/puppeteer/puppeteer-parameters.interface.ts`). You can configure:
@@ -146,6 +184,7 @@ The library exposes Puppeteer options via the `PuppeteerParameters` interface (s
 |                             | Description                                                                                                                                                                                                                                                                                                                                                                                                          |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pdfOptions`                | The pdf options can be found on: https://pptr.dev/api/puppeteer.pdfoptions. Native Puppeteer options for `page.pdf`                                                                                                                                                                                                                                                                                                  |
+| `watermark`                 | Stamps a text or image watermark on the generated PDF: `text` or `image`, `opacity`, `rotation`, `fontSize`, `font`, `color`, `imageWidth`, `position`, `tileSpacing`, `pages`. See [Watermark](#watermark)                                                                                                                                                                                                          |
 | `hbsOptions`                | Handlebars configuration: `templateDirectory` (base dir for `renderFile`), `partialDirectory` (files registered as partials), `compileOptions`, `templateOptions`, and `helpers` (`{ name, fn }[]`). Like the other engines it can be set globally here or overridden per call (`generatePdfFromTemplateHbs*(..., { hbsOptions })`). Helpers/partials run on an isolated Handlebars environment (no global leakage). |
 | `ejsOptions`                | The ejs options can be found on [EJS documentation](https://ejs.co/#options)                                                                                                                                                                                                                                                                                                                                         |
 | `pugOptions`                | The pug options can be found on [Pug documentation](https://pugjs.org/api/reference.html#options)                                                                                                                                                                                                                                                                                                                    |

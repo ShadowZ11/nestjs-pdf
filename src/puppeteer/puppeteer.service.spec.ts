@@ -1,11 +1,13 @@
 import { Logger, type Provider } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
+import { PDFDocument, PDFPage } from 'pdf-lib';
 import { type Mock, type Mocked, vi } from 'vitest';
 
 import {
   EngineNotAvailableException,
   NestjsPdfErrorCode,
   PdfGenerationException,
+  WatermarkException,
 } from '../exceptions';
 import { PDF_PARAMETERS } from '../helpers/tokens';
 import { BrowserService } from './browser/browser.service';
@@ -207,6 +209,87 @@ describe('PuppeteerService', () => {
       const result = await service.generatePdfFromHtml(html);
 
       expect(result).toEqual(pdfBuffer);
+    });
+
+    describe('watermark', () => {
+      const mockPageReturning = (pdf: Uint8Array) => {
+        const mockContext = {
+          newPage: vi.fn().mockResolvedValue({
+            setContent: vi.fn().mockResolvedValue(undefined),
+            emulateMediaType: vi.fn().mockResolvedValue(undefined),
+            waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+            evaluate: vi.fn().mockResolvedValue(undefined),
+            pdf: vi.fn().mockResolvedValue(pdf),
+          }),
+          close: vi.fn().mockResolvedValue(undefined),
+        };
+        browserService.createContext.mockResolvedValue(mockContext as never);
+      };
+
+      const makePdf = async () => {
+        const pdfDoc = await PDFDocument.create();
+        pdfDoc.addPage([600, 800]);
+        return pdfDoc.save();
+      };
+
+      it('should stamp the generated PDF when a watermark is given', async () => {
+        const original = await makePdf();
+        mockPageReturning(original);
+        const drawText = vi.spyOn(PDFPage.prototype, 'drawText');
+
+        const result = await service.generatePdfFromHtml('<h1>Hi</h1>', {
+          watermark: { text: 'DRAFT' },
+        });
+
+        expect(drawText).toHaveBeenCalledWith('DRAFT', expect.anything());
+        expect(result.length).toBeGreaterThan(original.length);
+        drawText.mockRestore();
+      });
+
+      it('should use the watermark from the module parameters', async () => {
+        const original = await makePdf();
+        mockPageReturning(original);
+        const module = await Test.createTestingModule({
+          providers: [
+            PuppeteerService,
+            { provide: BrowserService, useValue: mockBrowserService },
+            {
+              provide: PDF_PARAMETERS,
+              useValue: { headless: true, watermark: { text: 'GLOBAL' } },
+            },
+          ],
+        }).compile();
+        const drawText = vi.spyOn(PDFPage.prototype, 'drawText');
+
+        await module
+          .get(PuppeteerService)
+          .generatePdfFromHtml('<h1>Hi</h1>', { watermark: { opacity: 0.5 } });
+
+        expect(drawText).toHaveBeenCalledWith(
+          'GLOBAL',
+          expect.objectContaining({ opacity: 0.5 }),
+        );
+        drawText.mockRestore();
+      });
+
+      it('should not touch the PDF without a watermark', async () => {
+        const original = await makePdf();
+        mockPageReturning(original);
+
+        await expect(service.generatePdfFromHtml('<h1>Hi</h1>')).resolves.toBe(
+          original,
+        );
+      });
+
+      it('should throw a WatermarkException on invalid watermark options', async () => {
+        mockPageReturning(await makePdf());
+
+        await expect(
+          service.generatePdfFromHtml('<h1>Hi</h1>', {
+            watermark: { opacity: 0.5 },
+          }),
+        ).rejects.toBeInstanceOf(WatermarkException);
+      });
     });
 
     it('should handle custom options', async () => {

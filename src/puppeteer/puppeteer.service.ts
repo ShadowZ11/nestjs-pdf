@@ -7,6 +7,7 @@ import { PDFOptions } from 'puppeteer';
 import { NestjsPdfException, PdfGenerationException } from '../exceptions';
 import { mergePuppeteerParameters } from '../helpers/deepMergePdfparams';
 import { PDF_PARAMETERS } from '../helpers/tokens';
+import { addWatermark } from '../helpers/watermark.helper';
 import { BrowserService } from './browser/browser.service';
 import { EjsService } from './engines/ejs/ejs.service';
 import { EtaService } from './engines/eta/eta.service';
@@ -137,7 +138,10 @@ export class PuppeteerService {
         /* v8 ignore next */
         await page.evaluate(() => document.fonts.ready);
 
-        return await page.pdf(pdfOptions);
+        const pdf = await page.pdf(pdfOptions);
+        return mergePuppeteerOptions.watermark
+          ? await addWatermark(pdf, mergePuppeteerOptions.watermark)
+          : pdf;
       } catch (e) {
         Logger.error(e);
         if (e instanceof NestjsPdfException) {

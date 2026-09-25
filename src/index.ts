@@ -1,5 +1,6 @@
 export * from './exceptions';
 export * from './helpers/getRelativePath.helper';
+export type { WatermarkOptions } from './helpers/watermark.helper';
 export * from './nestjs-pdf.module';
 export * from './nestjs-pdf.service';
 export * from './puppeteer/engines/ejs/ejs.service';

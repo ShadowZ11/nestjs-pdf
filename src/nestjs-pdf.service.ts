@@ -3,6 +3,10 @@ import { Data } from 'ejs';
 import { LocalsObject } from 'pug';
 
 import { addSignatureFieldUsingAnchor } from './helpers/signature.helper';
+import {
+  addWatermark,
+  type WatermarkOptions,
+} from './helpers/watermark.helper';
 import { PuppeteerService } from './puppeteer/puppeteer.service';
 import { PuppeteerParameters } from './puppeteer/puppeteer-parameters.interface';
 
@@ -288,5 +292,26 @@ export class NestjsPdfService {
     anchorText: string = '__SIG_DEBTOR_ANCHOR__',
   ) {
     return await addSignatureFieldUsingAnchor(pdf, fieldName, anchorText);
+  }
+
+  /**
+   * @param pdf The PDF bytes to modify
+   * @param options Watermark options (`text` or `image` is required)
+   * @returns Modified PDF with the watermark stamped on the selected pages
+   * @description Stamps a text or image watermark on an existing PDF. By default the mark is centered, rotated by 45° at 15% opacity on every page. Use `position: 'tile'` to repeat it across the page and `pages` to target specific pages (1-based). To watermark a PDF while generating it, pass the same options as `watermark` in the `PuppeteerParameters`.
+   *
+   * ```typescript
+   * const watermarked = await pdfService.addWatermark(pdf, {
+   *   text: 'CONFIDENTIAL',
+   *   color: '#ff0000',
+   *   opacity: 0.2,
+   * });
+   * ```
+   *
+   * Text uses the PDF standard fonts, which only support WinAnsi characters; use an `image` for anything else.
+   * @throws WatermarkException when the options are invalid or the PDF cannot be processed
+   */
+  async addWatermark(pdf: Uint8Array | Buffer, options: WatermarkOptions) {
+    return await addWatermark(pdf, options);
   }
 }
