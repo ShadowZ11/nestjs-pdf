@@ -260,10 +260,7 @@ describe('request-guard.helper', () => {
       });
 
       it('refuses urls that are not valid file paths', async () => {
-        const url =
-          process.platform === 'win32'
-            ? 'file:///assets/logo.png' // no drive letter
-            : 'file:///assets/%00.png'; // NUL byte
+        const url = 'file:///assets/%2Flogo.png';
 
         await expect(
           isRequestAllowed(url, { allowedFileRoots: [dir] }),
