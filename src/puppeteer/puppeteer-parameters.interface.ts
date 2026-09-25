@@ -2,8 +2,8 @@ import { type Browser } from '@puppeteer/browsers';
 import { type MJMLParsingOptions } from 'mjml-core';
 import { type PDFOptions } from 'puppeteer';
 
-import { type WatermarkOptions } from '../helpers/watermark.helper';
 import { type PdfSecurityOptions } from '../helpers/request-guard.helper';
+import { type WatermarkOptions } from '../helpers/watermark.helper';
 import { type BrowserTag } from './browser/browser.service';
 import { type EjsOptions } from './engines/ejs/ejs.service';
 import { type EtaOptions } from './engines/eta/eta.service';
