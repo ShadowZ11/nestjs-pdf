@@ -177,6 +177,21 @@ const stamped = await pdfService.addWatermark(pdf, {
 
 Invalid options or unreadable PDFs throw a `WatermarkException` (`WATERMARK_ERROR`).
 
+### Cancellation and timeout
+
+Pass an `AbortSignal` in the options to cancel a generation, for example when the HTTP client disconnects, or use `AbortSignal.timeout()` for a timeout:
+
+```ts
+const controller = new AbortController();
+req.on('close', () => controller.abort());
+
+const pdf = await pdfService.generatePdfFromHtml(html, {
+  signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20_000)]),
+});
+```
+
+The promise rejects with the signal's `reason` (an `AbortError` by default, a `TimeoutError` for `AbortSignal.timeout()`). A job aborted while it waits for a free slot is dropped without starting a browser context; a running job closes its context.
+
 ## Options and configuration
 
 The library exposes Puppeteer options via the `PuppeteerParameters` interface (see `src/puppeteer/puppeteer-parameters.interface.ts`). You can configure:
@@ -185,6 +200,7 @@ The library exposes Puppeteer options via the `PuppeteerParameters` interface (s
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pdfOptions`                | The pdf options can be found on: https://pptr.dev/api/puppeteer.pdfoptions. Native Puppeteer options for `page.pdf`                                                                                                                                                                                                                                                                                                  |
 | `watermark`                 | Stamps a text or image watermark on the generated PDF: `text` or `image`, `opacity`, `rotation`, `fontSize`, `font`, `color`, `imageWidth`, `position`, `tileSpacing`, `pages`. See [Watermark](#watermark)                                                                                                                                                                                                          |
+| `signal`                    | An `AbortSignal` that cancels the generation, including while it waits for a free slot. The promise rejects with `signal.reason`; use `AbortSignal.timeout(ms)` for a timeout. See [Cancellation and timeout](#cancellation-and-timeout)                                                                                                                                                                             |
 | `hbsOptions`                | Handlebars configuration: `templateDirectory` (base dir for `renderFile`), `partialDirectory` (files registered as partials), `compileOptions`, `templateOptions`, and `helpers` (`{ name, fn }[]`). Like the other engines it can be set globally here or overridden per call (`generatePdfFromTemplateHbs*(..., { hbsOptions })`). Helpers/partials run on an isolated Handlebars environment (no global leakage). |
 | `ejsOptions`                | The ejs options can be found on [EJS documentation](https://ejs.co/#options)                                                                                                                                                                                                                                                                                                                                         |
 | `pugOptions`                | The pug options can be found on [Pug documentation](https://pugjs.org/api/reference.html#options)                                                                                                                                                                                                                                                                                                                    |

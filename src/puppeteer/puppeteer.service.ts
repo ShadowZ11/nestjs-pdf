@@ -59,7 +59,14 @@ export class PuppeteerService {
     html: string,
     options?: PuppeteerParameters,
   ): Promise<Uint8Array> {
-    return this.#limit(async () => {
+    const signal = options?.signal ?? this.#options.signal;
+    signal?.throwIfAborted();
+
+    let started = false;
+    const job = this.#limit(async () => {
+      signal?.throwIfAborted();
+      started = true;
+
       const mergePuppeteerOptions = mergePuppeteerParameters(
         this.#options,
         options,
@@ -119,12 +126,21 @@ export class PuppeteerService {
       let context: Awaited<ReturnType<BrowserService['createContext']>> | null =
         null;
 
+      let closing: Promise<void> | undefined;
+      const onAbort = () => {
+        if (!context) return;
+        closing = context.close();
+        closing.catch(() => undefined);
+      };
+      signal?.addEventListener('abort', onAbort, { once: true });
+
       try {
         context = await this.#browserService.createContext(
           args,
           headless,
           executablePath,
         );
+        signal?.throwIfAborted();
         const page = await context.newPage();
 
         const pdfOptions: PDFOptions = mergePuppeteerOptions.pdfOptions ?? {
@@ -139,10 +155,14 @@ export class PuppeteerService {
         await page.evaluate(() => document.fonts.ready);
 
         const pdf = await page.pdf(pdfOptions);
+        signal?.throwIfAborted();
         return mergePuppeteerOptions.watermark
           ? await addWatermark(pdf, mergePuppeteerOptions.watermark)
           : pdf;
       } catch (e) {
+        if (signal?.aborted) {
+          throw signal.reason;
+        }
         Logger.error(e);
         if (e instanceof NestjsPdfException) {
           throw e;
@@ -152,9 +172,11 @@ export class PuppeteerService {
           { cause: e },
         );
       } finally {
+        signal?.removeEventListener('abort', onAbort);
         if (context) {
           try {
-            await context.close();
+            if (closing) await closing;
+            else await context.close();
           } catch (error) {
             Logger.error(error);
           }
@@ -162,6 +184,25 @@ export class PuppeteerService {
         await this.#browserService.markJobFinished();
       }
     });
+
+    if (!signal) {
+      return job;
+    }
+
+    let onQueuedAbort!: () => void;
+    const abortedWhileQueued = new Promise<never>((_, reject) => {
+      onQueuedAbort = () => {
+        // An abort reason can be any value; callers expect the exact one they passed.
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        if (!started) reject(signal.reason);
+      };
+      signal.addEventListener('abort', onQueuedAbort, { once: true });
+    });
+    try {
+      return await Promise.race([job, abortedWhileQueued]);
+    } finally {
+      signal.removeEventListener('abort', onQueuedAbort);
+    }
   }
 
   async generatePdfFromTemplateHbsString(

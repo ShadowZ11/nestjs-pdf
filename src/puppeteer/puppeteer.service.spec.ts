@@ -1,5 +1,6 @@
 import { Logger, type Provider } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
+import pLimit from 'p-limit';
 import { PDFDocument, PDFPage } from 'pdf-lib';
 import { type Mock, type Mocked, vi } from 'vitest';
 
@@ -289,6 +290,245 @@ describe('PuppeteerService', () => {
             watermark: { opacity: 0.5 },
           }),
         ).rejects.toBeInstanceOf(WatermarkException);
+      });
+    });
+
+    describe('abort signal', () => {
+      const pending = <T = void>() => {
+        let resolve!: (value: T) => void;
+        let reject!: (reason: unknown) => void;
+        const promise = new Promise<T>((res, rej) => {
+          resolve = res;
+          reject = rej;
+        });
+        return { promise, resolve, reject };
+      };
+
+      const makeContext = (page: Record<string, unknown> = {}) => ({
+        newPage: vi.fn().mockResolvedValue({
+          setContent: vi.fn().mockResolvedValue(undefined),
+          emulateMediaType: vi.fn().mockResolvedValue(undefined),
+          waitForNetworkIdle: vi.fn().mockResolvedValue(undefined),
+          evaluate: vi.fn().mockResolvedValue(undefined),
+          pdf: vi.fn().mockResolvedValue(new Uint8Array([1])),
+          ...page,
+        }),
+        close: vi.fn().mockResolvedValue(undefined),
+      });
+
+      it('should generate normally with a signal that is never aborted', async () => {
+        const context = makeContext();
+        browserService.createContext.mockResolvedValue(context as never);
+        const controller = new AbortController();
+        const removeListener = vi.spyOn(
+          controller.signal,
+          'removeEventListener',
+        );
+
+        await expect(
+          service.generatePdfFromHtml('<p>ok</p>', {
+            signal: controller.signal,
+          }),
+        ).resolves.toEqual(new Uint8Array([1]));
+
+        expect(context.close).toHaveBeenCalledTimes(1);
+        // both the running and the queued listeners are cleaned up
+        expect(removeListener).toHaveBeenCalledTimes(2);
+      });
+
+      it('should reject without starting a job when already aborted', async () => {
+        const reason = new Error('nope');
+        const controller = new AbortController();
+        controller.abort(reason);
+
+        await expect(
+          service.generatePdfFromHtml('<p>x</p>', {
+            signal: controller.signal,
+          }),
+        ).rejects.toBe(reason);
+
+        expect(browserService.markJobStarted as Mock).not.toHaveBeenCalled();
+        expect(browserService.createContext as Mock).not.toHaveBeenCalled();
+      });
+
+      it('should use the default AbortError reason', async () => {
+        const controller = new AbortController();
+        controller.abort();
+
+        await expect(
+          service.generatePdfFromHtml('<p>x</p>', {
+            signal: controller.signal,
+          }),
+        ).rejects.toMatchObject({ name: 'AbortError' });
+      });
+
+      it('should use the signal from the module parameters', async () => {
+        const controller = new AbortController();
+        controller.abort(new Error('global'));
+        const module = await Test.createTestingModule({
+          providers: [
+            PuppeteerService,
+            { provide: BrowserService, useValue: mockBrowserService },
+            {
+              provide: PDF_PARAMETERS,
+              useValue: { headless: true, signal: controller.signal },
+            },
+          ],
+        }).compile();
+
+        await expect(
+          module.get(PuppeteerService).generatePdfFromHtml('<p>x</p>'),
+        ).rejects.toThrow('global');
+      });
+
+      it('should reject right away when aborted while waiting for a slot', async () => {
+        const release = pending();
+        const busy = makeContext({
+          pdf: vi.fn().mockReturnValue(release.promise),
+        });
+        browserService.createContext.mockResolvedValue(busy as never);
+
+        // test/setup.ts turns p-limit into a pass-through; this test needs the real queue
+        const { default: actualPLimit } = await vi.importActual<{
+          default: typeof pLimit;
+        }>('p-limit');
+        vi.mocked(pLimit).mockReturnValueOnce(actualPLimit(3));
+        const module = await Test.createTestingModule({
+          providers: [
+            PuppeteerService,
+            { provide: BrowserService, useValue: mockBrowserService },
+            { provide: PDF_PARAMETERS, useValue: mockPdfParameters },
+          ],
+        }).compile();
+        const limited = module.get(PuppeteerService);
+
+        // three jobs fill every slot
+        const running = [1, 2, 3].map(() =>
+          limited.generatePdfFromHtml('<p/>'),
+        );
+        await vi.waitFor(() =>
+          expect(browserService.createContext as Mock).toHaveBeenCalledTimes(3),
+        );
+
+        const reason = new Error('client left');
+        const controller = new AbortController();
+        const queued = limited.generatePdfFromHtml('<p>queued</p>', {
+          signal: controller.signal,
+        });
+        controller.abort(reason);
+
+        await expect(queued).rejects.toBe(reason);
+
+        release.resolve(undefined);
+        await Promise.all(running);
+
+        // the aborted job never took a browser context nor counted as a job
+        expect(browserService.createContext as Mock).toHaveBeenCalledTimes(3);
+        expect(browserService.markJobStarted as Mock).toHaveBeenCalledTimes(3);
+      });
+
+      it('should close the context and reject with the reason when aborted mid-generation', async () => {
+        const hang = pending();
+        const context = makeContext({
+          setContent: vi.fn().mockReturnValue(hang.promise),
+        });
+        // closing the context is what makes Puppeteer fail the pending call
+        context.close.mockImplementation(() => {
+          hang.reject(new Error('Target closed'));
+          return Promise.resolve();
+        });
+        browserService.createContext.mockResolvedValue(context as never);
+
+        const reason = new Error('cancelled');
+        const controller = new AbortController();
+        const promise = service.generatePdfFromHtml('<p>x</p>', {
+          signal: controller.signal,
+        });
+        await vi.waitFor(() => expect(context.newPage).toHaveBeenCalled());
+        await vi.waitFor(async () => {
+          const page = (await context.newPage.mock.results[0].value) as {
+            setContent: Mock;
+          };
+          expect(page.setContent).toHaveBeenCalled();
+        });
+
+        controller.abort(reason);
+
+        await expect(promise).rejects.toBe(reason);
+        expect(context.close).toHaveBeenCalledTimes(1);
+        expect(browserService.markJobFinished as Mock).toHaveBeenCalledTimes(1);
+        expect(Logger.error).not.toHaveBeenCalled();
+      });
+
+      it('should reject when aborted while the browser context is being created', async () => {
+        const creation = pending<unknown>();
+        browserService.createContext.mockReturnValue(creation.promise as never);
+        const context = makeContext();
+
+        const reason = new Error('early');
+        const controller = new AbortController();
+        const promise = service.generatePdfFromHtml('<p>x</p>', {
+          signal: controller.signal,
+        });
+        await vi.waitFor(() =>
+          expect(browserService.createContext as Mock).toHaveBeenCalled(),
+        );
+
+        controller.abort(reason);
+        creation.resolve(context);
+
+        await expect(promise).rejects.toBe(reason);
+        expect(context.newPage).not.toHaveBeenCalled();
+        expect(context.close).toHaveBeenCalledTimes(1);
+        expect(browserService.markJobFinished as Mock).toHaveBeenCalledTimes(1);
+      });
+
+      it('should reject when aborted while the PDF is being printed', async () => {
+        const reason = new Error('late');
+        const controller = new AbortController();
+        const context = makeContext({
+          pdf: vi.fn().mockImplementation(() => {
+            controller.abort(reason);
+            return Promise.resolve(new Uint8Array([1]));
+          }),
+        });
+        browserService.createContext.mockResolvedValue(context as never);
+
+        await expect(
+          service.generatePdfFromHtml('<p>x</p>', {
+            signal: controller.signal,
+          }),
+        ).rejects.toBe(reason);
+        expect(context.close).toHaveBeenCalledTimes(1);
+      });
+
+      it('should log when closing the context fails after an abort', async () => {
+        const hang = pending();
+        const context = makeContext({
+          setContent: vi.fn().mockReturnValue(hang.promise),
+        });
+        const closeError = new Error('close failed');
+        context.close.mockImplementation(() => {
+          hang.reject(new Error('Target closed'));
+          return Promise.reject(closeError);
+        });
+        browserService.createContext.mockResolvedValue(context as never);
+
+        const controller = new AbortController();
+        const promise = service.generatePdfFromHtml('<p>x</p>', {
+          signal: controller.signal,
+        });
+        await vi.waitFor(() => expect(context.newPage).toHaveBeenCalled());
+        await vi.waitFor(async () => {
+          const page = (await context.newPage.mock.results[0].value) as {
+            setContent: Mock;
+          };
+          expect(page.setContent).toHaveBeenCalled();
+        });
+        controller.abort(new Error('stop'));
+
+        await expect(promise).rejects.toThrow('stop');
+        expect(Logger.error).toHaveBeenCalledWith(closeError);
       });
     });
 
