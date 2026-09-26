@@ -8,7 +8,6 @@ import {
   OptionalFactoryDependency,
   Provider,
 } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 
 import { PDF_PARAMETERS } from '../helpers/tokens';
 import { BrowserService } from './browser/browser.service';
@@ -90,7 +89,6 @@ export class PuppeteerModule implements OnModuleInit {
 
     return {
       module: PuppeteerModule,
-      imports: [ConfigModule.forRoot()],
       providers,
       exports: [
         PuppeteerService,
@@ -114,7 +112,7 @@ export class PuppeteerModule implements OnModuleInit {
 
     return {
       module: PuppeteerModule,
-      imports: [...(options.imports ?? []), ConfigModule.forRoot()],
+      imports: options.imports ?? [],
       providers: [
         pdfParamsProvider,
         PuppeteerService,

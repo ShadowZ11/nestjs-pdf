@@ -215,7 +215,6 @@ describe('PuppeteerModule', () => {
     it('forRoot should return a DynamicModule', () => {
       const result = PuppeteerModule.forRoot({ headless: true });
       expect(result).toHaveProperty('module', PuppeteerModule);
-      expect(result).toHaveProperty('imports');
       expect(result).toHaveProperty('providers');
       expect(result).toHaveProperty('exports');
     });
@@ -232,20 +231,21 @@ describe('PuppeteerModule', () => {
       expect(result).toHaveProperty('exports');
     });
 
-    it('should include ConfigModule in forRoot imports', () => {
+    it('should not import ConfigModule in forRoot', () => {
       const result = PuppeteerModule.forRoot({});
-      expect(result.imports).toBeDefined();
-      expect(Array.isArray(result.imports)).toBe(true);
-      expect(result.imports?.length).toBeGreaterThan(0);
+      expect(result.imports).toBeUndefined();
     });
 
-    it('should include ConfigModule in forRootAsync imports', () => {
+    it('should only forward the given imports in forRootAsync', () => {
       const useFactory = (): Promise<PuppeteerParameters> =>
         Promise.resolve({});
-      const result = PuppeteerModule.forRootAsync({
+      const withoutImports = PuppeteerModule.forRootAsync({ useFactory });
+      const withImports = PuppeteerModule.forRootAsync({
+        imports: [ConfigModule],
         useFactory,
       });
-      expect(result.imports).toBeDefined();
+      expect(withoutImports.imports).toEqual([]);
+      expect(withImports.imports).toEqual([ConfigModule]);
     });
   });
 });
