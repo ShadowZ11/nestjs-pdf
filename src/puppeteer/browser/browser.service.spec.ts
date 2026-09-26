@@ -211,6 +211,7 @@ describe('BrowserService', () => {
         executablePath: '/browser/bin',
         headless: true,
         args: ['--no-sandbox'],
+        ignoreDefaultArgs: ['--disable-popup-blocking'],
       });
       expect(result).toBe(browser);
       expect(browser.on).toHaveBeenCalledWith(

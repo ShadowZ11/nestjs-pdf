@@ -192,6 +192,41 @@ const pdf = await pdfService.generatePdfFromHtml(html, {
 
 The promise rejects with the signal's `reason` (an `AbortError` by default, a `TimeoutError` for `AbortSignal.timeout()`). A job aborted while it waits for a free slot is dropped without starting a browser context; a running job closes its context.
 
+### Restricting what the HTML can load (SSRF protection)
+
+If the HTML you render contains content you do not control, it can make the browser call internal services (`http://169.254.169.254/`, `http://localhost:…`, …). Enable the request filter with the `security` option, per call or in `forRoot`. It is **off unless you set it**, so existing setups are unchanged:
+
+```ts
+NestjsPdfModule.forRoot({
+  security: {}, // defaults: private networks and file: URLs are blocked
+});
+
+// or, stricter / with exceptions
+await pdfService.generatePdfFromHtml(html, {
+  security: {
+    allowedHosts: ['cdn.example.com', '*.static.example.com'],
+    allowedFileRoots: ['/app/templates/assets'],
+    javascriptEnabled: false,
+  },
+});
+```
+
+| Option                 | Default | Description                                                                                                                      |
+| ---------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `blockPrivateNetworks` | `true`  | Refuse http(s) requests to loopback, private, link-local (cloud metadata) and other non-public addresses, redirects included     |
+| `allowedHosts`         |         | Only allow http(s) requests to these hosts (`example.com` or `*.example.com`). Listed hosts are trusted even if they are private |
+| `allowedFileRoots`     | `[]`    | `file:` requests are refused unless the file is inside one of these directories (symbolic links are resolved)                    |
+| `javascriptEnabled`    | `true`  | Set to `false` to stop scripts from running in the page                                                                          |
+
+`data:`, `blob:` and `about:` are always allowed; every other protocol is refused. A blocked request is dropped (the PDF is still generated, without that resource) and logged without its query string.
+
+Good to know:
+
+- Plain links (`<a href="file:///…">`) are not requests, so they are never affected.
+- Chrome already refuses to load `file:` resources from generated HTML, unless you launch it with `--allow-file-access-from-files`; `allowedFileRoots` is there for that case.
+- Names are checked by resolving them before the request, so a domain that changes its address between the check and the request (DNS rebinding) can slip through. Use `allowedHosts` (or `javascriptEnabled: false`) when the content is fully untrusted.
+- `window.open` pop-ups are blocked: the library no longer passes `--disable-popup-blocking` to Chrome. If you set `extraPuppeteerArgs`, do not add it back.
+
 ## Options and configuration
 
 The library exposes Puppeteer options via the `PuppeteerParameters` interface (see `src/puppeteer/puppeteer-parameters.interface.ts`). You can configure:
@@ -201,6 +236,7 @@ The library exposes Puppeteer options via the `PuppeteerParameters` interface (s
 | `pdfOptions`                | The pdf options can be found on: https://pptr.dev/api/puppeteer.pdfoptions. Native Puppeteer options for `page.pdf`                                                                                                                                                                                                                                                                                                  |
 | `watermark`                 | Stamps a text or image watermark on the generated PDF: `text` or `image`, `opacity`, `rotation`, `fontSize`, `font`, `color`, `imageWidth`, `position`, `tileSpacing`, `pages`. See [Watermark](#watermark)                                                                                                                                                                                                          |
 | `signal`                    | An `AbortSignal` that cancels the generation, including while it waits for a free slot. The promise rejects with `signal.reason`; use `AbortSignal.timeout(ms)` for a timeout. See [Cancellation and timeout](#cancellation-and-timeout)                                                                                                                                                                             |
+| `security`                  | Filters what the rendered HTML may load (SSRF protection): `blockPrivateNetworks`, `allowedHosts`, `allowedFileRoots`, `javascriptEnabled`. Disabled unless set; pass `{}` for the defaults. See [Restricting what the HTML can load](#restricting-what-the-html-can-load-ssrf-protection)                                                                                                                           |
 | `hbsOptions`                | Handlebars configuration: `templateDirectory` (base dir for `renderFile`), `partialDirectory` (files registered as partials), `compileOptions`, `templateOptions`, and `helpers` (`{ name, fn }[]`). Like the other engines it can be set globally here or overridden per call (`generatePdfFromTemplateHbs*(..., { hbsOptions })`). Helpers/partials run on an isolated Handlebars environment (no global leakage). |
 | `ejsOptions`                | The ejs options can be found on [EJS documentation](https://ejs.co/#options)                                                                                                                                                                                                                                                                                                                                         |
 | `pugOptions`                | The pug options can be found on [Pug documentation](https://pugjs.org/api/reference.html#options)                                                                                                                                                                                                                                                                                                                    |
@@ -238,7 +274,6 @@ these are the default extra arguments passed to Puppeteer:
   '--disable-ipc-flooding-protection',
   '--disable-notifications',
   '--disable-offer-store-unmasked-wallet-cards',
-  '--disable-popup-blocking',
   '--disable-print-preview',
   '--disable-prompt-on-repost',
   '--disable-renderer-backgrounding',
