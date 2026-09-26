@@ -1,10 +1,10 @@
 # nestjs-pdf
 
-> **v3 — ESM-first, NestJS 12.** This is the active `main` line: authored in
-> ESM, published as a dual CJS/ESM package, and targets **NestJS 12+**.
+> **v3 — ESM-first, NestJS 10, 11 & 12.** This is the active `main` line: authored
+> in ESM, published as a dual CJS/ESM package, and supports **NestJS 10, 11 and 12**.
 >
-> Still on **NestJS 11** or need a pure CommonJS package? Use the maintenance
-> `v2` branch instead:
+> Need a pure CommonJS package or a Node.js version older than `20.19`? Use the
+> maintenance `v2` branch instead:
 >
 > ```bash
 > npm install @shad0wz7/nestjs-pdf@^2
@@ -33,7 +33,7 @@ Main features:
 ## Requirements
 
 - **Node.js** `^20.19.0`, `^22.12.0` or `>=24.0.0` (aligned with NestJS 12)
-- **NestJS** `^12.0.0` (`@nestjs/common`, `@nestjs/core`) and `rxjs ^7.8.0` as peer dependencies
+- **NestJS** `^10.0.0`, `^11.0.0` or `^12.0.0` (`@nestjs/common`, `@nestjs/core`) and `rxjs ^7.8.0` as peer dependencies
 
 ## Installation
 
