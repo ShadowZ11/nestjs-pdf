@@ -59,3 +59,33 @@ jobs:
       - name: Verify package contents
         run: npm pack --dry-run
 
+  nest-compat:
+    name: Test against NestJS ${{ matrix.nest }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        nest: ['10', '11', '12']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm & Node.js
+        uses: ./.github/actions/setup
+
+      - name: Install NestJS ${{ matrix.nest }}
+        run: >
+          pnpm add -D
+          @nestjs/common@^${{ matrix.nest }}
+          @nestjs/core@^${{ matrix.nest }}
+          @nestjs/testing@^${{ matrix.nest }}
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+

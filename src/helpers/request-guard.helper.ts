@@ -1,7 +1,14 @@
 import { lookup } from 'node:dns/promises';
 import { promises } from 'node:fs';
 import { BlockList, isIP } from 'node:net';
-import { isAbsolute, relative, resolve } from 'node:path';
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  resolve,
+} from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { Logger } from '@nestjs/common';
@@ -120,7 +127,10 @@ async function resolvesToPrivateAddress(hostname: string): Promise<boolean> {
 
 async function isFileAllowed(url: URL, roots: Array<string>): Promise<boolean> {
   // file://server/share is a network path (SMB), never a local file
-  if (url.hostname !== '' && url.hostname !== 'localhost') {
+  if (
+    roots.length === 0 ||
+    (url.hostname !== '' && url.hostname !== 'localhost')
+  ) {
     return false;
   }
 
@@ -131,12 +141,20 @@ async function isFileAllowed(url: URL, roots: Array<string>): Promise<boolean> {
     return false;
   }
 
+  // Missing file: nothing to leak, but resolve its closest existing ancestor
+  // so symlinks (e.g. macOS /var -> /private/var) match the resolved roots.
   const real = async (candidate: string) => {
-    try {
-      return await promises.realpath(candidate);
-    } catch {
-      // Missing file: nothing to leak, keep the lexical path for the check.
-      return resolve(candidate);
+    const missing: Array<string> = [];
+    let current = resolve(candidate);
+    for (;;) {
+      try {
+        return join(await promises.realpath(current), ...missing);
+      } catch {
+        const parent = dirname(current);
+        if (parent === current) return resolve(candidate);
+        missing.unshift(basename(current));
+        current = parent;
+      }
     }
   };
 
