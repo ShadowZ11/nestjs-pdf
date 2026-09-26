@@ -1,5 +1,30 @@
 # Changelog
 
+## [3.2.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v3.1.0...v3.2.0) (2026-09-26)
+
+
+### ✨ Features
+
+* add new support of abort signal on demand ([0a450fa](https://github.com/ShadowZ11/nestjs-pdf/commit/0a450fab797cae87e518e7780febb015aefeed27))
+* add new watermark helper when generating pdf ([412fb9c](https://github.com/ShadowZ11/nestjs-pdf/commit/412fb9c5c846baf65648770089da01e40697251b))
+* new security binding param to activate SSRF protection ([9cae4e2](https://github.com/ShadowZ11/nestjs-pdf/commit/9cae4e24afa0997b985122065c21e8b08c55ea74))
+* support nestjs 10, 11 and 12 as peer dependencies ([3415e64](https://github.com/ShadowZ11/nestjs-pdf/commit/3415e64529ec321f72da475ca6eb55efd4d846e9))
+
+
+### 🐛 Bug Fixes
+
+* resolve symlinked parents of missing files in the request guard ([cd1a261](https://github.com/ShadowZ11/nestjs-pdf/commit/cd1a2616de019de0fb53c1ae786ac53c1cb25d68))
+
+
+### 🔧 Refactoring
+
+* stop bundling @nestjs/config in the puppeteer module ([4bf05ef](https://github.com/ShadowZ11/nestjs-pdf/commit/4bf05efd7ec6e05d5631f01cb8b938c54e4b4660))
+
+
+### 🔄 CI/CD
+
+* run the test suite against nestjs 10, 11 and 12 ([f9dcd1b](https://github.com/ShadowZ11/nestjs-pdf/commit/f9dcd1b5d4c8a19ca917de6e258b6839bfd1aa68))
+
 ## [3.1.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v3.0.1...v3.1.0) (2026-09-13)
 
 
