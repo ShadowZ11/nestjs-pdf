@@ -1,6 +1,7 @@
 import {
   mkdirSync,
   mkdtempSync,
+  promises,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -281,6 +282,47 @@ describe('request-guard.helper', () => {
           }),
         ).resolves.toBe(false);
       });
+
+      it('resolves symbolic links in the parents of a missing file', async () => {
+        const linkedRoot = join(dir, 'linked-assets');
+        const escape = join(dir, 'assets', 'escape-to-secret');
+        try {
+          symlinkSync(join(dir, 'assets'), linkedRoot, 'junction');
+          symlinkSync(join(dir, 'secret'), escape, 'junction');
+        } catch {
+          return; // symlinks not permitted on this machine
+        }
+        const options = { allowedFileRoots: [join(dir, 'assets')] };
+
+        await expect(
+          isRequestAllowed(
+            pathToFileURL(join(linkedRoot, 'missing.png')).href,
+            options,
+          ),
+        ).resolves.toBe(true);
+        await expect(
+          isRequestAllowed(
+            pathToFileURL(join(escape, 'missing.pem')).href,
+            options,
+          ),
+        ).resolves.toBe(false);
+      });
+
+      it('falls back to the lexical path when nothing can be resolved', async () => {
+        const realpath = vi
+          .spyOn(promises, 'realpath')
+          .mockRejectedValue(new Error('ENOENT'));
+
+        try {
+          await expect(
+            isRequestAllowed(fileUrl('assets', 'logo.png'), {
+              allowedFileRoots: [join(dir, 'assets')],
+            }),
+          ).resolves.toBe(true);
+        } finally {
+          realpath.mockRestore();
+        }
+      });
     });
   });
 
@@ -389,11 +431,12 @@ describe('request-guard.helper', () => {
       await install();
 
       handlers.get('request')!(makeRequest('file:///etc/passwd'));
-      await flush();
 
-      expect(Logger.warn).toHaveBeenCalledWith(
-        'Blocked request to file:///etc/passwd',
-        'NestJsPdf',
+      await vi.waitFor(() =>
+        expect(Logger.warn).toHaveBeenCalledWith(
+          'Blocked request to file:///etc/passwd',
+          'NestJsPdf',
+        ),
       );
     });
 
