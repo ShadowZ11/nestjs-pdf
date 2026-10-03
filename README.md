@@ -300,7 +300,7 @@ You can use `forRootAsync(...)` if you need to provide configuration asynchronou
 
 ## Error handling
 
-All errors thrown by the library (missing template engine, template rendering failures, browser installation issues, PDF generation failures, signature placement issues, ...) are typed exceptions extending the abstract `NestjsPdfException` class, exported from the package root alongside a stable `NestjsPdfErrorCode` enum:
+All errors thrown by the library (missing template engine, template rendering failures, browser installation issues, PDF generation failures, signature placement issues, invalid watermarks, ...) are typed exceptions extending the abstract `NestjsPdfException` class, exported from the package root alongside a stable `NestjsPdfErrorCode` enum:
 
 ```typescript
 import {
