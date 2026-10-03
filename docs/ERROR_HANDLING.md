@@ -13,16 +13,17 @@ All exceptions:
 
 ## Exception hierarchy
 
-| Exception                        | `code`                         | Thrown when                                                                                                                        | Extra properties                       |
-| -------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| `EngineNotAvailableException`    | `ENGINE_NOT_AVAILABLE`         | You call a `generatePdfFrom<Engine>...` method but the corresponding engine module isn't installed                                 | -                                      |
-| `TemplateConfigurationException` | `TEMPLATE_CONFIGURATION_ERROR` | Misconfiguration/misuse: missing `templateDirectory`, a file path escaping `templateDirectory`, a missing `partialDirectory`       | -                                      |
-| `TemplateRenderException`        | `TEMPLATE_RENDER_ERROR`        | A template engine (Handlebars, Pug, EJS, Nunjucks, Eta, Mustache, MJML) fails to compile/render a template or read a template file | `engine: string` (e.g. `'Handlebars'`) |
-| `BrowserInstallationException`   | `BROWSER_INSTALLATION_ERROR`   | Puppeteer's browser binary could not be installed/resolved                                                                         | -                                      |
-| `BrowserUnavailableException`    | `BROWSER_UNAVAILABLE`          | A new PDF job is requested while the module is shutting down                                                                       | -                                      |
-| `PdfGenerationException`         | `PDF_GENERATION_ERROR`         | The Puppeteer page fails to render/print the PDF (navigation, timeout, etc.)                                                       | -                                      |
-| `SignatureDependencyException`   | `SIGNATURE_DEPENDENCY_ERROR`   | `pdfjs-dist` (and its `@napi-rs/canvas` peer dependency) can't be loaded for anchor-based signature placement                      | -                                      |
-| `SignaturePlacementException`    | `SIGNATURE_PLACEMENT_ERROR`    | The page targeted for signature placement doesn't exist in the PDF                                                                 | -                                      |
+| Exception                        | `code`                         | Thrown when                                                                                                                                                                                                 | Extra properties                       |
+| -------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| `EngineNotAvailableException`    | `ENGINE_NOT_AVAILABLE`         | You call a `generatePdfFrom<Engine>...` method but the corresponding engine module isn't installed                                                                                                          | -                                      |
+| `TemplateConfigurationException` | `TEMPLATE_CONFIGURATION_ERROR` | Misconfiguration/misuse: missing `templateDirectory`, a file path escaping `templateDirectory`, a missing `partialDirectory`                                                                                | -                                      |
+| `TemplateRenderException`        | `TEMPLATE_RENDER_ERROR`        | A template engine (Handlebars, Pug, EJS, Nunjucks, Eta, Mustache, MJML) fails to compile/render a template or read a template file                                                                          | `engine: string` (e.g. `'Handlebars'`) |
+| `BrowserInstallationException`   | `BROWSER_INSTALLATION_ERROR`   | Puppeteer's browser binary could not be installed/resolved                                                                                                                                                  | -                                      |
+| `BrowserUnavailableException`    | `BROWSER_UNAVAILABLE`          | A new PDF job is requested while the module is shutting down                                                                                                                                                | -                                      |
+| `PdfGenerationException`         | `PDF_GENERATION_ERROR`         | The Puppeteer page fails to render/print the PDF (navigation, timeout, etc.)                                                                                                                                | -                                      |
+| `SignatureDependencyException`   | `SIGNATURE_DEPENDENCY_ERROR`   | `pdfjs-dist` (and its `@napi-rs/canvas` peer dependency) can't be loaded for anchor-based signature placement                                                                                               | -                                      |
+| `SignaturePlacementException`    | `SIGNATURE_PLACEMENT_ERROR`    | The page targeted for signature placement doesn't exist in the PDF                                                                                                                                          | -                                      |
+| `WatermarkException`             | `WATERMARK_ERROR`              | Invalid watermark options (no `text`/`image`, bad `color`/`opacity`/`fontSize`/`imageWidth`/`tileSpacing`, out-of-range `pages`, non-PNG/JPEG image, text outside WinAnsi) or a PDF that can't be processed | -                                      |
 
 All of the above, plus the base `NestjsPdfException` class and the
 `NestjsPdfErrorCode` enum, are exported from the package root:
@@ -39,6 +40,7 @@ import {
   PdfGenerationException,
   SignatureDependencyException,
   SignaturePlacementException,
+  WatermarkException,
 } from '@shad0wz7/nestjs-pdf';
 ```
 
@@ -147,6 +149,7 @@ const STATUS_BY_CODE: Record<NestjsPdfErrorCode, number> = {
   [NestjsPdfErrorCode.SIGNATURE_DEPENDENCY_ERROR]:
     HttpStatus.INTERNAL_SERVER_ERROR,
   [NestjsPdfErrorCode.SIGNATURE_PLACEMENT_ERROR]: HttpStatus.BAD_REQUEST,
+  [NestjsPdfErrorCode.WATERMARK_ERROR]: HttpStatus.BAD_REQUEST,
 };
 
 @Catch(NestjsPdfException)
@@ -167,5 +170,6 @@ export class NestjsPdfExceptionFilter implements ExceptionFilter {
 ## Notes
 
 - `NestjsPdfException` is abstract — you cannot `throw new NestjsPdfException(...)` directly, only its concrete subclasses.
-- The library never logs on your behalf when throwing these exceptions (other than the existing `Logger.error` call already made before wrapping into a `PdfGenerationException` for a Puppeteer failure); logging is left entirely to the consumer via the `catch` block.
-- If a `NestjsPdfException` is thrown while generating a PDF (e.g. by an `@Optional()` template engine), it is propagated as-is and never wrapped a second time into a `PdfGenerationException`.
+- The library doesn't log on your behalf when throwing these exceptions, except during the Puppeteer step (page rendering/printing and watermark stamping): any error raised there is passed to `Logger.error` before being rethrown. Beyond that, logging is left to the consumer via the `catch` block.
+- If a `NestjsPdfException` is thrown during the Puppeteer step (e.g. a `WatermarkException` or a `BrowserInstallationException`), it is propagated as-is and never wrapped a second time into a `PdfGenerationException`.
+- A job cancelled through an `AbortSignal` rejects with the signal's `reason` (an `AbortError` by default, a `TimeoutError` for `AbortSignal.timeout()`), not with a `NestjsPdfException`.
