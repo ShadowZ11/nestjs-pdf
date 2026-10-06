@@ -1,4 +1,3 @@
-import { ConfigModule } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { vi } from 'vitest';
 
@@ -21,7 +20,6 @@ describe('PuppeteerModule', () => {
     it('should provide PuppeteerService', async () => {
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRoot({
             headless: true,
           }),
@@ -40,7 +38,7 @@ describe('PuppeteerModule', () => {
       };
 
       module = await Test.createTestingModule({
-        imports: [ConfigModule.forRoot(), PuppeteerModule.forRoot(pdfParams)],
+        imports: [PuppeteerModule.forRoot(pdfParams)],
       }).compile();
 
       const params = module.get<typeof pdfParams>(PDF_PARAMETERS);
@@ -50,10 +48,7 @@ describe('PuppeteerModule', () => {
 
     it('should export PuppeteerService', async () => {
       module = await Test.createTestingModule({
-        imports: [
-          ConfigModule.forRoot(),
-          PuppeteerModule.forRoot({ headless: true }),
-        ],
+        imports: [PuppeteerModule.forRoot({ headless: true })],
       }).compile();
 
       const service = module.get<PuppeteerService>(PuppeteerService);
@@ -73,7 +68,6 @@ describe('PuppeteerModule', () => {
     it('should provide PuppeteerService with async configuration', async () => {
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRootAsync({
             useFactory: () => ({
               headless: true,
@@ -94,7 +88,6 @@ describe('PuppeteerModule', () => {
 
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRootAsync({
             inject: [],
             useFactory: asyncFactory,
@@ -114,7 +107,6 @@ describe('PuppeteerModule', () => {
 
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRootAsync({
             useFactory: (): PuppeteerParameters => expectedParams,
           }),
@@ -132,7 +124,6 @@ describe('PuppeteerModule', () => {
 
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRootAsync({
             useFactory,
           }),
@@ -157,10 +148,7 @@ describe('PuppeteerModule', () => {
       const install = vi.fn().mockResolvedValue(undefined);
 
       module = await Test.createTestingModule({
-        imports: [
-          ConfigModule.forRoot(),
-          PuppeteerModule.forRoot({ headless: true }),
-        ],
+        imports: [PuppeteerModule.forRoot({ headless: true })],
       })
         .overrideProvider(BrowserService)
         .useValue({ install })
@@ -176,7 +164,6 @@ describe('PuppeteerModule', () => {
 
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRoot({ headless: true, useLockedBrowser: true }),
         ],
       })
@@ -194,7 +181,6 @@ describe('PuppeteerModule', () => {
 
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRoot({
             headless: true,
             executablePath: '/usr/bin/chromium',
@@ -231,7 +217,7 @@ describe('PuppeteerModule', () => {
       expect(result).toHaveProperty('exports');
     });
 
-    it('should not import ConfigModule in forRoot', () => {
+    it('should not add any imports in forRoot', () => {
       const result = PuppeteerModule.forRoot({});
       expect(result.imports).toBeUndefined();
     });
@@ -240,12 +226,13 @@ describe('PuppeteerModule', () => {
       const useFactory = (): Promise<PuppeteerParameters> =>
         Promise.resolve({});
       const withoutImports = PuppeteerModule.forRootAsync({ useFactory });
+      class SomeModule {}
       const withImports = PuppeteerModule.forRootAsync({
-        imports: [ConfigModule],
+        imports: [SomeModule],
         useFactory,
       });
       expect(withoutImports.imports).toEqual([]);
-      expect(withImports.imports).toEqual([ConfigModule]);
+      expect(withImports.imports).toEqual([SomeModule]);
     });
   });
 });
