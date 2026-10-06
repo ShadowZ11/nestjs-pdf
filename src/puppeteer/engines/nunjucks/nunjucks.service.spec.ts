@@ -1,5 +1,10 @@
 import { type Mock, vi } from 'vitest';
 
+vi.mock('../../libs/loadEngine.utils', async () => {
+  const { default: engine } = await import('nunjucks');
+  return { loadEngine: () => engine };
+});
+
 vi.mock('nunjucks', () => ({
   default: {
     configure: vi.fn(),

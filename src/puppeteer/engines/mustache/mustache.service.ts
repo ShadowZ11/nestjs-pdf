@@ -2,9 +2,14 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { Injectable } from '@nestjs/common';
-import mustache, { EscapeFunction } from 'mustache';
+import type mustache from 'mustache';
+import type { EscapeFunction } from 'mustache';
 
-import { TemplateRenderException } from '../../../exceptions';
+import {
+  EngineNotAvailableException,
+  TemplateRenderException,
+} from '../../../exceptions';
+import { loadEngine } from '../../libs/loadEngine.utils';
 
 export interface MustacheOptions {
   tags?: [string, string];
@@ -13,8 +18,16 @@ export interface MustacheOptions {
 
 @Injectable()
 export class MustacheService {
+  #mustache?: typeof mustache;
   readonly #templateCache: Map<string, string> = new Map();
   readonly #maxCacheSize = 100;
+
+  get #engine(): typeof mustache {
+    return (this.#mustache ??= loadEngine<typeof mustache>(
+      'mustache',
+      'Mustache',
+    ));
+  }
 
   /**
    * Render a Mustache template from a string
@@ -28,9 +41,10 @@ export class MustacheService {
     data: Record<string, unknown> = {},
     options?: MustacheOptions,
   ): string {
+    const engine = this.#engine;
     try {
       const tags = options?.tags ?? ['{{', '}}'];
-      return mustache.render(template, data, undefined, {
+      return engine.render(template, data, undefined, {
         tags: tags,
         escape: options?.escape,
       });
@@ -69,6 +83,9 @@ export class MustacheService {
 
       return this.render(template, data, options);
     } catch (error) {
+      if (error instanceof EngineNotAvailableException) {
+        throw error;
+      }
       throw new TemplateRenderException(
         'Mustache',
         `Mustache file rendering failed for ${filePath}: ${String(error)}`,

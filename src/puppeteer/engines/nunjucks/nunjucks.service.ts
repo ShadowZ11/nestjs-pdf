@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import nunjucks, { type ConfigureOptions } from 'nunjucks';
+import type nunjucks from 'nunjucks';
+import type { ConfigureOptions } from 'nunjucks';
 
 import { TemplateRenderException } from '../../../exceptions';
+import { loadEngine } from '../../libs/loadEngine.utils';
 
 export interface NunjucksOptions extends Partial<ConfigureOptions> {
   noCache?: boolean;
@@ -13,13 +15,19 @@ export interface NunjucksOptions extends Partial<ConfigureOptions> {
 
 @Injectable()
 export class NunjucksService {
-  constructor() {
-    // Configure default Nunjucks environment
-    nunjucks.configure({
-      noCache: true,
-      trimBlocks: true,
-      lstripBlocks: true,
-    });
+  #nunjucks?: typeof nunjucks;
+
+  get #engine(): typeof nunjucks {
+    if (!this.#nunjucks) {
+      this.#nunjucks = loadEngine<typeof nunjucks>('nunjucks', 'Nunjucks');
+      // Configure default Nunjucks environment
+      this.#nunjucks.configure({
+        noCache: true,
+        trimBlocks: true,
+        lstripBlocks: true,
+      });
+    }
+    return this.#nunjucks;
   }
 
   render(
@@ -27,6 +35,7 @@ export class NunjucksService {
     data: Record<string, unknown> = {},
     options?: NunjucksOptions,
   ) {
+    const nunjucks = this.#engine;
     try {
       if (options) {
         const configOptions: Record<string, unknown> = {
@@ -53,6 +62,7 @@ export class NunjucksService {
     data: Record<string, unknown> = {},
     options?: NunjucksOptions,
   ) {
+    const nunjucks = this.#engine;
     try {
       if (options) {
         const configOptions: Record<string, unknown> = {
