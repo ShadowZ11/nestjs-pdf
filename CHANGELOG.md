@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.5.7](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.5.6...v2.5.7) (2026-10-06)
+
+
+### 🐛 Bug Fixes
+
+* remove useless package and optimization ([326fb1b](https://github.com/ShadowZ11/nestjs-pdf/commit/326fb1b453e96db4fbf0fb49181edebd2b8a70b2))
+
+
+### 🧹 Maintenance
+
+* **deps:** update dependencies (security updates) and add nest 10 to peer dependencies ([2354ea0](https://github.com/ShadowZ11/nestjs-pdf/commit/2354ea086f8f6c2de9fcaf0731790d63642ca3ad))
+
 ## [2.5.6](https://github.com/ShadowZ11/nestjs-pdf/compare/v2.5.5...v2.5.6) (2026-09-19)
 
 
