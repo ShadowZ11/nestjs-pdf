@@ -1,4 +1,3 @@
-import { ConfigModule } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
 
 import { NestjsPdfModule } from './nestjs-pdf.module';
@@ -72,7 +71,6 @@ describe('NestjsPdfModule', () => {
     it('should provide NestjsPdfService with async configuration', async () => {
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           NestjsPdfModule.forRootAsync({
             useFactory: () => ({
               headless: true,
@@ -89,7 +87,6 @@ describe('NestjsPdfModule', () => {
     it('should inject dependencies for async factory', async () => {
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           NestjsPdfModule.forRootAsync({
             useFactory: () => ({
               headless: true,

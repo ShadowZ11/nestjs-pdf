@@ -1,4 +1,3 @@
-import { ConfigModule } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
 
 import { HANDLEBARS_PARAMETERS, PDF_PARAMETERS } from '../helpers/tokens';
@@ -20,7 +19,6 @@ describe('PuppeteerModule', () => {
     it('should provide PuppeteerService', async () => {
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRoot({
             headless: true,
           }),
@@ -39,7 +37,7 @@ describe('PuppeteerModule', () => {
       };
 
       module = await Test.createTestingModule({
-        imports: [ConfigModule.forRoot(), PuppeteerModule.forRoot(pdfParams)],
+        imports: [PuppeteerModule.forRoot(pdfParams)],
       }).compile();
 
       const params = module.get<typeof pdfParams>(PDF_PARAMETERS);
@@ -55,7 +53,7 @@ describe('PuppeteerModule', () => {
       };
 
       module = await Test.createTestingModule({
-        imports: [ConfigModule.forRoot(), PuppeteerModule.forRoot(pdfParams)],
+        imports: [PuppeteerModule.forRoot(pdfParams)],
       }).compile();
 
       const params = module.get<typeof hbsOptions>(HANDLEBARS_PARAMETERS);
@@ -65,7 +63,7 @@ describe('PuppeteerModule', () => {
 
     it('should provide HANDLEBARS_PARAMETERS with default empty object', async () => {
       module = await Test.createTestingModule({
-        imports: [ConfigModule.forRoot(), PuppeteerModule.forRoot({})],
+        imports: [PuppeteerModule.forRoot({})],
       }).compile();
 
       const params = module.get<Record<string, never>>(HANDLEBARS_PARAMETERS);
@@ -74,10 +72,7 @@ describe('PuppeteerModule', () => {
 
     it('should export PuppeteerService', async () => {
       module = await Test.createTestingModule({
-        imports: [
-          ConfigModule.forRoot(),
-          PuppeteerModule.forRoot({ headless: true }),
-        ],
+        imports: [PuppeteerModule.forRoot({ headless: true })],
       }).compile();
 
       const service = module.get<PuppeteerService>(PuppeteerService);
@@ -97,7 +92,6 @@ describe('PuppeteerModule', () => {
     it('should provide PuppeteerService with async configuration', async () => {
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRootAsync({
             useFactory: () => ({
               headless: true,
@@ -118,7 +112,6 @@ describe('PuppeteerModule', () => {
 
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRootAsync({
             inject: [],
             useFactory: asyncFactory,
@@ -138,7 +131,6 @@ describe('PuppeteerModule', () => {
 
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRootAsync({
             useFactory: (): PuppeteerParameters => expectedParams,
           }),
@@ -159,7 +151,6 @@ describe('PuppeteerModule', () => {
 
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRootAsync({
             useFactory,
           }),
@@ -177,7 +168,6 @@ describe('PuppeteerModule', () => {
 
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRootAsync({
             useFactory,
           }),
@@ -202,10 +192,7 @@ describe('PuppeteerModule', () => {
       const install = jest.fn().mockResolvedValue(undefined);
 
       module = await Test.createTestingModule({
-        imports: [
-          ConfigModule.forRoot(),
-          PuppeteerModule.forRoot({ headless: true }),
-        ],
+        imports: [PuppeteerModule.forRoot({ headless: true })],
       })
         .overrideProvider(BrowserService)
         .useValue({ install })
@@ -221,7 +208,6 @@ describe('PuppeteerModule', () => {
 
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRoot({ headless: true, useLockedBrowser: true }),
         ],
       })
@@ -239,7 +225,6 @@ describe('PuppeteerModule', () => {
 
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           PuppeteerModule.forRoot({
             headless: true,
             executablePath: '/usr/bin/chromium',
@@ -260,7 +245,6 @@ describe('PuppeteerModule', () => {
     it('forRoot should return a DynamicModule', () => {
       const result = PuppeteerModule.forRoot({ headless: true });
       expect(result).toHaveProperty('module', PuppeteerModule);
-      expect(result).toHaveProperty('imports');
       expect(result).toHaveProperty('providers');
       expect(result).toHaveProperty('exports');
     });
@@ -275,22 +259,6 @@ describe('PuppeteerModule', () => {
       expect(result).toHaveProperty('imports');
       expect(result).toHaveProperty('providers');
       expect(result).toHaveProperty('exports');
-    });
-
-    it('should include ConfigModule in forRoot imports', () => {
-      const result = PuppeteerModule.forRoot({});
-      expect(result.imports).toBeDefined();
-      expect(Array.isArray(result.imports)).toBe(true);
-      expect(result.imports?.length).toBeGreaterThan(0);
-    });
-
-    it('should include ConfigModule in forRootAsync imports', () => {
-      const useFactory = (): Promise<PuppeteerParameters> =>
-        Promise.resolve({});
-      const result = PuppeteerModule.forRootAsync({
-        useFactory,
-      });
-      expect(result.imports).toBeDefined();
     });
   });
 });

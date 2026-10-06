@@ -1,4 +1,3 @@
-import { ConfigModule } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
 
 import { NestjsPdfModule } from './nestjs-pdf.module';
@@ -13,7 +12,6 @@ describe('NestJS PDF Library - Integration Tests', () => {
     beforeEach(async () => {
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           NestjsPdfModule.forRoot({
             headless: true,
             cleanupBrowserCacheOnExit: false,
@@ -54,7 +52,6 @@ describe('NestJS PDF Library - Integration Tests', () => {
     beforeEach(async () => {
       module = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           NestjsPdfModule.forRootAsync({
             useFactory: () => ({
               headless: true,
@@ -83,10 +80,7 @@ describe('NestJS PDF Library - Integration Tests', () => {
   describe('Module exports', () => {
     beforeEach(async () => {
       module = await Test.createTestingModule({
-        imports: [
-          ConfigModule.forRoot(),
-          NestjsPdfModule.forRoot({ headless: true }),
-        ],
+        imports: [NestjsPdfModule.forRoot({ headless: true })],
       }).compile();
     });
 
@@ -98,10 +92,7 @@ describe('NestJS PDF Library - Integration Tests', () => {
 
     it('should export NestjsPdfService for use in other modules', async () => {
       const consumerModule = await Test.createTestingModule({
-        imports: [
-          ConfigModule.forRoot(),
-          NestjsPdfModule.forRoot({ headless: true }),
-        ],
+        imports: [NestjsPdfModule.forRoot({ headless: true })],
       }).compile();
 
       const service = consumerModule.get<NestjsPdfService>(NestjsPdfService);
@@ -114,7 +105,7 @@ describe('NestJS PDF Library - Integration Tests', () => {
   describe('Configuration options', () => {
     it('should accept minimal configuration', async () => {
       const testModule = await Test.createTestingModule({
-        imports: [ConfigModule.forRoot(), NestjsPdfModule.forRoot({})],
+        imports: [NestjsPdfModule.forRoot({})],
       }).compile();
 
       const service = testModule.get<NestjsPdfService>(NestjsPdfService);
@@ -126,7 +117,6 @@ describe('NestJS PDF Library - Integration Tests', () => {
     it('should accept full configuration', async () => {
       const testModule = await Test.createTestingModule({
         imports: [
-          ConfigModule.forRoot(),
           NestjsPdfModule.forRoot({
             headless: true,
             browserTag: BrowserTag.STABLE,
@@ -148,10 +138,7 @@ describe('NestJS PDF Library - Integration Tests', () => {
   describe('Error handling', () => {
     beforeEach(async () => {
       module = await Test.createTestingModule({
-        imports: [
-          ConfigModule.forRoot(),
-          NestjsPdfModule.forRoot({ headless: true }),
-        ],
+        imports: [NestjsPdfModule.forRoot({ headless: true })],
       }).compile();
 
       pdfService = module.get<NestjsPdfService>(NestjsPdfService);
@@ -166,10 +153,7 @@ describe('NestJS PDF Library - Integration Tests', () => {
     it('should handle module initialization without errors', () => {
       expect(() => {
         Test.createTestingModule({
-          imports: [
-            ConfigModule.forRoot(),
-            NestjsPdfModule.forRoot({ headless: true }),
-          ],
+          imports: [NestjsPdfModule.forRoot({ headless: true })],
         });
       }).not.toThrow();
     });
