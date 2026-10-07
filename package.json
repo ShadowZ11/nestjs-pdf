@@ -107,10 +107,10 @@
     "jiti": "^2.7.0",
     "knip": "^6.38.0",
     "lint-staged": "^17.6.0",
-    "p-limit": "^7.3.3",
     "mjml": "^5.4.1",
     "mustache": "^4.2.0",
     "nunjucks": "^3.2.4",
+    "p-limit": "^7.3.3",
     "prettier": "^3.9.9",
     "pug": "^3.0.4",
     "reflect-metadata": "^0.2.2",
@@ -165,11 +165,6 @@
     "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
   },
   "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
-  "inlinedDependencies": {
-    "p-limit": "7.3.2",
-    "yocto-queue": "1.2.2"
+    "access": "public"
   }
 }
