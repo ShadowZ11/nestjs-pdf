@@ -35,6 +35,20 @@ describe('NunjucksService', () => {
     expect(service).toBeDefined();
   });
 
+  it('should load and configure the engine only once', () => {
+    (configure as Mock).mockClear();
+
+    service.render('first');
+    service.render('second');
+
+    expect(configure).toHaveBeenCalledTimes(1);
+    expect(configure).toHaveBeenCalledWith({
+      noCache: true,
+      trimBlocks: true,
+      lstripBlocks: true,
+    });
+  });
+
   describe('render', () => {
     it('should render a simple Nunjucks template', () => {
       (renderString as Mock).mockReturnValue('<h1>Hello World</h1>');
