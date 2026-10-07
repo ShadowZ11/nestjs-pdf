@@ -13,17 +13,17 @@ All exceptions:
 
 ## Exception hierarchy
 
-| Exception                        | `code`                         | Thrown when                                                                                                                                                                                                 | Extra properties                       |
-| -------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| `EngineNotAvailableException`    | `ENGINE_NOT_AVAILABLE`         | You call a `generatePdfFrom<Engine>...` method but the corresponding engine module isn't installed                                                                                                          | -                                      |
-| `TemplateConfigurationException` | `TEMPLATE_CONFIGURATION_ERROR` | Misconfiguration/misuse: missing `templateDirectory`, a file path escaping `templateDirectory`, a missing `partialDirectory`                                                                                | -                                      |
-| `TemplateRenderException`        | `TEMPLATE_RENDER_ERROR`        | A template engine (Handlebars, Pug, EJS, Nunjucks, Eta, Mustache, MJML) fails to compile/render a template or read a template file                                                                          | `engine: string` (e.g. `'Handlebars'`) |
-| `BrowserInstallationException`   | `BROWSER_INSTALLATION_ERROR`   | Puppeteer's browser binary could not be installed/resolved                                                                                                                                                  | -                                      |
-| `BrowserUnavailableException`    | `BROWSER_UNAVAILABLE`          | A new PDF job is requested while the module is shutting down                                                                                                                                                | -                                      |
-| `PdfGenerationException`         | `PDF_GENERATION_ERROR`         | The Puppeteer page fails to render/print the PDF (navigation, timeout, etc.)                                                                                                                                | -                                      |
-| `SignatureDependencyException`   | `SIGNATURE_DEPENDENCY_ERROR`   | `pdfjs-dist` (and its `@napi-rs/canvas` peer dependency) can't be loaded for anchor-based signature placement                                                                                               | -                                      |
-| `SignaturePlacementException`    | `SIGNATURE_PLACEMENT_ERROR`    | The page targeted for signature placement doesn't exist in the PDF                                                                                                                                          | -                                      |
-| `WatermarkException`             | `WATERMARK_ERROR`              | Invalid watermark options (no `text`/`image`, bad `color`/`opacity`/`fontSize`/`imageWidth`/`tileSpacing`, out-of-range `pages`, non-PNG/JPEG image, text outside WinAnsi) or a PDF that can't be processed | -                                      |
+| Exception                        | `code`                         | Thrown when                                                                                                                                                                                                                                                         | Extra properties                       |
+| -------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| `EngineNotAvailableException`    | `ENGINE_NOT_AVAILABLE`         | You render a template with an engine whose package (`handlebars`, `ejs`, `pug`, `mjml`, `nunjucks`, `eta`, `mustache`) isn't installed in your project. Thrown on first use of that engine, not at startup. See [Missing template engine](#missing-template-engine) | -                                      |
+| `TemplateConfigurationException` | `TEMPLATE_CONFIGURATION_ERROR` | Misconfiguration/misuse: missing `templateDirectory`, a file path escaping `templateDirectory`, a missing `partialDirectory`                                                                                                                                        | -                                      |
+| `TemplateRenderException`        | `TEMPLATE_RENDER_ERROR`        | A template engine (Handlebars, Pug, EJS, Nunjucks, Eta, Mustache, MJML) fails to compile/render a template or read a template file                                                                                                                                  | `engine: string` (e.g. `'Handlebars'`) |
+| `BrowserInstallationException`   | `BROWSER_INSTALLATION_ERROR`   | Puppeteer's browser binary could not be installed/resolved                                                                                                                                                                                                          | -                                      |
+| `BrowserUnavailableException`    | `BROWSER_UNAVAILABLE`          | A new PDF job is requested while the module is shutting down                                                                                                                                                                                                        | -                                      |
+| `PdfGenerationException`         | `PDF_GENERATION_ERROR`         | The Puppeteer page fails to render/print the PDF (navigation, timeout, etc.)                                                                                                                                                                                        | -                                      |
+| `SignatureDependencyException`   | `SIGNATURE_DEPENDENCY_ERROR`   | `pdfjs-dist` (and its `@napi-rs/canvas` peer dependency) can't be loaded for anchor-based signature placement                                                                                                                                                       | -                                      |
+| `SignaturePlacementException`    | `SIGNATURE_PLACEMENT_ERROR`    | The page targeted for signature placement doesn't exist in the PDF                                                                                                                                                                                                  | -                                      |
+| `WatermarkException`             | `WATERMARK_ERROR`              | Invalid watermark options (no `text`/`image`, bad `color`/`opacity`/`fontSize`/`imageWidth`/`tileSpacing`, out-of-range `pages`, non-PNG/JPEG image, text outside WinAnsi) or a PDF that can't be processed                                                         | -                                      |
 
 All of the above, plus the base `NestjsPdfException` class and the
 `NestjsPdfErrorCode` enum, are exported from the package root:
@@ -43,6 +43,34 @@ import {
   WatermarkException,
 } from '@shad0wz7/nestjs-pdf';
 ```
+
+## Missing template engine
+
+Template engines are optional peer dependencies of nestjs-pdf: none of them is
+installed with the library. Each engine is loaded the first time you render a
+template with it, so your application starts with any subset of engines
+installed, and the error only surfaces when a missing engine is actually used.
+
+The `EngineNotAvailableException` message tells you which package to install,
+and its `cause` holds the original Node.js `MODULE_NOT_FOUND` error:
+
+```text
+Pug engine is not available: the 'pug' package is not installed. Run `npm install pug` to use it.
+```
+
+| Engine     | Package to install |
+| ---------- | ------------------ |
+| Handlebars | `handlebars`       |
+| EJS        | `ejs`              |
+| Pug        | `pug`              |
+| MJML       | `mjml`             |
+| Nunjucks   | `nunjucks`         |
+| Eta        | `eta`              |
+| Mustache   | `mustache`         |
+
+This is a configuration problem rather than a runtime one: install the package
+instead of catching the exception. If the package is installed but fails while
+loading (e.g. a broken install), the original error is rethrown as-is.
 
 ## Catching a specific exception
 
@@ -69,7 +97,7 @@ export class InvoiceService {
       );
     } catch (error) {
       if (error instanceof EngineNotAvailableException) {
-        // The Handlebars package is not installed as a peer dependency
+        // The `handlebars` package is not installed in your project
         this.logger.error(error.message);
         throw error;
       }
