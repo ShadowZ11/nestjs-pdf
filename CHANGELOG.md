@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v3.2.0...v3.2.1) (2026-10-08)
+
+
+### 🐛 Bug Fixes
+
+* useless libs and rework usage of esm/cjs ([691b268](https://github.com/ShadowZ11/nestjs-pdf/commit/691b2681121692e12cac7ae8efbe0919fb09ff3c))
+
 ## [3.2.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v3.1.0...v3.2.0) (2026-09-26)
 
 
