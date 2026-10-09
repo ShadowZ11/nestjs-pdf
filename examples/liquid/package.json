@@ -1,8 +1,8 @@
 {
-  "name": "nestjs-pdf-example-handlebars",
+  "name": "nestjs-pdf-example-liquid",
   "version": "1.0.0",
   "private": true,
-  "description": "Example: Handlebars template with nestjs-pdf",
+  "description": "Example: Liquid template with nestjs-pdf",
   "scripts": {
     "start": "ts-node main.ts",
     "typecheck": "tsc --noEmit"
@@ -13,7 +13,7 @@
     "@nestjs/platform-express": "^12.1.2",
     "@shad0wz7/nestjs-pdf": "^4.0.0",
     "express": "^5.3.0",
-    "handlebars": "^4.7.10",
+    "liquidjs": "^10.30.0",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {

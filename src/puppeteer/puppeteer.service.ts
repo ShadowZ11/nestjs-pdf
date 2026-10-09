@@ -13,6 +13,7 @@ import { BrowserService } from './browser/browser.service';
 import { EjsService } from './engines/ejs/ejs.service';
 import { EtaService } from './engines/eta/eta.service';
 import { HandlebarsService } from './engines/handlebars/handlebars.service';
+import { LiquidService } from './engines/liquid/liquid.service';
 import { MjmlService } from './engines/mjml/mjml.service';
 import { MustacheService } from './engines/mustache/mustache.service';
 import { NunjucksService } from './engines/nunjucks/nunjucks.service';
@@ -31,6 +32,7 @@ export class PuppeteerService {
   readonly #nunjucksService?: NunjucksService;
   readonly #etaService?: EtaService;
   readonly #mustacheService?: MustacheService;
+  readonly #liquidService?: LiquidService;
 
   constructor(
     browserService: BrowserService,
@@ -42,6 +44,7 @@ export class PuppeteerService {
     @Optional() nunjucksService?: NunjucksService,
     @Optional() etaService?: EtaService,
     @Optional() mustacheService?: MustacheService,
+    @Optional() liquidService?: LiquidService,
   ) {
     this.#browserService = browserService;
     this.#options = options;
@@ -52,6 +55,7 @@ export class PuppeteerService {
     this.#nunjucksService = nunjucksService;
     this.#etaService = etaService;
     this.#mustacheService = mustacheService;
+    this.#liquidService = liquidService;
   }
 
   readonly #limit = pLimit(3);
@@ -397,6 +401,34 @@ export class PuppeteerService {
       file,
       data,
       options?.mustacheOptions ?? this.#options.mustacheOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromLiquidString(
+    template: string,
+    data: Record<string, unknown> = {},
+    options?: PuppeteerParameters,
+  ) {
+    const liquidService = requireService(this.#liquidService, 'Liquid');
+    const html = liquidService.render(
+      template,
+      data,
+      options?.liquidOptions ?? this.#options.liquidOptions,
+    );
+    return this.generatePdfFromHtml(html, options);
+  }
+
+  async generatePdfFromLiquidFile(
+    file: string,
+    data: Record<string, unknown> = {},
+    options?: PuppeteerParameters,
+  ) {
+    const liquidService = requireService(this.#liquidService, 'Liquid');
+    const html = liquidService.renderFile(
+      file,
+      data,
+      options?.liquidOptions ?? this.#options.liquidOptions,
     );
     return this.generatePdfFromHtml(html, options);
   }

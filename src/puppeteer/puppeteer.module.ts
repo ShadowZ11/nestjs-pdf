@@ -14,6 +14,7 @@ import { BrowserService } from './browser/browser.service';
 import { EjsService } from './engines/ejs/ejs.service';
 import { EtaService } from './engines/eta/eta.service';
 import { HandlebarsService } from './engines/handlebars/handlebars.service';
+import { LiquidService } from './engines/liquid/liquid.service';
 import { MjmlService } from './engines/mjml/mjml.service';
 import { MustacheService } from './engines/mustache/mustache.service';
 import { NunjucksService } from './engines/nunjucks/nunjucks.service';
@@ -41,6 +42,7 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
     NunjucksService,
     EtaService,
     MustacheService,
+    LiquidService,
   ],
   exports: [
     PuppeteerService,
@@ -50,6 +52,7 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
     NunjucksService,
     EtaService,
     MustacheService,
+    LiquidService,
   ],
 })
 export class PuppeteerModule implements OnModuleInit {
@@ -85,6 +88,7 @@ export class PuppeteerModule implements OnModuleInit {
       NunjucksService,
       EtaService,
       MustacheService,
+      LiquidService,
     ];
 
     return {
@@ -98,6 +102,7 @@ export class PuppeteerModule implements OnModuleInit {
         NunjucksService,
         EtaService,
         MustacheService,
+        LiquidService,
       ],
     };
   }
@@ -124,6 +129,7 @@ export class PuppeteerModule implements OnModuleInit {
         NunjucksService,
         EtaService,
         MustacheService,
+        LiquidService,
       ],
       exports: [
         PuppeteerService,
@@ -133,6 +139,7 @@ export class PuppeteerModule implements OnModuleInit {
         NunjucksService,
         EtaService,
         MustacheService,
+        LiquidService,
       ],
     };
   }

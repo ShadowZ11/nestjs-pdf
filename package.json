@@ -14,6 +14,8 @@
     "pug",
     "eta",
     "mustache",
+    "liquid",
+    "liquidjs",
     "pdf-lib",
     "pdfjs-dist"
   ],
@@ -107,6 +109,7 @@
     "jiti": "^2.7.0",
     "knip": "^6.40.0",
     "lint-staged": "^17.6.0",
+    "liquidjs": "^10.30.0",
     "mjml": "^5.4.1",
     "mustache": "^4.2.0",
     "nunjucks": "^3.2.4",
@@ -125,9 +128,10 @@
     "@napi-rs/canvas": "^1.0.9",
     "@nestjs/common": "^10.0.0 || ^11.0.0 || ^12.0.0",
     "@nestjs/core": "^10.0.0 || ^11.0.0 || ^12.0.0",
-    "ejs": "^6.0.1",
+    "ejs": "^6.0.1 || ^7.0.0",
     "eta": "^4.6.0",
     "handlebars": "^4.7.9",
+    "liquidjs": "^10.30.0",
     "mjml": "^5.4.1",
     "mustache": "^4.2.0",
     "nunjucks": "^3.2.4",
@@ -145,6 +149,9 @@
       "optional": true
     },
     "handlebars": {
+      "optional": true
+    },
+    "liquidjs": {
       "optional": true
     },
     "mjml": {
