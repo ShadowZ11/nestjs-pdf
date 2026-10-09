@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import ejs, { type Data, type Options } from 'ejs';
+import type ejs from 'ejs';
+import type { Data, Options } from 'ejs';
 
 import { TemplateRenderException } from '../../../exceptions';
+import { loadEngine } from '../../libs/loadEngine.utils';
 
 export interface EjsOptions extends Omit<Options, 'async'> {
   async?: boolean;
@@ -9,9 +11,16 @@ export interface EjsOptions extends Omit<Options, 'async'> {
 
 @Injectable()
 export class EjsService {
+  #ejs?: typeof ejs;
+
+  get #engine(): typeof ejs {
+    return (this.#ejs ??= loadEngine<typeof ejs>('ejs', 'EJS'));
+  }
+
   async render(template: string, data: Data = {}, options?: EjsOptions) {
+    const engine = this.#engine;
     try {
-      return await ejs.render(template, data, {
+      return await engine.render(template, data, {
         async: true,
         ...options,
       });
@@ -25,8 +34,9 @@ export class EjsService {
   }
 
   async renderFile(filePath: string, data: Data = {}, options?: EjsOptions) {
+    const engine = this.#engine;
     try {
-      return await ejs.renderFile(filePath, data, {
+      return await engine.renderFile(filePath, data, {
         async: true,
         ...options,
       });

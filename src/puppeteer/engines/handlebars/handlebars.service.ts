@@ -2,13 +2,14 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, extname, join, resolve, sep } from 'node:path';
 
 import { Injectable } from '@nestjs/common';
-import Handlebars from 'handlebars';
+import type Handlebars from 'handlebars';
 
 import {
   NestjsPdfException,
   TemplateConfigurationException,
   TemplateRenderException,
 } from '../../../exceptions';
+import { loadEngine } from '../../libs/loadEngine.utils';
 
 export type HandlebarsHelper = {
   name: string;
@@ -34,8 +35,16 @@ export interface HandlebarsOptions {
 
 @Injectable()
 export class HandlebarsService {
+  #handlebars?: typeof Handlebars;
   #cachedOptions?: HandlebarsOptions;
   #cachedEnv?: typeof Handlebars;
+
+  get #engine(): typeof Handlebars {
+    return (this.#handlebars ??= loadEngine<typeof Handlebars>(
+      'handlebars',
+      'Handlebars',
+    ));
+  }
 
   render(
     template: string,
@@ -103,7 +112,7 @@ export class HandlebarsService {
       return this.#cachedEnv;
     }
 
-    const env = Handlebars.create();
+    const env = this.#engine.create();
 
     for (const helper of options.helpers ?? []) {
       env.registerHelper(helper.name, helper.fn);
