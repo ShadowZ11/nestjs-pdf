@@ -7,11 +7,11 @@
 [![codecov](https://codecov.io/github/ShadowZ11/nestjs-pdf/graph/badge.svg?token=K0MNB1ZKYK)](https://codecov.io/github/ShadowZ11/nestjs-pdf)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-A NestJS library to generate and manipulate PDFs using Puppeteer and multiple template engines, including Handlebars, EJS, Pug, MJML, Nunjucks, Eta and Mustache.
+A NestJS library to generate and manipulate PDFs using Puppeteer and multiple template engines, including Handlebars, EJS, Pug, MJML, Nunjucks, Eta, Mustache and Liquid.
 
 Main features:
 
-- Generate PDFs from HTML, Handlebars, EJS, Pug, MJML, Nunjucks, Eta or Mustache templates
+- Generate PDFs from HTML, Handlebars, EJS, Pug, MJML, Nunjucks, Eta, Mustache or Liquid templates
 - Concurrency limiting for Puppeteer jobs (p-limit)
 - Add signature fields based on a text anchor in an existing PDF
 - Text or image watermarks (centered or tiled) on generated or existing PDFs
@@ -50,6 +50,7 @@ Template engines are **optional peer dependencies**: none of them is installed w
 | Nunjucks   | `nunjucks`         |
 | Eta        | `eta`              |
 | Mustache   | `mustache`         |
+| Liquid     | `liquidjs`         |
 
 ```bash
 # e.g. to render Handlebars templates
@@ -250,6 +251,7 @@ The library exposes Puppeteer options via the `PuppeteerParameters` interface (s
 | `nunjucksOptions`           | The nunjucks options can be found on [Nunjucks documentation](https://mozilla.github.io/nunjucks/api.html#configure)                                                                                                                                                                                                                                                                                                 |
 | `etaOptions`                | The eta options can be found on [Eta documentation](https://eta.js.org/docs/4.x.x/api/configuration)                                                                                                                                                                                                                                                                                                                 |
 | `mustacheOptions`           | The mustache options can be found on [Mustache documentation](https://mustache.github.io/mustache.5.html)                                                                                                                                                                                                                                                                                                            |
+| `liquidOptions`             | The liquid options can be found on [LiquidJS documentation](https://liquidjs.com/tutorials/options.html)                                                                                                                                                                                                                                                                                                             |
 | `browser`                   | The browser to use for the PDF generation. By default: `Browser.CHROMIUM`. Allowed values `Browser.CHROMIUM`, `Browser.CHROMEHEADLESSSHELL`, `Browser.CHROME`, `Browser.FIREFOX`, `Browser.CHROMEDRIVER` ([Official documentation of Browser](https://pptr.dev/browsers-api/browsers.browser))                                                                                                                       |
 | `browserTag`                | The version of the browser to use for the PDF generation. By default: `BrowserTag.LATEST` if Browser is **CHROMIUM** else `BrowserTag.STABLE`. Allowed values `BrowserTag.STABLE`, `BrowserTag.LATEST`, `BrowserTag.BETA`, `BrowserTag.DEV`, `BrowserTag.CANARY`                                                                                                                                                     |
 | `browserInstallBaseUrl`     | The baseUrl used for the installation of the browser. This baseUrl is passed to the [`install`](https://pptr.dev/browsers-api/browsers.install) method of `@puppeteer/browsers`                                                                                                                                                                                                                                      |

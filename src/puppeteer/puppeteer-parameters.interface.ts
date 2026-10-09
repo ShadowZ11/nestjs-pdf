@@ -8,6 +8,7 @@ import { type BrowserTag } from './browser/browser.service';
 import { type EjsOptions } from './engines/ejs/ejs.service';
 import { type EtaOptions } from './engines/eta/eta.service';
 import { type HandlebarsOptions } from './engines/handlebars/handlebars.service';
+import { type LiquidOptions } from './engines/liquid/liquid.service';
 import { type MustacheOptions } from './engines/mustache/mustache.service';
 import { type NunjucksOptions } from './engines/nunjucks/nunjucks.service';
 import { type PugOptions } from './engines/pug/pug.service';
@@ -29,6 +30,7 @@ export interface PuppeteerParameters {
   nunjucksOptions?: NunjucksOptions;
   etaOptions?: EtaOptions;
   mustacheOptions?: MustacheOptions;
+  liquidOptions?: LiquidOptions;
   chromiumRevision?: string;
   buildId?: string;
   headless?: boolean | 'shell';

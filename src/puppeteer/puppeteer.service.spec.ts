@@ -16,6 +16,7 @@ import { BrowserService } from './browser/browser.service';
 import { EjsService } from './engines/ejs/ejs.service';
 import { EtaService } from './engines/eta/eta.service';
 import { HandlebarsService } from './engines/handlebars/handlebars.service';
+import { LiquidService } from './engines/liquid/liquid.service';
 import { MjmlService } from './engines/mjml/mjml.service';
 import { MustacheService } from './engines/mustache/mustache.service';
 import { NunjucksService } from './engines/nunjucks/nunjucks.service';
@@ -1648,6 +1649,129 @@ describe('PuppeteerService', () => {
 
       expect(mustacheService.renderFile).toHaveBeenCalledWith(
         '/templates/invoice.mustache',
+        { title: 'Hello' },
+        undefined,
+      );
+    });
+  });
+
+  describe('generatePdfFromLiquidString', () => {
+    it('should render Liquid template string to HTML', async () => {
+      const liquidService = {
+        render: vi.fn().mockReturnValue('<p>Rendered Liquid</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: LiquidService,
+          useValue: liquidService,
+        },
+      ]);
+      const generatePdfSpy = vi
+        .spyOn(localService, 'generatePdfFromHtml')
+        .mockResolvedValue(new Uint8Array([1]));
+      const options = {
+        liquidOptions: { strictVariables: true },
+      };
+
+      await localService.generatePdfFromLiquidString(
+        '{{ title }}',
+        { title: 'Hello' },
+        options,
+      );
+
+      expect(liquidService.render).toHaveBeenCalledWith(
+        '{{ title }}',
+        { title: 'Hello' },
+        options.liquidOptions,
+      );
+      expect(generatePdfSpy).toHaveBeenCalledWith(
+        '<p>Rendered Liquid</p>',
+        options,
+      );
+    });
+
+    it('should fall back to the global liquidOptions when no options are passed', async () => {
+      const liquidService = {
+        render: vi.fn().mockReturnValue('<p>Rendered Liquid</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: LiquidService,
+          useValue: liquidService,
+        },
+      ]);
+      vi.spyOn(localService, 'generatePdfFromHtml').mockResolvedValue(
+        new Uint8Array([1]),
+      );
+
+      await localService.generatePdfFromLiquidString('{{ title }}', {
+        title: 'Hello',
+      });
+
+      expect(liquidService.render).toHaveBeenCalledWith(
+        '{{ title }}',
+        { title: 'Hello' },
+        undefined,
+      );
+    });
+  });
+
+  describe('generatePdfFromLiquidFile', () => {
+    it('should render Liquid file to HTML', async () => {
+      const liquidService = {
+        renderFile: vi.fn().mockReturnValue('<p>Rendered Liquid file</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: LiquidService,
+          useValue: liquidService,
+        },
+      ]);
+      const generatePdfSpy = vi
+        .spyOn(localService, 'generatePdfFromHtml')
+        .mockResolvedValue(new Uint8Array([1]));
+      const options = {
+        liquidOptions: { root: ['/templates/partials'] },
+      };
+
+      await localService.generatePdfFromLiquidFile(
+        '/templates/invoice.liquid',
+        { title: 'Hello' },
+        options,
+      );
+
+      expect(liquidService.renderFile).toHaveBeenCalledWith(
+        '/templates/invoice.liquid',
+        { title: 'Hello' },
+        options.liquidOptions,
+      );
+      expect(generatePdfSpy).toHaveBeenCalledWith(
+        '<p>Rendered Liquid file</p>',
+        options,
+      );
+    });
+
+    it('should fall back to the global liquidOptions when no options are passed', async () => {
+      const liquidService = {
+        renderFile: vi.fn().mockReturnValue('<p>Rendered Liquid file</p>'),
+      };
+      const localService = await createServiceWithProviders([
+        {
+          provide: LiquidService,
+          useValue: liquidService,
+        },
+      ]);
+      vi.spyOn(localService, 'generatePdfFromHtml').mockResolvedValue(
+        new Uint8Array([1]),
+      );
+
+      await localService.generatePdfFromLiquidFile(
+        '/templates/invoice.liquid',
+        { title: 'Hello' },
+      );
+
+      expect(liquidService.renderFile).toHaveBeenCalledWith(
+        '/templates/invoice.liquid',
         { title: 'Hello' },
         undefined,
       );
