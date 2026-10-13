@@ -1,19 +1,27 @@
 import { readFileSync } from 'node:fs';
 
 import { Injectable } from '@nestjs/common';
-import mjml from 'mjml';
-import { type MJMLParsingOptions } from 'mjml-core';
+import type mjml from 'mjml';
+import type { MJMLParsingOptions } from 'mjml-core';
 
 import { TemplateRenderException } from '../../../exceptions';
+import { loadEngine } from '../../libs/loadEngine.utils';
 
 @Injectable()
 export class MjmlService {
+  #mjml?: typeof mjml;
+
+  get #engine(): typeof mjml {
+    return (this.#mjml ??= loadEngine<typeof mjml>('mjml', 'MJML'));
+  }
+
   async render(
     template: string,
     options?: MJMLParsingOptions,
   ): Promise<string> {
+    const engine = this.#engine;
     try {
-      const { html } = await mjml(template, options);
+      const { html } = await engine(template, options);
       return html;
     } catch (error) {
       throw new TemplateRenderException(

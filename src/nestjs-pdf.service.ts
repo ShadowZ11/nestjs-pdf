@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Data } from 'ejs';
-import { LocalsObject } from 'pug';
+import type { Data } from 'ejs';
+import type { LocalsObject } from 'pug';
 
 import { addSignatureFieldUsingAnchor } from './helpers/signature.helper';
 import {

@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
-import { Data } from 'ejs';
+import type { Data } from 'ejs';
 import pLimit from 'p-limit';
-import { LocalsObject } from 'pug';
+import type { LocalsObject } from 'pug';
 import { PDFOptions } from 'puppeteer';
 
 import { NestjsPdfException, PdfGenerationException } from '../exceptions';

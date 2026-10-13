@@ -1,18 +1,5 @@
 # nestjs-pdf
 
-> **v3 — ESM-first, NestJS 10, 11 & 12.** This is the active `main` line: authored
-> in ESM, published as a dual CJS/ESM package, and supports **NestJS 10, 11 and 12**.
->
-> Need a pure CommonJS package or a Node.js version older than `20.19`? Use the
-> maintenance `v2` branch instead:
->
-> ```bash
-> npm install @shad0wz7/nestjs-pdf@^2
-> ```
->
-> See the [`v2` branch README](https://github.com/ShadowZ11/nestjs-pdf/blob/v2/README.md)
-> for details. It receives maintenance/security fixes only — new features land on v3.
-
 [![npm version](https://img.shields.io/npm/v/%40shad0wz7%2Fnestjs-pdf?label=npm%20version)](https://www.npmjs.com/package/%40shad0wz7%2Fnestjs-pdf)
 [![NPM License](https://img.shields.io/npm/l/%40shad0wz7%2Fnestjs-pdf)](https://github.com/ShadowZ11/nestjs-pdf?tab=MIT-1-ov-file)
 [![npm downloads](https://img.shields.io/npm/dm/%40shad0wz7%2Fnestjs-pdf?label=npm%20downloads)](https://www.npmjs.com/package/%40shad0wz7%2Fnestjs-pdf)
@@ -50,19 +37,38 @@ yarn add @shad0wz7/nestjs-pdf
 pnpm add ../path/to/nestjs-pdf
 ```
 
+### Template engines
+
+Template engines are **optional peer dependencies**: none of them is installed with the library. Install only the ones you use, as dependencies of your own project:
+
+| Engine     | Package to install |
+| ---------- | ------------------ |
+| Handlebars | `handlebars`       |
+| EJS        | `ejs`              |
+| Pug        | `pug`              |
+| MJML       | `mjml`             |
+| Nunjucks   | `nunjucks`         |
+| Eta        | `eta`              |
+| Mustache   | `mustache`         |
+
+```bash
+# e.g. to render Handlebars templates
+npm install handlebars
+```
+
+Engines are loaded lazily, the first time you render a template with them: your application starts fine with any subset of engines installed. Rendering with an engine whose package is missing throws an `EngineNotAvailableException` (code `ENGINE_NOT_AVAILABLE`) telling you what to install:
+
+```text
+Pug engine is not available: the 'pug' package is not installed. Run `npm install pug` to use it.
+```
+
+Anchor-based signature placement also relies on `pdfjs-dist`, which needs `@napi-rs/canvas` to be installed in your project (see the signature example in [Quick start](#quick-start)).
+
+> **Upgrading from v3:** engines used to be installed automatically. If you relied on that, add the engines you use to your project's dependencies.
+
 ## Quick start
 
 Import the module and configure it in your Nest application:
-
-To use a template engine, you need to install the corresponding package as a dependency in your project:
-
-- For Handlebars: `npm install handlebars`
-- For EJS: `npm install ejs`
-- For Pug: `npm install pug`
-- For MJML: `npm install mjml`
-- For Nunjucks: `npm install nunjucks`
-- For Eta: `npm install eta`
-- For Mustache: `npm install mustache`
 
 ```ts
 import { Module } from '@nestjs/common';

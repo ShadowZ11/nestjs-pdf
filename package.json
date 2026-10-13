@@ -74,17 +74,18 @@
     "@puppeteer/browsers": "^3.2.3",
     "deepmerge-ts": "^8.0.2",
     "pdf-lib": "^1.17.1",
-    "pdfjs-dist": "^6.3.289",
+    "pdfjs-dist": "^6.4.299",
     "puppeteer": "^25.12.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
     "@eslint/js": "^10.0.1",
+    "@napi-rs/canvas": "^1.0.10",
     "@nestjs/cli": "^12.0.8",
     "@nestjs/schematics": "^12.0.6",
-    "@nestjs/testing": "^12.1.1",
-    "@swc/core": "^1.16.2",
+    "@nestjs/testing": "^12.1.2",
+    "@swc/core": "^1.16.13",
     "@types/ejs": "^3.1.5",
     "@types/mjml": "^5.0.0",
     "@types/mjml-core": "^5.1.0",
@@ -92,42 +93,72 @@
     "@types/node": "^20.19.43",
     "@types/nunjucks": "^3.2.6",
     "@types/pug": "^2.0.10",
-    "@vitest/coverage-v8": "^5.0.2",
-    "eslint": "^10.11.0",
+    "@vitest/coverage-v8": "^5.0.3",
+    "ejs": "^7.0.1",
+    "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "eslint-plugin-unused-imports": "^4.4.1",
-    "globals": "^17.12.0",
+    "eta": "^4.6.0",
+    "globals": "^17.13.0",
+    "handlebars": "^4.7.10",
     "husky": "^9.1.7",
     "jiti": "^2.7.0",
-    "knip": "^6.38.0",
+    "knip": "^6.40.0",
     "lint-staged": "^17.6.0",
+    "mjml": "^5.4.1",
+    "mustache": "^4.2.0",
+    "nunjucks": "^3.2.4",
     "p-limit": "^7.3.3",
     "prettier": "^3.9.9",
+    "pug": "^3.0.4",
     "reflect-metadata": "^0.2.2",
     "sort-package-json": "^4.0.0",
     "tsdown": "^0.23.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.71.0",
+    "typescript-eslint": "^8.71.1",
     "unplugin-swc": "^2.0.0",
-    "vitest": "^5.0.2"
+    "vitest": "^5.0.3"
   },
   "peerDependencies": {
+    "@napi-rs/canvas": "^1.0.9",
     "@nestjs/common": "^10.0.0 || ^11.0.0 || ^12.0.0",
     "@nestjs/core": "^10.0.0 || ^11.0.0 || ^12.0.0",
-    "rxjs": "^7.8.0"
-  },
-  "optionalDependencies": {
-    "@napi-rs/canvas": "^1.0.9",
     "ejs": "^6.0.1",
     "eta": "^4.6.0",
     "handlebars": "^4.7.9",
     "mjml": "^5.4.1",
-    "mjml-core": "^5.4.1",
     "mustache": "^4.2.0",
     "nunjucks": "^3.2.4",
-    "pug": "^3.0.4"
+    "pug": "^3.0.4",
+    "rxjs": "^7.8.0"
+  },
+  "peerDependenciesMeta": {
+    "@napi-rs/canvas": {
+      "optional": true
+    },
+    "ejs": {
+      "optional": true
+    },
+    "eta": {
+      "optional": true
+    },
+    "handlebars": {
+      "optional": true
+    },
+    "mjml": {
+      "optional": true
+    },
+    "mustache": {
+      "optional": true
+    },
+    "nunjucks": {
+      "optional": true
+    },
+    "pug": {
+      "optional": true
+    }
   },
   "packageManager": "pnpm@11.25.0+sha512.5cde925b4f075f725eb71fbae18a42ffe784524789f19b61c731cb8721ec28aaee160e01a8d5af4fedb2a42cdbf300efe23db356b0d4a17b4d63e11f8ab7c956",
   "engines": {

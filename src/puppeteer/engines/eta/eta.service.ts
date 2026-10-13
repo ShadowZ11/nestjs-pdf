@@ -2,9 +2,14 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { Injectable } from '@nestjs/common';
-import { Eta, EtaConfig } from 'eta';
+import type * as EtaModule from 'eta';
+import type { Eta, EtaConfig } from 'eta';
 
-import { TemplateRenderException } from '../../../exceptions';
+import {
+  EngineNotAvailableException,
+  TemplateRenderException,
+} from '../../../exceptions';
+import { loadEngine } from '../../libs/loadEngine.utils';
 
 export interface EtaOptions extends Partial<EtaConfig> {
   cache?: boolean;
@@ -17,16 +22,13 @@ export interface EtaOptions extends Partial<EtaConfig> {
 
 @Injectable()
 export class EtaService {
-  readonly #eta: Eta;
+  #etaModule?: typeof EtaModule;
+  #eta?: Eta;
   readonly #templateCache: Map<string, string> = new Map();
   readonly #maxCacheSize = 100;
 
-  constructor() {
-    this.#eta = new Eta({
-      cache: true,
-      autoEscape: true,
-      useWith: true,
-    });
+  get #engine(): typeof EtaModule {
+    return (this.#etaModule ??= loadEngine<typeof EtaModule>('eta', 'Eta'));
   }
 
   /**
@@ -41,6 +43,7 @@ export class EtaService {
     data: Record<string, unknown> = {},
     options?: EtaOptions,
   ): string {
+    const { Eta } = this.#engine;
     try {
       const eta =
         options && Object.keys(options).length > 0
@@ -51,7 +54,11 @@ export class EtaService {
               ...options,
               varName: options.varName ?? 'it',
             })
-          : this.#eta;
+          : (this.#eta ??= new Eta({
+              cache: true,
+              autoEscape: true,
+              useWith: true,
+            }));
 
       return eta.renderString(template, data);
     } catch (error) {
@@ -91,6 +98,9 @@ export class EtaService {
       }
       return this.render(template, data, options);
     } catch (error) {
+      if (error instanceof EngineNotAvailableException) {
+        throw error;
+      }
       throw new TemplateRenderException(
         'Eta',
         `Eta file rendering failed for ${filePath}: ${String(error)}`,

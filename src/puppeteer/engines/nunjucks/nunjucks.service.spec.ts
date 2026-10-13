@@ -1,5 +1,10 @@
 import { type Mock, vi } from 'vitest';
 
+vi.mock('../../libs/loadEngine.utils', async () => {
+  const { default: engine } = await import('nunjucks');
+  return { loadEngine: () => engine };
+});
+
 vi.mock('nunjucks', () => ({
   default: {
     configure: vi.fn(),
@@ -28,6 +33,20 @@ describe('NunjucksService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('should load and configure the engine only once', () => {
+    (configure as Mock).mockClear();
+
+    service.render('first');
+    service.render('second');
+
+    expect(configure).toHaveBeenCalledTimes(1);
+    expect(configure).toHaveBeenCalledWith({
+      noCache: true,
+      trimBlocks: true,
+      lstripBlocks: true,
+    });
   });
 
   describe('render', () => {
