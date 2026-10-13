@@ -27,6 +27,8 @@ describe('NestjsPdfService', () => {
     generatePdfFromEtaFile: vi.fn(),
     generatePdfFromMustacheString: vi.fn(),
     generatePdfFromMustacheFile: vi.fn(),
+    generatePdfFromLiquidString: vi.fn(),
+    generatePdfFromLiquidFile: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -716,6 +718,116 @@ describe('NestjsPdfService', () => {
       await expect(
         service.generatePdfFromMustacheFile(filePath),
       ).rejects.toThrow('File not found');
+    });
+  });
+
+  describe('generatePdfFromLiquidString', () => {
+    it('should delegate to puppeteerService.generatePdfFromLiquidString', async () => {
+      const template = '<p>{{ name }}</p>';
+      const data = { name: 'Grace' };
+      const mockPdf = new Uint8Array([99, 100, 101]);
+      const spy = vi
+        .spyOn(puppeteerService, 'generatePdfFromLiquidString')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromLiquidString(template, data);
+
+      expect(spy).toHaveBeenCalledWith(template, data, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should handle default data', async () => {
+      const template = '<p>Hello Liquid</p>';
+      const mockPdf = new Uint8Array([102, 103, 104]);
+      const spy = vi
+        .spyOn(puppeteerService, 'generatePdfFromLiquidString')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromLiquidString(template);
+
+      expect(spy).toHaveBeenCalledWith(template, {}, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should pass custom options', async () => {
+      const template = '<p>{{ title }}</p>';
+      const data = { title: 'Liquid Template' };
+      const options = { pdfOptions: { format: 'A4' as const } };
+      const mockPdf = new Uint8Array([105, 106, 107]);
+      const spy = vi
+        .spyOn(puppeteerService, 'generatePdfFromLiquidString')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromLiquidString(template, data, options);
+
+      expect(spy).toHaveBeenCalledWith(template, data, options);
+    });
+
+    it('should propagate errors', async () => {
+      const template = '<p>{{ invalid }}</p>';
+      const error = new Error('Liquid render error');
+      vi.spyOn(
+        puppeteerService,
+        'generatePdfFromLiquidString',
+      ).mockRejectedValue(error);
+
+      await expect(
+        service.generatePdfFromLiquidString(template),
+      ).rejects.toThrow('Liquid render error');
+    });
+  });
+
+  describe('generatePdfFromLiquidFile', () => {
+    it('should delegate to puppeteerService.generatePdfFromLiquidFile', async () => {
+      const filePath = '/path/to/template.liquid';
+      const data = { user: 'Charlie' };
+      const mockPdf = new Uint8Array([108, 109, 110]);
+      const spy = vi
+        .spyOn(puppeteerService, 'generatePdfFromLiquidFile')
+        .mockResolvedValue(mockPdf);
+
+      const result = await service.generatePdfFromLiquidFile(filePath, data);
+
+      expect(spy).toHaveBeenCalledWith(filePath, data, undefined);
+      expect(result).toEqual(mockPdf);
+    });
+
+    it('should handle default data', async () => {
+      const filePath = '/templates/document.liquid';
+      const mockPdf = new Uint8Array([111, 112, 113]);
+      const spy = vi
+        .spyOn(puppeteerService, 'generatePdfFromLiquidFile')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromLiquidFile(filePath);
+
+      expect(spy).toHaveBeenCalledWith(filePath, {}, undefined);
+    });
+
+    it('should pass options through', async () => {
+      const filePath = '/templates/invoice.liquid';
+      const data = { amount: '750' };
+      const options = { pdfOptions: { format: 'A4' as const } };
+      const mockPdf = new Uint8Array([114, 115, 116]);
+      const spy = vi
+        .spyOn(puppeteerService, 'generatePdfFromLiquidFile')
+        .mockResolvedValue(mockPdf);
+
+      await service.generatePdfFromLiquidFile(filePath, data, options);
+
+      expect(spy).toHaveBeenCalledWith(filePath, data, options);
+    });
+
+    it('should propagate errors', async () => {
+      const filePath = '/path/to/missing.liquid';
+      const error = new Error('File not found');
+      vi.spyOn(puppeteerService, 'generatePdfFromLiquidFile').mockRejectedValue(
+        error,
+      );
+
+      await expect(service.generatePdfFromLiquidFile(filePath)).rejects.toThrow(
+        'File not found',
+      );
     });
   });
 

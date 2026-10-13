@@ -8,6 +8,7 @@ import { EngineNotAvailableException } from '../../exceptions';
 import { EjsService } from './ejs/ejs.service';
 import { EtaService } from './eta/eta.service';
 import { HandlebarsService } from './handlebars/handlebars.service';
+import { LiquidService } from './liquid/liquid.service';
 import { MjmlService } from './mjml/mjml.service';
 import { MustacheService } from './mustache/mustache.service';
 import { NunjucksService } from './nunjucks/nunjucks.service';
@@ -42,6 +43,7 @@ describe('Template engines without their package installed', () => {
       new EjsService(),
       new EtaService(),
       new HandlebarsService(),
+      new LiquidService(),
       new MjmlService(),
       new MustacheService(),
       new NunjucksService(),
@@ -73,6 +75,8 @@ describe('Template engines without their package installed', () => {
           },
         ),
     ],
+    ['Liquid', () => new LiquidService().render('Hello')],
+    ['Liquid', () => new LiquidService().renderFile(templatePath)],
     ['Mustache', () => new MustacheService().render('Hello')],
     ['Mustache', () => new MustacheService().renderFile(templatePath)],
     ['Nunjucks', () => new NunjucksService().render('Hello')],
