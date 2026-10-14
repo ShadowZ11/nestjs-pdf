@@ -1,5 +1,22 @@
 # Changelog
 
+## [4.0.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v3.2.0...v4.0.0) (2026-10-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* ejs, eta, handlebars, mjml, mustache, nunjucks, pug and @napi-rs/canvas are no longer installed automatically. Install the engines you use in your own project.
+
+### ✨ Features
+
+* add liquid template engine ([d14cbfe](https://github.com/ShadowZ11/nestjs-pdf/commit/d14cbfee08fdd7a626bacf25642a995bf1f342c4))
+* make template engines optional peer dependencies ([7383aa1](https://github.com/ShadowZ11/nestjs-pdf/commit/7383aa14d9411d8185f6df3de372339557c821a2))
+
+
+### 🐛 Bug Fixes
+
+* useless libs and rework usage of esm/cjs ([691b268](https://github.com/ShadowZ11/nestjs-pdf/commit/691b2681121692e12cac7ae8efbe0919fb09ff3c))
+
 ## [3.2.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v3.1.0...v3.2.0) (2026-09-26)
 
 
