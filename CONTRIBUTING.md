@@ -78,7 +78,7 @@ Please keep changes small and focused.
 
 ### Commit message convention
 
-We recommend [Conventional Commits](https://www.conventionalcommits.org/):
+Commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/). This is enforced locally by [commitlint](https://commitlint.js.org/) through a Husky `commit-msg` hook:
 
 - `feat: add new functionality`
 - `fix: correct a bug`
