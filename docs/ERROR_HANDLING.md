@@ -20,7 +20,8 @@ All exceptions:
 | `TemplateRenderException`        | `TEMPLATE_RENDER_ERROR`        | A template engine (Handlebars, Pug, EJS, Nunjucks, Eta, Mustache, Liquid, MJML) fails to compile/render a template or read a template file                                                                                                                                      | `engine: string` (e.g. `'Handlebars'`) |
 | `BrowserInstallationException`   | `BROWSER_INSTALLATION_ERROR`   | Puppeteer's browser binary could not be installed/resolved                                                                                                                                                                                                                      | -                                      |
 | `BrowserUnavailableException`    | `BROWSER_UNAVAILABLE`          | A new PDF job is requested while the module is shutting down                                                                                                                                                                                                                    | -                                      |
-| `PdfGenerationException`         | `PDF_GENERATION_ERROR`         | The Puppeteer page fails to render/print the PDF (navigation, timeout, etc.)                                                                                                                                                                                                    | -                                      |
+| `PdfGenerationException`         | `PDF_GENERATION_ERROR`         | The PDF provider fails to render/print the PDF: Puppeteer page error, or Gotenberg/Api2Pdf HTTP error (status and body in the message)                                                                                                                                          | -                                      |
+| `RendererConfigurationException` | `RENDERER_CONFIGURATION_ERROR` | Invalid `provider` (unknown `type`, empty `url`/`apiKey`, thrown at startup), an unparsable page size/margin for a remote provider, or `security` used with a remote provider                                                                                                   | -                                      |
 | `SignatureDependencyException`   | `SIGNATURE_DEPENDENCY_ERROR`   | `pdfjs-dist` (and its `@napi-rs/canvas` peer dependency) can't be loaded for anchor-based signature placement                                                                                                                                                                   | -                                      |
 | `SignaturePlacementException`    | `SIGNATURE_PLACEMENT_ERROR`    | The page targeted for signature placement doesn't exist in the PDF                                                                                                                                                                                                              | -                                      |
 | `WatermarkException`             | `WATERMARK_ERROR`              | Invalid watermark options (no `text`/`image`, bad `color`/`opacity`/`fontSize`/`imageWidth`/`tileSpacing`, out-of-range `pages`, non-PNG/JPEG image, text outside WinAnsi) or a PDF that can't be processed                                                                     | -                                      |
@@ -179,6 +180,8 @@ const STATUS_BY_CODE: Record<NestjsPdfErrorCode, number> = {
     HttpStatus.INTERNAL_SERVER_ERROR,
   [NestjsPdfErrorCode.SIGNATURE_PLACEMENT_ERROR]: HttpStatus.BAD_REQUEST,
   [NestjsPdfErrorCode.WATERMARK_ERROR]: HttpStatus.BAD_REQUEST,
+  [NestjsPdfErrorCode.RENDERER_CONFIGURATION_ERROR]:
+    HttpStatus.INTERNAL_SERVER_ERROR,
 };
 
 @Catch(NestjsPdfException)
@@ -200,5 +203,5 @@ export class NestjsPdfExceptionFilter implements ExceptionFilter {
 
 - `NestjsPdfException` is abstract — you cannot `throw new NestjsPdfException(...)` directly, only its concrete subclasses.
 - The library doesn't log on your behalf when throwing these exceptions, except during the Puppeteer step (page rendering/printing and watermark stamping): any error raised there is passed to `Logger.error` before being rethrown. Beyond that, logging is left to the consumer via the `catch` block.
-- If a `NestjsPdfException` is thrown during the Puppeteer step (e.g. a `WatermarkException` or a `BrowserInstallationException`), it is propagated as-is and never wrapped a second time into a `PdfGenerationException`.
+- If a `NestjsPdfException` is thrown during the rendering step (e.g. a `WatermarkException` or a `BrowserInstallationException`), it is propagated as-is and never wrapped a second time into a `PdfGenerationException`.
 - A job cancelled through an `AbortSignal` rejects with the signal's `reason` (an `AbortError` by default, a `TimeoutError` for `AbortSignal.timeout()`), not with a `NestjsPdfException`.

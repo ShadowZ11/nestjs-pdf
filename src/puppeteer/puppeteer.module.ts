@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 
 import { PDF_PARAMETERS } from '../helpers/tokens';
+import { createPdfRenderer, usesPuppeteer } from '../renderers/create-renderer';
+import { PDF_RENDERER } from '../renderers/pdf-renderer.interface';
 import { BrowserService } from './browser/browser.service';
 import { EjsService } from './engines/ejs/ejs.service';
 import { EtaService } from './engines/eta/eta.service';
@@ -32,10 +34,18 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
   ) => Promise<PuppeteerParameters> | PuppeteerParameters;
 }
 
+/** Builds the renderer of the configured provider, once the parameters are known. */
+const pdfRendererProvider: Provider = {
+  provide: PDF_RENDERER,
+  inject: [PDF_PARAMETERS, BrowserService],
+  useFactory: createPdfRenderer,
+};
+
 @Module({
   providers: [
     PuppeteerService,
     BrowserService,
+    pdfRendererProvider,
     MjmlService,
     PugService,
     EjsService,
@@ -68,7 +78,7 @@ export class PuppeteerModule implements OnModuleInit {
   }
 
   async onModuleInit() {
-    if (!this.#pdfParams.executablePath) {
+    if (usesPuppeteer(this.#pdfParams) && !this.#pdfParams.executablePath) {
       await this.#browserService.install(
         this.#pdfParams.useLockedBrowser ?? false,
       );
@@ -122,6 +132,7 @@ export class PuppeteerModule implements OnModuleInit {
         pdfParamsProvider,
         PuppeteerService,
         BrowserService,
+        pdfRendererProvider,
         HandlebarsService,
         MjmlService,
         PugService,

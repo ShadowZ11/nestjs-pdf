@@ -2,23 +2,28 @@ import { existsSync, promises, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import {
+import type {
   Browser as BrowserType,
   BrowserPlatform,
-  canDownload,
-  detectBrowserPlatform,
-  getInstalledBrowsers,
-  install,
-  resolveBuildId,
 } from '@puppeteer/browsers';
-import { Browser, BrowserContext, launch } from 'puppeteer';
+import type { Browser, BrowserContext } from 'puppeteer';
 
 import {
   BrowserInstallationException,
   BrowserUnavailableException,
   NestjsPdfException,
 } from '../../exceptions';
+import { usesPuppeteer } from '../../renderers/create-renderer';
+import {
+  loadPuppeteer,
+  loadPuppeteerBrowsers,
+} from '../libs/loadPuppeteer.utils';
 import type { PuppeteerParameters } from '../puppeteer-parameters.interface';
+
+// Enum values of @puppeteer/browsers, spelled out: a value import would load the
+// optional package as soon as the library is imported, even for remote providers.
+const CHROMIUM = 'chromium' as BrowserType;
+const LINUX = 'linux' as BrowserPlatform;
 
 export enum BrowserTag {
   LATEST = 'latest',
@@ -112,7 +117,11 @@ export class BrowserService implements OnModuleDestroy {
       }
     }
 
-    if (this.#options?.cleanupBrowserCacheOnExit !== false) {
+    if (
+      this.#options !== undefined &&
+      usesPuppeteer(this.#options) &&
+      this.#options.cleanupBrowserCacheOnExit !== false
+    ) {
       await this.#cleanupCacheBestEffort();
     }
   }
@@ -271,10 +280,12 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   async #doInstall(lock: boolean) {
+    const { canDownload, detectBrowserPlatform, install, resolveBuildId } =
+      await loadPuppeteerBrowsers();
     const browser: BrowserType = this.#browser;
     const versionTag: BrowserTag = this.#browserTag;
 
-    const browserPlatform = detectBrowserPlatform() ?? BrowserPlatform.LINUX;
+    const browserPlatform = detectBrowserPlatform() ?? LINUX;
 
     let buildId: string;
     if (this.#buildId === undefined) {
@@ -332,7 +343,7 @@ export class BrowserService implements OnModuleDestroy {
   #loadBrowser(): void {
     let browser: BrowserType;
     if (this.#options?.browser === undefined) {
-      browser = BrowserType.CHROMIUM;
+      browser = CHROMIUM;
     } else {
       browser = this.#options.browser;
     }
@@ -346,7 +357,7 @@ export class BrowserService implements OnModuleDestroy {
   #loadBrowserTag(): void {
     let versionTag: BrowserTag;
     if (this.#options?.browserTag === undefined) {
-      if (this.#browser === BrowserType.CHROMIUM) {
+      if (this.#browser === CHROMIUM) {
         versionTag = BrowserTag.LATEST;
       } else {
         versionTag = BrowserTag.STABLE;
@@ -390,6 +401,7 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   async hasBrowserInstalled(browser: BrowserType, buildId: string) {
+    const { getInstalledBrowsers } = await loadPuppeteerBrowsers();
     const installedBrowserlist = await getInstalledBrowsers({
       cacheDir: this.#cacheDir,
     });
@@ -401,9 +413,11 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   async getExecutablePath(): Promise<string> {
+    const { detectBrowserPlatform, getInstalledBrowsers, resolveBuildId } =
+      await loadPuppeteerBrowsers();
     const browser: BrowserType = this.#browser;
     const versionTag: BrowserTag = this.#browserTag;
-    const browserPlatform = detectBrowserPlatform() ?? BrowserPlatform.LINUX;
+    const browserPlatform = detectBrowserPlatform() ?? LINUX;
     let buildId: string | null = null;
     if (this.#useLockedBrowser) {
       buildId = this.getLockedBuildId(browser);
@@ -435,6 +449,7 @@ export class BrowserService implements OnModuleDestroy {
     const executablePath =
       executablePathBin ?? (await this.getExecutablePath());
 
+    const { launch } = await loadPuppeteer();
     const browser = await launch({
       executablePath,
       headless,

@@ -7,12 +7,13 @@
 [![codecov](https://codecov.io/github/ShadowZ11/nestjs-pdf/graph/badge.svg?token=K0MNB1ZKYK)](https://codecov.io/github/ShadowZ11/nestjs-pdf)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-A NestJS library to generate and manipulate PDFs using Puppeteer and multiple template engines, including Handlebars, EJS, Pug, MJML, Nunjucks, Eta, Mustache and Liquid.
+A NestJS library to generate and manipulate PDFs from multiple template engines (Handlebars, EJS, Pug, MJML, Nunjucks, Eta, Mustache and Liquid), printed by a local Puppeteer browser, a [Gotenberg](https://gotenberg.dev) server or the [Api2Pdf](https://www.api2pdf.com) API.
 
 Main features:
 
 - Generate PDFs from HTML, Handlebars, EJS, Pug, MJML, Nunjucks, Eta, Mustache or Liquid templates
-- Concurrency limiting for Puppeteer jobs (p-limit)
+- Pluggable PDF providers: local Puppeteer (default), Gotenberg or Api2Pdf, behind the same service API
+- Concurrency limiting for PDF jobs (p-limit)
 - Add signature fields based on a text anchor in an existing PDF
 - Text or image watermarks (centered or tiled) on generated or existing PDFs
 - Simple API (module and service) to integrate easily into a Nest application
@@ -36,6 +37,18 @@ yarn add @shad0wz7/nestjs-pdf
 # If using the local source, from the other project:
 pnpm add ../path/to/nestjs-pdf
 ```
+
+### PDF provider
+
+Pick who prints the PDFs and install what it needs:
+
+| Provider              | Install                                     | Notes                                                                |
+| --------------------- | ------------------------------------------- | -------------------------------------------------------------------- |
+| `puppeteer` (default) | `npm install puppeteer @puppeteer/browsers` | Local Chromium, downloaded on startup unless `executablePath` is set |
+| `gotenberg`           | nothing                                     | Needs a [Gotenberg 8](https://gotenberg.dev) server                  |
+| `api2pdf`             | nothing                                     | Needs an [Api2Pdf](https://www.api2pdf.com) API key                  |
+
+`puppeteer` and `@puppeteer/browsers` are **optional peer dependencies**: with a remote provider, no browser is installed nor downloaded. With the `puppeteer` provider and the packages missing, the application fails on startup with an `EngineNotAvailableException` telling you what to install. See [PDF providers](#pdf-providers) to configure Gotenberg or Api2Pdf.
 
 ### Template engines
 
@@ -66,6 +79,8 @@ Pug engine is not available: the 'pug' package is not installed. Run `npm instal
 Anchor-based signature placement also relies on `pdfjs-dist`, which needs `@napi-rs/canvas` to be installed in your project (see the signature example in [Quick start](#quick-start)).
 
 > **Upgrading from v3:** engines used to be installed automatically. If you relied on that, add the engines you use to your project's dependencies.
+
+> **Upgrading from v4:** Puppeteer is no longer installed with the library. If you keep the default provider, add it to your project: `npm install puppeteer @puppeteer/browsers`. `NestjsPdfErrorCode` also gained a `RENDERER_CONFIGURATION_ERROR` member: update any exhaustive `Record<NestjsPdfErrorCode, …>` map.
 
 ## Quick start
 
@@ -234,16 +249,92 @@ Good to know:
 - Names are checked by resolving them before the request, so a domain that changes its address between the check and the request (DNS rebinding) can slip through. Use `allowedHosts` (or `javascriptEnabled: false`) when the content is fully untrusted.
 - `window.open` pop-ups are blocked: the library no longer passes `--disable-popup-blocking` to Chrome. If you set `extraPuppeteerArgs`, do not add it back.
 
+## PDF providers
+
+Templates, watermarks and signatures always run in your application; the provider only turns the rendered HTML into a PDF. Choose it with `provider` in `forRoot` / `forRootAsync` (it is ignored in per-call options):
+
+```ts
+// Gotenberg (self-hosted): docker run --rm -p 3000:3000 gotenberg/gotenberg:8
+NestjsPdfModule.forRoot({
+  provider: {
+    type: 'gotenberg',
+    url: 'http://localhost:3000',
+    // optional: when Gotenberg runs with --api-enable-basic-auth
+    basicAuth: { username: 'user', password: 'pass' },
+    // optional: extra headers, e.g. for an authenticating proxy
+    headers: { 'X-Api-Key': '...' },
+  },
+  pdfOptions: { format: 'A4', printBackground: true },
+});
+
+// Api2Pdf (SaaS)
+NestjsPdfModule.forRootAsync({
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => ({
+    provider: { type: 'api2pdf', apiKey: config.getOrThrow('API2PDF_KEY') },
+  }),
+});
+```
+
+The service API does not change: `generatePdfFromHtml`, every `generatePdfFrom<Engine>*` method, `watermark` and `signal` work the same with every provider. A missing `url` / `apiKey` or an unknown `type` throws a `RendererConfigurationException` on startup.
+
+### Page options
+
+Keep using `pdfOptions` (Puppeteer's format). For Gotenberg and Api2Pdf, these fields are translated: `format`, `width`, `height`, `margin` (numbers are pixels; strings in `px`, `in`, `cm` or `mm`), `landscape`, `printBackground`, `omitBackground`, `scale`, `pageRanges`, `displayHeaderFooter` with `headerTemplate` / `footerTemplate`, plus `preferCSSPageSize`, `tagged` and `outline` for Gotenberg. The other fields are ignored. Like the Puppeteer provider, the page is rendered with the `screen` media type, and with zero margins unless you set them.
+
+Provider-specific options, per call or in `forRoot`:
+
+```ts
+await pdfService.generatePdfFromHtml(
+  '<img src="logo.png"><link rel="stylesheet" href="style.css">',
+  {
+    gotenbergOptions: {
+      // files the HTML references by relative name, sent next to index.html
+      assets: [
+        {
+          filename: 'logo.png',
+          content: await readFile('logo.png'),
+          contentType: 'image/png',
+        },
+        {
+          filename: 'style.css',
+          content: 'body { font-family: sans-serif; }',
+          contentType: 'text/css',
+        },
+      ],
+      // any Gotenberg Chromium form field (PDF/A, wait...), wins over the derived ones
+      formFields: { pdfa: 'PDF/A-2b', waitDelay: '500ms' },
+    },
+  },
+);
+
+await pdfService.generatePdfFromHtml(html, {
+  // any Api2Pdf Chrome option, merged over the derived ones
+  api2pdfOptions: { fileName: 'invoice.pdf', options: { delay: 500 } },
+});
+```
+
+### Good to know
+
+- **Local files:** a remote provider cannot read your disk. With Gotenberg, send images, fonts and CSS as `assets`; with Api2Pdf, use public URLs or inline them (`data:` URIs).
+- **`security` is Puppeteer-only:** the request filter runs in the local browser, so with a remote provider it throws a `RendererConfigurationException` instead of being silently skipped. With Gotenberg, restrict outbound requests on the server (`--chromium-allow-list`, `--chromium-deny-list`); with Api2Pdf, only render HTML you trust.
+- **With Api2Pdf, data leaves your infrastructure:** the HTML is sent to a third-party service, which matters for personal data (GDPR). Gotenberg stays on your own servers.
+- **Errors:** an HTTP error from the provider becomes a `PdfGenerationException` whose message holds the status and the start of the response body.
+- **Browser options** (`headless`, `browser`, `browserTag`, `buildId`, `useLockedBrowser`, `executablePath`, `extraPuppeteerArgs`, `browserInstallBaseUrl`, `cleanupBrowserCacheOnExit`) only apply to the `puppeteer` provider.
+
 ## Options and configuration
 
-The library exposes Puppeteer options via the `PuppeteerParameters` interface (see `src/puppeteer/puppeteer-parameters.interface.ts`). You can configure:
+The library exposes its options via the `PuppeteerParameters` interface (see `src/puppeteer/puppeteer-parameters.interface.ts`). You can configure:
 
 |                             | Description                                                                                                                                                                                                                                                                                                                                                                                                          |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pdfOptions`                | The pdf options can be found on: https://pptr.dev/api/puppeteer.pdfoptions. Native Puppeteer options for `page.pdf`                                                                                                                                                                                                                                                                                                  |
+| `provider`                  | Who prints the PDF: `{ type: 'puppeteer' }` (default), `{ type: 'gotenberg', url, basicAuth?, headers? }` or `{ type: 'api2pdf', apiKey, baseUrl?, headers? }`. Module-level only. See [PDF providers](#pdf-providers)                                                                                                                                                                                               |
+| `pdfOptions`                | The pdf options can be found on: https://pptr.dev/api/puppeteer.pdfoptions. Native Puppeteer options for `page.pdf`. Remote providers translate the main ones, see [Page options](#page-options)                                                                                                                                                                                                                     |
+| `gotenbergOptions`          | Gotenberg provider only: `assets` (files sent next to `index.html`) and raw `formFields`                                                                                                                                                                                                                                                                                                                             |
+| `api2pdfOptions`            | Api2Pdf provider only: `fileName` and raw Chrome `options`                                                                                                                                                                                                                                                                                                                                                           |
 | `watermark`                 | Stamps a text or image watermark on the generated PDF: `text` or `image`, `opacity`, `rotation`, `fontSize`, `font`, `color`, `imageWidth`, `position`, `tileSpacing`, `pages`. See [Watermark](#watermark)                                                                                                                                                                                                          |
 | `signal`                    | An `AbortSignal` that cancels the generation, including while it waits for a free slot. The promise rejects with `signal.reason`; use `AbortSignal.timeout(ms)` for a timeout. See [Cancellation and timeout](#cancellation-and-timeout)                                                                                                                                                                             |
-| `security`                  | Filters what the rendered HTML may load (SSRF protection): `blockPrivateNetworks`, `allowedHosts`, `allowedFileRoots`, `javascriptEnabled`. Disabled unless set; pass `{}` for the defaults. See [Restricting what the HTML can load](#restricting-what-the-html-can-load-ssrf-protection)                                                                                                                           |
+| `security`                  | Puppeteer provider only. Filters what the rendered HTML may load (SSRF protection): `blockPrivateNetworks`, `allowedHosts`, `allowedFileRoots`, `javascriptEnabled`. Disabled unless set; pass `{}` for the defaults. See [Restricting what the HTML can load](#restricting-what-the-html-can-load-ssrf-protection)                                                                                                  |
 | `hbsOptions`                | Handlebars configuration: `templateDirectory` (base dir for `renderFile`), `partialDirectory` (files registered as partials), `compileOptions`, `templateOptions`, and `helpers` (`{ name, fn }[]`). Like the other engines it can be set globally here or overridden per call (`generatePdfFromTemplateHbs*(..., { hbsOptions })`). Helpers/partials run on an isolated Handlebars environment (no global leakage). |
 | `ejsOptions`                | The ejs options can be found on [EJS documentation](https://ejs.co/#options)                                                                                                                                                                                                                                                                                                                                         |
 | `pugOptions`                | The pug options can be found on [Pug documentation](https://pugjs.org/api/reference.html#options)                                                                                                                                                                                                                                                                                                                    |

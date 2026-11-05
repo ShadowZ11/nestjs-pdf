@@ -12,6 +12,8 @@ import {
 } from '../exceptions';
 import * as requestGuardModule from '../helpers/request-guard.helper';
 import { PDF_PARAMETERS } from '../helpers/tokens';
+import { PDF_RENDERER } from '../renderers/pdf-renderer.interface';
+import { PuppeteerRenderer } from '../renderers/puppeteer.renderer';
 import { BrowserService } from './browser/browser.service';
 import { EjsService } from './engines/ejs/ejs.service';
 import { EtaService } from './engines/eta/eta.service';
@@ -22,6 +24,13 @@ import { MustacheService } from './engines/mustache/mustache.service';
 import { NunjucksService } from './engines/nunjucks/nunjucks.service';
 import { PugService } from './engines/pug/pug.service';
 import { PuppeteerService } from './puppeteer.service';
+
+const puppeteerRendererProvider: Provider = {
+  provide: PDF_RENDERER,
+  inject: [BrowserService],
+  useFactory: (browserService: BrowserService) =>
+    new PuppeteerRenderer(browserService),
+};
 
 describe('PuppeteerService', () => {
   let service: PuppeteerService;
@@ -51,6 +60,7 @@ describe('PuppeteerService', () => {
           provide: BrowserService,
           useValue: mockBrowserService,
         },
+        puppeteerRendererProvider,
         {
           provide: PDF_PARAMETERS,
           useValue: mockPdfParameters,
@@ -71,6 +81,7 @@ describe('PuppeteerService', () => {
           provide: BrowserService,
           useValue: mockBrowserService,
         },
+        puppeteerRendererProvider,
         {
           provide: PDF_PARAMETERS,
           useValue: mockPdfParameters,
@@ -90,6 +101,7 @@ describe('PuppeteerService', () => {
           provide: BrowserService,
           useValue: mockBrowserService,
         },
+        puppeteerRendererProvider,
         {
           provide: HandlebarsService,
           useValue: mockHandlebarsService,
@@ -256,6 +268,7 @@ describe('PuppeteerService', () => {
           providers: [
             PuppeteerService,
             { provide: BrowserService, useValue: mockBrowserService },
+            puppeteerRendererProvider,
             {
               provide: PDF_PARAMETERS,
               useValue: { headless: true, watermark: { text: 'GLOBAL' } },
@@ -371,6 +384,7 @@ describe('PuppeteerService', () => {
           providers: [
             PuppeteerService,
             { provide: BrowserService, useValue: mockBrowserService },
+            puppeteerRendererProvider,
             {
               provide: PDF_PARAMETERS,
               useValue: { headless: true, signal: controller.signal },
@@ -399,6 +413,7 @@ describe('PuppeteerService', () => {
           providers: [
             PuppeteerService,
             { provide: BrowserService, useValue: mockBrowserService },
+            puppeteerRendererProvider,
             { provide: PDF_PARAMETERS, useValue: mockPdfParameters },
           ],
         }).compile();
@@ -699,6 +714,7 @@ describe('PuppeteerService', () => {
             provide: BrowserService,
             useValue: mockBrowserService,
           },
+          puppeteerRendererProvider,
           {
             provide: PDF_PARAMETERS,
             useValue: {},
