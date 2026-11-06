@@ -55,7 +55,6 @@ export interface PuppeteerParameters {
   chromiumRevision?: string;
   buildId?: string;
   headless?: boolean | 'shell';
-  /** Browser to install. Accepts the `Browser` enum of `@puppeteer/browsers`. */
   browser?: PdfBrowser;
   browserTag?: BrowserTag;
   useLockedBrowser?: boolean;

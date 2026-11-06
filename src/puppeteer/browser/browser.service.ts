@@ -2,10 +2,6 @@ import { existsSync, promises, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import type {
-  Browser as BrowserType,
-  BrowserPlatform,
-} from '@puppeteer/browsers';
 import type { Browser, BrowserContext } from 'puppeteer';
 
 import {
@@ -14,16 +10,15 @@ import {
   NestjsPdfException,
 } from '../../exceptions';
 import { usesPuppeteer } from '../../renderers/create-renderer';
+import type { PdfBrowser } from '../../renderers/pdf-options.interface';
+import { toEnumMember } from '../libs/enum.utils';
 import {
   loadPuppeteer,
   loadPuppeteerBrowsers,
 } from '../libs/loadPuppeteer.utils';
 import type { PuppeteerParameters } from '../puppeteer-parameters.interface';
 
-// Enum values of @puppeteer/browsers, spelled out: a value import would load the
-// optional package as soon as the library is imported, even for remote providers.
-const CHROMIUM = 'chromium' as BrowserType;
-const LINUX = 'linux' as BrowserPlatform;
+const DEFAULT_BROWSER: PdfBrowser = 'chromium';
 
 export enum BrowserTag {
   LATEST = 'latest',
@@ -75,7 +70,7 @@ export class BrowserService implements OnModuleDestroy {
   readonly #options?: PuppeteerParameters;
 
   #browserInstance: Browser | null = null;
-  #browser: BrowserType;
+  #browser: PdfBrowser;
 
   public activeJobs = 0;
   public totalJobs = 0;
@@ -280,12 +275,18 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   async #doInstall(lock: boolean) {
-    const { canDownload, detectBrowserPlatform, install, resolveBuildId } =
-      await loadPuppeteerBrowsers();
-    const browser: BrowserType = this.#browser;
+    const {
+      Browser: BrowserEnum,
+      BrowserPlatform,
+      canDownload,
+      detectBrowserPlatform,
+      install,
+      resolveBuildId,
+    } = await loadPuppeteerBrowsers();
+    const browser = toEnumMember(BrowserEnum, this.#browser, 'browser');
     const versionTag: BrowserTag = this.#browserTag;
 
-    const browserPlatform = detectBrowserPlatform() ?? LINUX;
+    const browserPlatform = detectBrowserPlatform() ?? BrowserPlatform.LINUX;
 
     let buildId: string;
     if (this.#buildId === undefined) {
@@ -341,23 +342,17 @@ export class BrowserService implements OnModuleDestroy {
   }
 
   #loadBrowser(): void {
-    let browser: BrowserType;
-    if (this.#options?.browser === undefined) {
-      browser = CHROMIUM;
-    } else {
-      browser = this.#options.browser as BrowserType;
-    }
-    this.#browser = browser;
+    this.#browser = this.#options?.browser ?? DEFAULT_BROWSER;
   }
 
-  public getBrowser(): BrowserType {
+  public getBrowser(): PdfBrowser {
     return this.#browser;
   }
 
   #loadBrowserTag(): void {
     let versionTag: BrowserTag;
     if (this.#options?.browserTag === undefined) {
-      if (this.#browser === CHROMIUM) {
+      if (this.#browser === DEFAULT_BROWSER) {
         versionTag = BrowserTag.LATEST;
       } else {
         versionTag = BrowserTag.STABLE;
@@ -400,24 +395,31 @@ export class BrowserService implements OnModuleDestroy {
     this.#useLockedBrowser = useLockedBrowser;
   }
 
-  async hasBrowserInstalled(browser: BrowserType, buildId: string) {
-    const { getInstalledBrowsers } = await loadPuppeteerBrowsers();
+  async hasBrowserInstalled(browser: PdfBrowser, buildId: string) {
+    const { Browser: BrowserEnum, getInstalledBrowsers } =
+      await loadPuppeteerBrowsers();
+    const expected = toEnumMember(BrowserEnum, browser, 'browser');
     const installedBrowserlist = await getInstalledBrowsers({
       cacheDir: this.#cacheDir,
     });
 
     const installedBrowser = installedBrowserlist.find((insBrowser) => {
-      return insBrowser.browser === browser && insBrowser.buildId === buildId;
+      return insBrowser.browser === expected && insBrowser.buildId === buildId;
     });
     return installedBrowser !== undefined;
   }
 
   async getExecutablePath(): Promise<string> {
-    const { detectBrowserPlatform, getInstalledBrowsers, resolveBuildId } =
-      await loadPuppeteerBrowsers();
-    const browser: BrowserType = this.#browser;
+    const {
+      Browser: BrowserEnum,
+      BrowserPlatform,
+      detectBrowserPlatform,
+      getInstalledBrowsers,
+      resolveBuildId,
+    } = await loadPuppeteerBrowsers();
+    const browser = toEnumMember(BrowserEnum, this.#browser, 'browser');
     const versionTag: BrowserTag = this.#browserTag;
-    const browserPlatform = detectBrowserPlatform() ?? LINUX;
+    const browserPlatform = detectBrowserPlatform() ?? BrowserPlatform.LINUX;
     let buildId: string | null = null;
     if (this.#useLockedBrowser) {
       buildId = this.getLockedBuildId(browser);
@@ -469,7 +471,7 @@ export class BrowserService implements OnModuleDestroy {
     return browser;
   }
 
-  #writeLockFile(browser: BrowserType, buildId: string) {
+  #writeLockFile(browser: PdfBrowser, buildId: string) {
     const lockFile = resolve(this.#cacheDir, `${browser}.lock`);
     const data = JSON.stringify({
       browser: browser,
@@ -481,12 +483,12 @@ export class BrowserService implements OnModuleDestroy {
     Logger.log(`Browser ${browser} locked to build ${buildId}`, 'NestJsPdf');
   }
 
-  getLockedBuildId(browser: BrowserType): string | null {
+  getLockedBuildId(browser: PdfBrowser): string | null {
     const lockFile = resolve(this.#cacheDir, `${browser}.lock`);
     if (existsSync(lockFile)) {
       const data = readFileSync(lockFile);
       const lock = JSON.parse(data.toString()) as {
-        browser: Browser;
+        browser: PdfBrowser;
         buildId: string;
         date: string;
       };
