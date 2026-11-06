@@ -47,26 +47,41 @@ const DEFAULT_ARGS = [
   '--disable-gpu',
 ];
 
-const PDF_OPTIONS_KEYS = [
-  'scale',
-  'displayHeaderFooter',
-  'headerTemplate',
-  'footerTemplate',
-  'printBackground',
-  'landscape',
-  'pageRanges',
-  'format',
-  'width',
-  'height',
-  'preferCSSPageSize',
-  'margin',
-  'path',
-  'omitBackground',
-  'tagged',
-  'outline',
-  'timeout',
-  'waitForFonts',
-] as const satisfies ReadonlyArray<keyof PDFOptions>;
+const PDF_OPTION_KEYS: Record<keyof PDFOptions, true> = {
+  scale: true,
+  displayHeaderFooter: true,
+  headerTemplate: true,
+  footerTemplate: true,
+  printBackground: true,
+  landscape: true,
+  pageRanges: true,
+  format: true,
+  width: true,
+  height: true,
+  preferCSSPageSize: true,
+  margin: true,
+  path: true,
+  omitBackground: true,
+  tagged: true,
+  outline: true,
+  timeout: true,
+  waitForFonts: true,
+};
+
+function toPuppeteerPdfOptions(options?: PdfOptions): PDFOptions {
+  if (!options) {
+    return { format: 'A4' };
+  }
+  const invalidKeys = Object.keys(options).filter(
+    (key) => !Object.hasOwn(PDF_OPTION_KEYS, key),
+  );
+  if (invalidKeys.length > 0) {
+    throw new RendererConfigurationException(
+      `Invalid PDF options: ${invalidKeys.join(', ')}. Please check the documentation for valid options.`,
+    );
+  }
+  return options;
+}
 
 export class PuppeteerRenderer implements PdfRenderer {
   readonly #browserService: BrowserService;
@@ -86,6 +101,7 @@ export class PuppeteerRenderer implements PdfRenderer {
       );
     }
 
+    const pdfOptions = toPuppeteerPdfOptions(options.pdfOptions);
     const headless: boolean | 'shell' = options.headless ?? true;
     const executablePath = options.executablePath || undefined;
     const args = options.extraPuppeteerArgs || DEFAULT_ARGS;
@@ -113,9 +129,6 @@ export class PuppeteerRenderer implements PdfRenderer {
         await installRequestGuard(context, page, options.security);
       }
 
-      // PdfOptions mirrors PDFOptions (checked in pdf-options.interface.spec.ts).
-      const pdfOptions = this.getPdfOptions(options.pdfOptions);
-
       await page.setContent(html, { waitUntil: 'domcontentloaded' });
       await page.emulateMediaType('screen');
       await page.waitForNetworkIdle({ idleTime: 500, timeout: 30000 });
@@ -135,24 +148,5 @@ export class PuppeteerRenderer implements PdfRenderer {
         }
       }
     }
-  }
-
-  private getPdfOptions(options?: PdfOptions): PDFOptions {
-    if (!options) {
-      return { format: 'A4' };
-    }
-    const pdfOptionsKeys = Object.keys(options);
-    const pdfOptionsKeysOfPDFOptions = Object.keys(PDF_OPTIONS_KEYS);
-    const invalidKeys = pdfOptionsKeys.filter(
-      (key) => !pdfOptionsKeysOfPDFOptions.includes(key),
-    );
-    if (invalidKeys.length > 0) {
-      throw new RendererConfigurationException(
-        `Invalid PDF options: ${invalidKeys.join(
-          ', ',
-        )}. Please check the documentation for valid options.`,
-      );
-    }
-    return options;
   }
 }
