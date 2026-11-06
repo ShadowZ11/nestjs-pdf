@@ -1,9 +1,11 @@
-import { type Browser } from '@puppeteer/browsers';
 import { type MJMLParsingOptions } from 'mjml-core';
-import { type PDFOptions } from 'puppeteer';
 
 import { type PdfSecurityOptions } from '../helpers/request-guard.helper';
 import { type WatermarkOptions } from '../helpers/watermark.helper';
+import {
+  type PdfBrowser,
+  type PdfOptions,
+} from '../renderers/pdf-options.interface';
 import {
   type Api2PdfRenderOptions,
   type GotenbergRenderOptions,
@@ -28,7 +30,7 @@ export interface PuppeteerParameters {
    * Page options. Remote providers translate the size, margins, orientation,
    * backgrounds, scale, page ranges and header/footer templates.
    */
-  pdfOptions?: PDFOptions;
+  pdfOptions?: PdfOptions;
   /** Options only read by the Gotenberg provider. */
   gotenbergOptions?: GotenbergRenderOptions;
   /** Options only read by the Api2Pdf provider. */
@@ -53,7 +55,8 @@ export interface PuppeteerParameters {
   chromiumRevision?: string;
   buildId?: string;
   headless?: boolean | 'shell';
-  browser?: Browser;
+  /** Browser to install. Accepts the `Browser` enum of `@puppeteer/browsers`. */
+  browser?: PdfBrowser;
   browserTag?: BrowserTag;
   useLockedBrowser?: boolean;
   browserInstallBaseUrl?: string;

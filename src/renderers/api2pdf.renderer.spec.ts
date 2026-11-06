@@ -43,6 +43,20 @@ describe('Api2PdfRenderer', () => {
     );
   });
 
+  it.each(['', '   '])(
+    'should reject a blank base url (%j) at configuration time',
+    (baseUrl) => {
+      expect(
+        () =>
+          new Api2PdfRenderer({
+            type: 'api2pdf',
+            apiKey: 'secret-key',
+            baseUrl,
+          }),
+      ).toThrow("The Api2Pdf provider requires a non-empty 'baseUrl'");
+    },
+  );
+
   it('should post the HTML with binary output and return the PDF', async () => {
     const pdf = await renderer().render('<h1>Hi</h1>', {
       pdfOptions: { format: 'Letter', landscape: true },

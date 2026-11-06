@@ -11,6 +11,16 @@ import {
   PDF_RENDERER,
   type PdfRenderer,
 } from '../renderers/pdf-renderer.interface';
+import { BrowserService } from './browser/browser.service';
+
+/**
+ * The part of BrowserService used here. Typed as an interface so the public
+ * declarations of PuppeteerService do not pull Puppeteer's types in.
+ */
+interface PdfJobTracker {
+  markJobStarted(): void;
+  markJobFinished(): Promise<void>;
+}
 import { EjsService } from './engines/ejs/ejs.service';
 import { EtaService } from './engines/eta/eta.service';
 import { HandlebarsService } from './engines/handlebars/handlebars.service';
@@ -25,6 +35,7 @@ import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 @Injectable()
 export class PuppeteerService {
   readonly #renderer: PdfRenderer;
+  readonly #jobs: PdfJobTracker;
   readonly #options: PuppeteerParameters;
   readonly #hbsService?: HandlebarsService;
   readonly #mjmlService?: MjmlService;
@@ -37,6 +48,7 @@ export class PuppeteerService {
 
   constructor(
     @Inject(PDF_RENDERER) renderer: PdfRenderer,
+    @Inject(BrowserService) jobs: PdfJobTracker,
     @Inject(PDF_PARAMETERS) options: PuppeteerParameters,
     @Optional() hbsService?: HandlebarsService,
     @Optional() mjmlService?: MjmlService,
@@ -48,6 +60,7 @@ export class PuppeteerService {
     @Optional() liquidService?: LiquidService,
   ) {
     this.#renderer = renderer;
+    this.#jobs = jobs;
     this.#options = options;
     this.#hbsService = hbsService;
     this.#mjmlService = mjmlService;
@@ -75,6 +88,7 @@ export class PuppeteerService {
 
       const mergedOptions = mergePuppeteerParameters(this.#options, options);
 
+      this.#jobs.markJobStarted();
       try {
         const pdf = await this.#renderer.render(html, mergedOptions, signal);
         signal?.throwIfAborted();
@@ -93,6 +107,8 @@ export class PuppeteerService {
           `PDF generation failed: ${String(e)}`,
           { cause: e },
         );
+      } finally {
+        await this.#jobs.markJobFinished();
       }
     });
 

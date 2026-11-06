@@ -226,6 +226,58 @@ describe('PuppeteerService', () => {
       expect(result).toEqual(pdfBuffer);
     });
 
+    describe('job tracking with a remote renderer', () => {
+      const remoteRender = vi.fn();
+      const createWithRemoteRenderer = async () => {
+        const module = await Test.createTestingModule({
+          providers: [
+            PuppeteerService,
+            { provide: BrowserService, useValue: mockBrowserService },
+            { provide: PDF_RENDERER, useValue: { render: remoteRender } },
+            { provide: PDF_PARAMETERS, useValue: mockPdfParameters },
+          ],
+        }).compile();
+        return module.get(PuppeteerService);
+      };
+
+      it('should track the job around the render', async () => {
+        const remote = await createWithRemoteRenderer();
+        remoteRender.mockImplementation(() => {
+          expect(mockBrowserService.markJobStarted).toHaveBeenCalledTimes(1);
+          expect(mockBrowserService.markJobFinished).not.toHaveBeenCalled();
+          return Promise.resolve(new Uint8Array([1]));
+        });
+
+        await expect(remote.generatePdfFromHtml('<p></p>')).resolves.toEqual(
+          new Uint8Array([1]),
+        );
+        expect(mockBrowserService.markJobFinished).toHaveBeenCalledTimes(1);
+      });
+
+      it('should finish the job when the render fails', async () => {
+        const remote = await createWithRemoteRenderer();
+        remoteRender.mockRejectedValue(new Error('HTTP 503'));
+
+        await expect(remote.generatePdfFromHtml('<p></p>')).rejects.toThrow(
+          PdfGenerationException,
+        );
+        expect(mockBrowserService.markJobFinished).toHaveBeenCalledTimes(1);
+      });
+
+      it('should refuse the job while shutting down', async () => {
+        const remote = await createWithRemoteRenderer();
+        mockBrowserService.markJobStarted.mockImplementationOnce(() => {
+          throw new Error('nestjs-pdf is shutting down');
+        });
+
+        await expect(remote.generatePdfFromHtml('<p></p>')).rejects.toThrow(
+          'shutting down',
+        );
+        expect(remoteRender).not.toHaveBeenCalled();
+        expect(mockBrowserService.markJobFinished).not.toHaveBeenCalled();
+      });
+    });
+
     describe('watermark', () => {
       const mockPageReturning = (pdf: Uint8Array) => {
         const mockContext = {

@@ -1,6 +1,5 @@
-import type { PDFOptions } from 'puppeteer';
-
 import { RendererConfigurationException } from '../exceptions';
+import type { PdfOptions } from './pdf-options.interface';
 
 /** Paper sizes in inches, as Puppeteer defines them. */
 const PAPER_FORMATS: Record<string, { width: number; height: number }> = {
@@ -56,7 +55,7 @@ export interface PrintLayout {
   margin: { top?: number; right?: number; bottom?: number; left?: number };
 }
 
-export function resolvePrintLayout(pdfOptions: PDFOptions): PrintLayout {
+export function resolvePrintLayout(pdfOptions: PdfOptions): PrintLayout {
   let width: number;
   let height: number;
 
@@ -104,7 +103,7 @@ export interface GotenbergForm {
   files: Record<string, string>;
 }
 
-export function toGotenbergForm(pdfOptions: PDFOptions): GotenbergForm {
+export function toGotenbergForm(pdfOptions: PdfOptions): GotenbergForm {
   const { width, height, margin } = resolvePrintLayout(pdfOptions);
 
   const fields: Record<string, string> = {
@@ -155,7 +154,7 @@ export function toGotenbergForm(pdfOptions: PDFOptions): GotenbergForm {
 }
 
 export function toApi2PdfOptions(
-  pdfOptions: PDFOptions,
+  pdfOptions: PdfOptions,
 ): Record<string, unknown> {
   const { width, height, margin } = resolvePrintLayout(pdfOptions);
 

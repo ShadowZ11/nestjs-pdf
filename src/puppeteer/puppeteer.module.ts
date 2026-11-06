@@ -41,6 +41,11 @@ const pdfRendererProvider: Provider = {
   useFactory: createPdfRenderer,
 };
 
+/** The part of BrowserService used here: keeps Puppeteer's types out of the public declarations. */
+interface BrowserInstaller {
+  install(useLockedBrowser: boolean): Promise<void>;
+}
+
 @Module({
   providers: [
     PuppeteerService,
@@ -66,11 +71,11 @@ const pdfRendererProvider: Provider = {
   ],
 })
 export class PuppeteerModule implements OnModuleInit {
-  readonly #browserService: BrowserService;
+  readonly #browserService: BrowserInstaller;
   readonly #pdfParams: PuppeteerParameters;
 
   constructor(
-    browserService: BrowserService,
+    @Inject(BrowserService) browserService: BrowserInstaller,
     @Inject(PDF_PARAMETERS) pdfParams: PuppeteerParameters,
   ) {
     this.#browserService = browserService;

@@ -12,12 +12,9 @@ import {
 import { fileURLToPath } from 'node:url';
 
 import { Logger } from '@nestjs/common';
-import {
-  type BrowserContext,
-  type HTTPRequest,
-  type Page,
-  TargetType,
-} from 'puppeteer';
+// Types only: a value import would load the optional puppeteer package as soon
+// as the library is imported, even for remote providers.
+import type { BrowserContext, HTTPRequest, Page } from 'puppeteer';
 
 /**
  * Filters what the rendered HTML may load (SSRF protection). Disabled unless set:
@@ -224,7 +221,7 @@ export async function installRequestGuard(
   options: PdfSecurityOptions,
 ) {
   context.on('targetcreated', (target) => {
-    if (target.type() === TargetType.PAGE && target.opener()) {
+    if (target.type().toString() === 'page' && target.opener()) {
       void target
         .page()
         .then((popup) => popup?.close())

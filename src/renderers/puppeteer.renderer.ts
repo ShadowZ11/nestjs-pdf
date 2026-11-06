@@ -67,7 +67,6 @@ export class PuppeteerRenderer implements PdfRenderer {
     const executablePath = options.executablePath || undefined;
     const args = options.extraPuppeteerArgs || DEFAULT_ARGS;
 
-    this.#browserService.markJobStarted();
     let context: Awaited<ReturnType<BrowserService['createContext']>> | null =
       null;
 
@@ -91,6 +90,7 @@ export class PuppeteerRenderer implements PdfRenderer {
         await installRequestGuard(context, page, options.security);
       }
 
+      // PdfOptions mirrors PDFOptions (checked in pdf-options.interface.spec.ts).
       const pdfOptions: PDFOptions = options.pdfOptions ?? { format: 'A4' };
 
       await page.setContent(html, { waitUntil: 'domcontentloaded' });
@@ -111,7 +111,6 @@ export class PuppeteerRenderer implements PdfRenderer {
           Logger.error(error);
         }
       }
-      await this.#browserService.markJobFinished();
     }
   }
 }

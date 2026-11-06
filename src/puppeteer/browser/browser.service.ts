@@ -345,7 +345,7 @@ export class BrowserService implements OnModuleDestroy {
     if (this.#options?.browser === undefined) {
       browser = CHROMIUM;
     } else {
-      browser = this.#options.browser;
+      browser = this.#options.browser as BrowserType;
     }
     this.#browser = browser;
   }

@@ -29,7 +29,11 @@ export class Api2PdfRenderer implements PdfRenderer {
 
   constructor(provider: Api2PdfProviderOptions) {
     const apiKey = requireNonEmpty(provider.apiKey, 'apiKey', PROVIDER);
-    const baseUrl = (provider.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
+    const baseUrl = requireNonEmpty(
+      provider.baseUrl ?? DEFAULT_BASE_URL,
+      'baseUrl',
+      PROVIDER,
+    ).replace(/\/+$/, '');
     this.#endpoint = `${baseUrl}${ROUTE}?outputBinary=true`;
     this.#headers = {
       ...provider.headers,

@@ -80,7 +80,7 @@ Anchor-based signature placement also relies on `pdfjs-dist`, which needs `@napi
 
 > **Upgrading from v3:** engines used to be installed automatically. If you relied on that, add the engines you use to your project's dependencies.
 
-> **Upgrading from v4:** Puppeteer is no longer installed with the library. If you keep the default provider, add it to your project: `npm install puppeteer @puppeteer/browsers`. `NestjsPdfErrorCode` also gained a `RENDERER_CONFIGURATION_ERROR` member: update any exhaustive `Record<NestjsPdfErrorCode, …>` map.
+> **Upgrading from v4:** Puppeteer is no longer installed with the library. If you keep the default provider, add it to your project: `npm install puppeteer @puppeteer/browsers`. `NestjsPdfErrorCode` also gained a `RENDERER_CONFIGURATION_ERROR` member: update any exhaustive `Record<NestjsPdfErrorCode, …>` map. `pdfOptions` is now typed by the library's own `PdfOptions` (same shape as Puppeteer's `PDFOptions`) and `browser` accepts plain strings (`'chromium'`) as well as the `Browser` enum, so the published types no longer depend on Puppeteer.
 
 ## Quick start
 
