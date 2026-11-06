@@ -1,9 +1,11 @@
 import { Logger } from '@nestjs/common';
 import type { PDFOptions } from 'puppeteer';
 
+import { RendererConfigurationException } from '../exceptions';
 import { installRequestGuard } from '../helpers/request-guard.helper';
 import { type BrowserService } from '../puppeteer/browser/browser.service';
 import type { PuppeteerParameters } from '../puppeteer/puppeteer-parameters.interface';
+import { type PdfOptions } from './pdf-options.interface';
 import type { PdfRenderer } from './pdf-renderer.interface';
 
 //src: https://www.bannerbear.com/blog/ways-to-speed-up-puppeteer-screenshots/
@@ -44,6 +46,27 @@ const DEFAULT_ARGS = [
   '--no-zygote',
   '--disable-gpu',
 ];
+
+const PDF_OPTIONS_KEYS = [
+  'scale',
+  'displayHeaderFooter',
+  'headerTemplate',
+  'footerTemplate',
+  'printBackground',
+  'landscape',
+  'pageRanges',
+  'format',
+  'width',
+  'height',
+  'preferCSSPageSize',
+  'margin',
+  'path',
+  'omitBackground',
+  'tagged',
+  'outline',
+  'timeout',
+  'waitForFonts',
+] as const satisfies ReadonlyArray<keyof PDFOptions>;
 
 export class PuppeteerRenderer implements PdfRenderer {
   readonly #browserService: BrowserService;
@@ -91,7 +114,7 @@ export class PuppeteerRenderer implements PdfRenderer {
       }
 
       // PdfOptions mirrors PDFOptions (checked in pdf-options.interface.spec.ts).
-      const pdfOptions: PDFOptions = options.pdfOptions ?? { format: 'A4' };
+      const pdfOptions = this.getPdfOptions(options.pdfOptions);
 
       await page.setContent(html, { waitUntil: 'domcontentloaded' });
       await page.emulateMediaType('screen');
@@ -112,5 +135,24 @@ export class PuppeteerRenderer implements PdfRenderer {
         }
       }
     }
+  }
+
+  private getPdfOptions(options?: PdfOptions): PDFOptions {
+    if (!options) {
+      return { format: 'A4' };
+    }
+    const pdfOptionsKeys = Object.keys(options);
+    const pdfOptionsKeysOfPDFOptions = Object.keys(PDF_OPTIONS_KEYS);
+    const invalidKeys = pdfOptionsKeys.filter(
+      (key) => !pdfOptionsKeysOfPDFOptions.includes(key),
+    );
+    if (invalidKeys.length > 0) {
+      throw new RendererConfigurationException(
+        `Invalid PDF options: ${invalidKeys.join(
+          ', ',
+        )}. Please check the documentation for valid options.`,
+      );
+    }
+    return options;
   }
 }
