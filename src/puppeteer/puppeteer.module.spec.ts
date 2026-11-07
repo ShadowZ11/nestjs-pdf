@@ -1,7 +1,10 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { vi } from 'vitest';
 
-import { RendererConfigurationException } from '../exceptions';
+import {
+  EngineNotAvailableException,
+  RendererConfigurationException,
+} from '../exceptions';
 import { PDF_PARAMETERS } from '../helpers/tokens';
 import { Api2PdfRenderer } from '../renderers/api2pdf.renderer';
 import { GotenbergRenderer } from '../renderers/gotenberg.renderer';
@@ -12,7 +15,18 @@ import { PuppeteerModule } from './puppeteer.module';
 import { PuppeteerService } from './puppeteer.service';
 import { type PuppeteerParameters } from './puppeteer-parameters.interface';
 
+const loaders = vi.hoisted(() => ({
+  loadPuppeteer: vi.fn(),
+  loadPuppeteerBrowsers: vi.fn(),
+}));
+vi.mock('./libs/loadPuppeteer.utils', () => loaders);
+
 describe('PuppeteerModule', () => {
+  beforeEach(() => {
+    loaders.loadPuppeteer.mockReset().mockResolvedValue({});
+    loaders.loadPuppeteerBrowsers.mockReset().mockResolvedValue({});
+  });
+
   describe('forRoot', () => {
     let module: TestingModule;
 
@@ -199,6 +213,34 @@ describe('PuppeteerModule', () => {
         await module.init();
 
         expect(install).not.toHaveBeenCalled();
+        expect(loaders.loadPuppeteer).not.toHaveBeenCalled();
+        expect(loaders.loadPuppeteerBrowsers).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each([
+      ['puppeteer', loaders.loadPuppeteer],
+      ['@puppeteer/browsers', loaders.loadPuppeteerBrowsers],
+    ])(
+      'should fail on startup when %s is not installed',
+      async (packageName, loader) => {
+        const install = vi.fn().mockResolvedValue(undefined);
+        loader.mockRejectedValue(
+          new EngineNotAvailableException('Puppeteer', packageName),
+        );
+
+        // Not stored in `module`: its close would replay the failed init.
+        const failing = await Test.createTestingModule({
+          imports: [PuppeteerModule.forRoot({ headless: true })],
+        })
+          .overrideProvider(BrowserService)
+          .useValue({ install })
+          .compile();
+
+        await expect(failing.init()).rejects.toBeInstanceOf(
+          EngineNotAvailableException,
+        );
+        expect(install).not.toHaveBeenCalled();
       },
     );
 
@@ -220,6 +262,25 @@ describe('PuppeteerModule', () => {
       await module.init();
 
       expect(install).not.toHaveBeenCalled();
+      expect(loaders.loadPuppeteer).toHaveBeenCalled();
+      expect(loaders.loadPuppeteerBrowsers).not.toHaveBeenCalled();
+    });
+
+    it('should not require @puppeteer/browsers when executablePath is provided', async () => {
+      loaders.loadPuppeteerBrowsers.mockRejectedValue(
+        new EngineNotAvailableException('Puppeteer', '@puppeteer/browsers'),
+      );
+
+      module = await Test.createTestingModule({
+        imports: [
+          PuppeteerModule.forRoot({ executablePath: '/usr/bin/chromium' }),
+        ],
+      })
+        .overrideProvider(BrowserService)
+        .useValue({ install: vi.fn() })
+        .compile();
+
+      await expect(module.init()).resolves.toBe(module);
     });
   });
 

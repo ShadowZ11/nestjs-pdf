@@ -21,6 +21,10 @@ import { MjmlService } from './engines/mjml/mjml.service';
 import { MustacheService } from './engines/mustache/mustache.service';
 import { NunjucksService } from './engines/nunjucks/nunjucks.service';
 import { PugService } from './engines/pug/pug.service';
+import {
+  loadPuppeteer,
+  loadPuppeteerBrowsers,
+} from './libs/loadPuppeteer.utils';
 import { PuppeteerService } from './puppeteer.service';
 import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 
@@ -83,7 +87,12 @@ export class PuppeteerModule implements OnModuleInit {
   }
 
   async onModuleInit() {
-    if (usesPuppeteer(this.#pdfParams) && !this.#pdfParams.executablePath) {
+    if (!usesPuppeteer(this.#pdfParams)) {
+      return;
+    }
+    await loadPuppeteer();
+    if (!this.#pdfParams.executablePath) {
+      await loadPuppeteerBrowsers();
       await this.#browserService.install(
         this.#pdfParams.useLockedBrowser ?? false,
       );

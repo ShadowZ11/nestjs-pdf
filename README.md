@@ -48,7 +48,7 @@ Pick who prints the PDFs and install what it needs:
 | `gotenberg`           | nothing                                     | Needs a [Gotenberg 8](https://gotenberg.dev) server                  |
 | `api2pdf`             | nothing                                     | Needs an [Api2Pdf](https://www.api2pdf.com) API key                  |
 
-`puppeteer` and `@puppeteer/browsers` are **optional peer dependencies**: with a remote provider, no browser is installed nor downloaded. With the `puppeteer` provider and the packages missing, the application fails on startup with an `EngineNotAvailableException` telling you what to install. See [PDF providers](#pdf-providers) to configure Gotenberg or Api2Pdf.
+`puppeteer` and `@puppeteer/browsers` are **optional peer dependencies**: with a remote provider, no browser is installed nor downloaded. The `puppeteer` provider needs **both** packages: if either is missing, the application fails on startup with an `EngineNotAvailableException` telling you what to install. With `executablePath`, the browser is not downloaded, so only `puppeteer` is needed. See [PDF providers](#pdf-providers) to configure Gotenberg or Api2Pdf.
 
 ### Template engines
 
