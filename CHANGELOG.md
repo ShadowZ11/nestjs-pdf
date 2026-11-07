@@ -1,5 +1,23 @@
 # Changelog
 
+## [5.0.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v4.0.0...v5.0.0) (2026-11-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* add pluggable PDF providers (Gotenberg, Api2Pdf)
+
+### ✨ Features
+
+* add pluggable PDF providers (Gotenberg, Api2Pdf) ([ee46dbc](https://github.com/ShadowZ11/nestjs-pdf/commit/ee46dbc60a6d3836d2f6969200f1ee1e075e0fa9))
+
+
+### 🐛 Bug Fixes
+
+* decouple public types from puppeteer ([ec4cba6](https://github.com/ShadowZ11/nestjs-pdf/commit/ec4cba664581c5c50da0bc65638a17426431848a))
+* error on parsing pdfoptions puppeteer ([d419de8](https://github.com/ShadowZ11/nestjs-pdf/commit/d419de8d781c72dca58da9cd25d6ff233a997939))
+* load puppeteer as a mandatory value on startup and browser only if no executable path ([5d7609f](https://github.com/ShadowZ11/nestjs-pdf/commit/5d7609f0b1d47a492215c9aff6b0f97d0884dae4))
+
 ## [4.0.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v3.2.0...v4.0.0) (2026-10-14)
 
 
