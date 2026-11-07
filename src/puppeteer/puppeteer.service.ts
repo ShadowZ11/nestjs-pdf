@@ -2,14 +2,25 @@ import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import type { Data } from 'ejs';
 import pLimit from 'p-limit';
 import type { LocalsObject } from 'pug';
-import { PDFOptions } from 'puppeteer';
 
 import { NestjsPdfException, PdfGenerationException } from '../exceptions';
 import { mergePuppeteerParameters } from '../helpers/deepMergePdfparams';
-import { installRequestGuard } from '../helpers/request-guard.helper';
 import { PDF_PARAMETERS } from '../helpers/tokens';
 import { addWatermark } from '../helpers/watermark.helper';
+import {
+  PDF_RENDERER,
+  type PdfRenderer,
+} from '../renderers/pdf-renderer.interface';
 import { BrowserService } from './browser/browser.service';
+
+/**
+ * The part of BrowserService used here. Typed as an interface so the public
+ * declarations of PuppeteerService do not pull Puppeteer's types in.
+ */
+interface PdfJobTracker {
+  markJobStarted(): void;
+  markJobFinished(): Promise<void>;
+}
 import { EjsService } from './engines/ejs/ejs.service';
 import { EtaService } from './engines/eta/eta.service';
 import { HandlebarsService } from './engines/handlebars/handlebars.service';
@@ -23,7 +34,8 @@ import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 
 @Injectable()
 export class PuppeteerService {
-  readonly #browserService: BrowserService;
+  readonly #renderer: PdfRenderer;
+  readonly #jobs: PdfJobTracker;
   readonly #options: PuppeteerParameters;
   readonly #hbsService?: HandlebarsService;
   readonly #mjmlService?: MjmlService;
@@ -35,7 +47,8 @@ export class PuppeteerService {
   readonly #liquidService?: LiquidService;
 
   constructor(
-    browserService: BrowserService,
+    @Inject(PDF_RENDERER) renderer: PdfRenderer,
+    @Inject(BrowserService) jobs: PdfJobTracker,
     @Inject(PDF_PARAMETERS) options: PuppeteerParameters,
     @Optional() hbsService?: HandlebarsService,
     @Optional() mjmlService?: MjmlService,
@@ -46,7 +59,8 @@ export class PuppeteerService {
     @Optional() mustacheService?: MustacheService,
     @Optional() liquidService?: LiquidService,
   ) {
-    this.#browserService = browserService;
+    this.#renderer = renderer;
+    this.#jobs = jobs;
     this.#options = options;
     this.#hbsService = hbsService;
     this.#mjmlService = mjmlService;
@@ -72,103 +86,14 @@ export class PuppeteerService {
       signal?.throwIfAborted();
       started = true;
 
-      const mergePuppeteerOptions = mergePuppeteerParameters(
-        this.#options,
-        options,
-      );
-      if (mergePuppeteerOptions.chromiumRevision !== undefined) {
-        Logger.warn(
-          'Using `chromiumRevision` is no longer supported since the puppeteer update.',
-        );
-      }
+      const mergedOptions = mergePuppeteerParameters(this.#options, options);
 
-      const headless: boolean | 'shell' =
-        mergePuppeteerOptions.headless ?? true;
-
-      const executablePath = mergePuppeteerOptions.executablePath || undefined;
-
-      //src: https://www.bannerbear.com/blog/ways-to-speed-up-puppeteer-screenshots/
-      const args = mergePuppeteerOptions.extraPuppeteerArgs || [
-        '--autoplay-policy=user-gesture-required',
-        '--disable-background-networking',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-breakpad',
-        '--disable-client-side-phishing-detection',
-        '--disable-component-update',
-        '--disable-default-apps',
-        '--disable-dev-shm-usage',
-        '--disable-domain-reliability',
-        '--disable-extensions',
-        '--disable-features=AudioServiceOutOfProcess',
-        '--disable-hang-monitor',
-        '--disable-ipc-flooding-protection',
-        '--disable-notifications',
-        '--disable-offer-store-unmasked-wallet-cards',
-        '--disable-print-preview',
-        '--disable-prompt-on-repost',
-        '--disable-renderer-backgrounding',
-        '--disable-setuid-sandbox',
-        '--disable-speech-api',
-        '--disable-sync',
-        '--hide-scrollbars',
-        '--ignore-gpu-blacklist',
-        '--metrics-recording-only',
-        '--mute-audio',
-        '--no-default-browser-check',
-        '--no-first-run',
-        '--no-pings',
-        '--password-store=basic',
-        '--use-gl=swiftshader',
-        '--use-mock-keychain',
-        '--disable-accelerated-2d-canvas',
-        '--no-zygote',
-        '--disable-gpu',
-      ];
-
-      this.#browserService.markJobStarted();
-      let context: Awaited<ReturnType<BrowserService['createContext']>> | null =
-        null;
-
-      let closing: Promise<void> | undefined;
-      const onAbort = () => {
-        if (!context) return;
-        closing = context.close();
-        closing.catch(() => undefined);
-      };
-      signal?.addEventListener('abort', onAbort, { once: true });
-
+      this.#jobs.markJobStarted();
       try {
-        context = await this.#browserService.createContext(
-          args,
-          headless,
-          executablePath,
-        );
+        const pdf = await this.#renderer.render(html, mergedOptions, signal);
         signal?.throwIfAborted();
-        const page = await context.newPage();
-        if (mergePuppeteerOptions.security) {
-          await installRequestGuard(
-            context,
-            page,
-            mergePuppeteerOptions.security,
-          );
-        }
-
-        const pdfOptions: PDFOptions = mergePuppeteerOptions.pdfOptions ?? {
-          format: 'A4',
-        };
-
-        await page.setContent(html, { waitUntil: 'domcontentloaded' });
-        await page.emulateMediaType('screen');
-        await page.waitForNetworkIdle({ idleTime: 500, timeout: 30000 });
-        // Executes inside the browser page context via Puppeteer, not in Node — unreachable by unit tests.
-        /* v8 ignore next */
-        await page.evaluate(() => document.fonts.ready);
-
-        const pdf = await page.pdf(pdfOptions);
-        signal?.throwIfAborted();
-        return mergePuppeteerOptions.watermark
-          ? await addWatermark(pdf, mergePuppeteerOptions.watermark)
+        return mergedOptions.watermark
+          ? await addWatermark(pdf, mergedOptions.watermark)
           : pdf;
       } catch (e) {
         if (signal?.aborted) {
@@ -183,16 +108,7 @@ export class PuppeteerService {
           { cause: e },
         );
       } finally {
-        signal?.removeEventListener('abort', onAbort);
-        if (context) {
-          try {
-            if (closing) await closing;
-            else await context.close();
-          } catch (error) {
-            Logger.error(error);
-          }
-        }
-        await this.#browserService.markJobFinished();
+        await this.#jobs.markJobFinished();
       }
     });
 

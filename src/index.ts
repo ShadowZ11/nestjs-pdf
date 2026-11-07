@@ -15,3 +15,5 @@ export * from './puppeteer/engines/pug/pug.service';
 export * from './puppeteer/puppeteer.module';
 export * from './puppeteer/puppeteer.service';
 export * from './puppeteer/puppeteer-parameters.interface';
+export type * from './renderers/pdf-options.interface';
+export type * from './renderers/pdf-provider.interface';

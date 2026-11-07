@@ -3,6 +3,7 @@ export * from './browser-unavailable.exception';
 export * from './engine-not-available.exception';
 export * from './nestjs-pdf.exception';
 export * from './pdf-generation.exception';
+export * from './renderer-configuration.exception';
 export * from './signature-dependency.exception';
 export * from './signature-placement.exception';
 export * from './template-configuration.exception';

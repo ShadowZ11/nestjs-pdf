@@ -542,6 +542,16 @@ describe('BrowserService', () => {
   });
 
   describe('install', () => {
+    it('should reject a browser missing from the installed @puppeteer/browsers', async () => {
+      // The mocked package only knows chromium and chrome.
+      const localService = createService({ browser: 'firefox' });
+
+      await expect(localService.install()).rejects.toThrow(
+        "Unsupported browser 'firefox': expected one of 'chromium', 'chrome'",
+      );
+      expect(resolveBuildId).not.toHaveBeenCalled();
+    });
+
     it('should wrap a rejection from browser resolution as BrowserInstallationException', async () => {
       const networkError = new Error('network down');
       (resolveBuildId as Mock).mockRejectedValue(networkError);

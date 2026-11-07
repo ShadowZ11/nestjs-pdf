@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 
 import { PDF_PARAMETERS } from '../helpers/tokens';
+import { createPdfRenderer, usesPuppeteer } from '../renderers/create-renderer';
+import { PDF_RENDERER } from '../renderers/pdf-renderer.interface';
 import { BrowserService } from './browser/browser.service';
 import { EjsService } from './engines/ejs/ejs.service';
 import { EtaService } from './engines/eta/eta.service';
@@ -19,6 +21,10 @@ import { MjmlService } from './engines/mjml/mjml.service';
 import { MustacheService } from './engines/mustache/mustache.service';
 import { NunjucksService } from './engines/nunjucks/nunjucks.service';
 import { PugService } from './engines/pug/pug.service';
+import {
+  loadPuppeteer,
+  loadPuppeteerBrowsers,
+} from './libs/loadPuppeteer.utils';
 import { PuppeteerService } from './puppeteer.service';
 import type { PuppeteerParameters } from './puppeteer-parameters.interface';
 
@@ -32,10 +38,23 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
   ) => Promise<PuppeteerParameters> | PuppeteerParameters;
 }
 
+/** Builds the renderer of the configured provider, once the parameters are known. */
+const pdfRendererProvider: Provider = {
+  provide: PDF_RENDERER,
+  inject: [PDF_PARAMETERS, BrowserService],
+  useFactory: createPdfRenderer,
+};
+
+/** The part of BrowserService used here: keeps Puppeteer's types out of the public declarations. */
+interface BrowserInstaller {
+  install(useLockedBrowser: boolean): Promise<void>;
+}
+
 @Module({
   providers: [
     PuppeteerService,
     BrowserService,
+    pdfRendererProvider,
     MjmlService,
     PugService,
     EjsService,
@@ -56,11 +75,11 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
   ],
 })
 export class PuppeteerModule implements OnModuleInit {
-  readonly #browserService: BrowserService;
+  readonly #browserService: BrowserInstaller;
   readonly #pdfParams: PuppeteerParameters;
 
   constructor(
-    browserService: BrowserService,
+    @Inject(BrowserService) browserService: BrowserInstaller,
     @Inject(PDF_PARAMETERS) pdfParams: PuppeteerParameters,
   ) {
     this.#browserService = browserService;
@@ -68,7 +87,12 @@ export class PuppeteerModule implements OnModuleInit {
   }
 
   async onModuleInit() {
+    if (!usesPuppeteer(this.#pdfParams)) {
+      return;
+    }
+    await loadPuppeteer();
     if (!this.#pdfParams.executablePath) {
+      await loadPuppeteerBrowsers();
       await this.#browserService.install(
         this.#pdfParams.useLockedBrowser ?? false,
       );
@@ -122,6 +146,7 @@ export class PuppeteerModule implements OnModuleInit {
         pdfParamsProvider,
         PuppeteerService,
         BrowserService,
+        pdfRendererProvider,
         HandlebarsService,
         MjmlService,
         PugService,

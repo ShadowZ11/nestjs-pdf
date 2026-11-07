@@ -12,6 +12,8 @@ import {
 } from '../exceptions';
 import * as requestGuardModule from '../helpers/request-guard.helper';
 import { PDF_PARAMETERS } from '../helpers/tokens';
+import { PDF_RENDERER } from '../renderers/pdf-renderer.interface';
+import { PuppeteerRenderer } from '../renderers/puppeteer.renderer';
 import { BrowserService } from './browser/browser.service';
 import { EjsService } from './engines/ejs/ejs.service';
 import { EtaService } from './engines/eta/eta.service';
@@ -22,6 +24,13 @@ import { MustacheService } from './engines/mustache/mustache.service';
 import { NunjucksService } from './engines/nunjucks/nunjucks.service';
 import { PugService } from './engines/pug/pug.service';
 import { PuppeteerService } from './puppeteer.service';
+
+const puppeteerRendererProvider: Provider = {
+  provide: PDF_RENDERER,
+  inject: [BrowserService],
+  useFactory: (browserService: BrowserService) =>
+    new PuppeteerRenderer(browserService),
+};
 
 describe('PuppeteerService', () => {
   let service: PuppeteerService;
@@ -51,6 +60,7 @@ describe('PuppeteerService', () => {
           provide: BrowserService,
           useValue: mockBrowserService,
         },
+        puppeteerRendererProvider,
         {
           provide: PDF_PARAMETERS,
           useValue: mockPdfParameters,
@@ -71,6 +81,7 @@ describe('PuppeteerService', () => {
           provide: BrowserService,
           useValue: mockBrowserService,
         },
+        puppeteerRendererProvider,
         {
           provide: PDF_PARAMETERS,
           useValue: mockPdfParameters,
@@ -90,6 +101,7 @@ describe('PuppeteerService', () => {
           provide: BrowserService,
           useValue: mockBrowserService,
         },
+        puppeteerRendererProvider,
         {
           provide: HandlebarsService,
           useValue: mockHandlebarsService,
@@ -214,6 +226,58 @@ describe('PuppeteerService', () => {
       expect(result).toEqual(pdfBuffer);
     });
 
+    describe('job tracking with a remote renderer', () => {
+      const remoteRender = vi.fn();
+      const createWithRemoteRenderer = async () => {
+        const module = await Test.createTestingModule({
+          providers: [
+            PuppeteerService,
+            { provide: BrowserService, useValue: mockBrowserService },
+            { provide: PDF_RENDERER, useValue: { render: remoteRender } },
+            { provide: PDF_PARAMETERS, useValue: mockPdfParameters },
+          ],
+        }).compile();
+        return module.get(PuppeteerService);
+      };
+
+      it('should track the job around the render', async () => {
+        const remote = await createWithRemoteRenderer();
+        remoteRender.mockImplementation(() => {
+          expect(mockBrowserService.markJobStarted).toHaveBeenCalledTimes(1);
+          expect(mockBrowserService.markJobFinished).not.toHaveBeenCalled();
+          return Promise.resolve(new Uint8Array([1]));
+        });
+
+        await expect(remote.generatePdfFromHtml('<p></p>')).resolves.toEqual(
+          new Uint8Array([1]),
+        );
+        expect(mockBrowserService.markJobFinished).toHaveBeenCalledTimes(1);
+      });
+
+      it('should finish the job when the render fails', async () => {
+        const remote = await createWithRemoteRenderer();
+        remoteRender.mockRejectedValue(new Error('HTTP 503'));
+
+        await expect(remote.generatePdfFromHtml('<p></p>')).rejects.toThrow(
+          PdfGenerationException,
+        );
+        expect(mockBrowserService.markJobFinished).toHaveBeenCalledTimes(1);
+      });
+
+      it('should refuse the job while shutting down', async () => {
+        const remote = await createWithRemoteRenderer();
+        mockBrowserService.markJobStarted.mockImplementationOnce(() => {
+          throw new Error('nestjs-pdf is shutting down');
+        });
+
+        await expect(remote.generatePdfFromHtml('<p></p>')).rejects.toThrow(
+          'shutting down',
+        );
+        expect(remoteRender).not.toHaveBeenCalled();
+        expect(mockBrowserService.markJobFinished).not.toHaveBeenCalled();
+      });
+    });
+
     describe('watermark', () => {
       const mockPageReturning = (pdf: Uint8Array) => {
         const mockContext = {
@@ -256,6 +320,7 @@ describe('PuppeteerService', () => {
           providers: [
             PuppeteerService,
             { provide: BrowserService, useValue: mockBrowserService },
+            puppeteerRendererProvider,
             {
               provide: PDF_PARAMETERS,
               useValue: { headless: true, watermark: { text: 'GLOBAL' } },
@@ -371,6 +436,7 @@ describe('PuppeteerService', () => {
           providers: [
             PuppeteerService,
             { provide: BrowserService, useValue: mockBrowserService },
+            puppeteerRendererProvider,
             {
               provide: PDF_PARAMETERS,
               useValue: { headless: true, signal: controller.signal },
@@ -399,6 +465,7 @@ describe('PuppeteerService', () => {
           providers: [
             PuppeteerService,
             { provide: BrowserService, useValue: mockBrowserService },
+            puppeteerRendererProvider,
             { provide: PDF_PARAMETERS, useValue: mockPdfParameters },
           ],
         }).compile();
@@ -699,6 +766,7 @@ describe('PuppeteerService', () => {
             provide: BrowserService,
             useValue: mockBrowserService,
           },
+          puppeteerRendererProvider,
           {
             provide: PDF_PARAMETERS,
             useValue: {},

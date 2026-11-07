@@ -1,13 +1,32 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { vi } from 'vitest';
 
+import {
+  EngineNotAvailableException,
+  RendererConfigurationException,
+} from '../exceptions';
 import { PDF_PARAMETERS } from '../helpers/tokens';
+import { Api2PdfRenderer } from '../renderers/api2pdf.renderer';
+import { GotenbergRenderer } from '../renderers/gotenberg.renderer';
+import { PDF_RENDERER } from '../renderers/pdf-renderer.interface';
+import { PuppeteerRenderer } from '../renderers/puppeteer.renderer';
 import { BrowserService, BrowserTag } from './browser/browser.service';
 import { PuppeteerModule } from './puppeteer.module';
 import { PuppeteerService } from './puppeteer.service';
 import { type PuppeteerParameters } from './puppeteer-parameters.interface';
 
+const loaders = vi.hoisted(() => ({
+  loadPuppeteer: vi.fn(),
+  loadPuppeteerBrowsers: vi.fn(),
+}));
+vi.mock('./libs/loadPuppeteer.utils', () => loaders);
+
 describe('PuppeteerModule', () => {
+  beforeEach(() => {
+    loaders.loadPuppeteer.mockReset().mockResolvedValue({});
+    loaders.loadPuppeteerBrowsers.mockReset().mockResolvedValue({});
+  });
+
   describe('forRoot', () => {
     let module: TestingModule;
 
@@ -176,6 +195,55 @@ describe('PuppeteerModule', () => {
       expect(install).toHaveBeenCalledWith(true);
     });
 
+    it.each([
+      { type: 'gotenberg' as const, url: 'http://gotenberg:3000' },
+      { type: 'api2pdf' as const, apiKey: 'key' },
+    ])(
+      'should not install the browser with the $type provider',
+      async (provider) => {
+        const install = vi.fn().mockResolvedValue(undefined);
+
+        module = await Test.createTestingModule({
+          imports: [PuppeteerModule.forRoot({ provider })],
+        })
+          .overrideProvider(BrowserService)
+          .useValue({ install })
+          .compile();
+
+        await module.init();
+
+        expect(install).not.toHaveBeenCalled();
+        expect(loaders.loadPuppeteer).not.toHaveBeenCalled();
+        expect(loaders.loadPuppeteerBrowsers).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each([
+      ['puppeteer', loaders.loadPuppeteer],
+      ['@puppeteer/browsers', loaders.loadPuppeteerBrowsers],
+    ])(
+      'should fail on startup when %s is not installed',
+      async (packageName, loader) => {
+        const install = vi.fn().mockResolvedValue(undefined);
+        loader.mockRejectedValue(
+          new EngineNotAvailableException('Puppeteer', packageName),
+        );
+
+        // Not stored in `module`: its close would replay the failed init.
+        const failing = await Test.createTestingModule({
+          imports: [PuppeteerModule.forRoot({ headless: true })],
+        })
+          .overrideProvider(BrowserService)
+          .useValue({ install })
+          .compile();
+
+        await expect(failing.init()).rejects.toBeInstanceOf(
+          EngineNotAvailableException,
+        );
+        expect(install).not.toHaveBeenCalled();
+      },
+    );
+
     it('should not install the browser when executablePath is provided', async () => {
       const install = vi.fn().mockResolvedValue(undefined);
 
@@ -194,6 +262,80 @@ describe('PuppeteerModule', () => {
       await module.init();
 
       expect(install).not.toHaveBeenCalled();
+      expect(loaders.loadPuppeteer).toHaveBeenCalled();
+      expect(loaders.loadPuppeteerBrowsers).not.toHaveBeenCalled();
+    });
+
+    it('should not require @puppeteer/browsers when executablePath is provided', async () => {
+      loaders.loadPuppeteerBrowsers.mockRejectedValue(
+        new EngineNotAvailableException('Puppeteer', '@puppeteer/browsers'),
+      );
+
+      module = await Test.createTestingModule({
+        imports: [
+          PuppeteerModule.forRoot({ executablePath: '/usr/bin/chromium' }),
+        ],
+      })
+        .overrideProvider(BrowserService)
+        .useValue({ install: vi.fn() })
+        .compile();
+
+      await expect(module.init()).resolves.toBe(module);
+    });
+  });
+
+  describe('PDF renderer', () => {
+    let module: TestingModule;
+
+    afterEach(async () => {
+      if (module) {
+        await module.close();
+      }
+    });
+
+    it.each([
+      [undefined, PuppeteerRenderer],
+      [{ type: 'puppeteer' as const }, PuppeteerRenderer],
+      [
+        { type: 'gotenberg' as const, url: 'http://gotenberg:3000' },
+        GotenbergRenderer,
+      ],
+      [{ type: 'api2pdf' as const, apiKey: 'key' }, Api2PdfRenderer],
+    ])(
+      'should build the renderer of provider %j',
+      async (provider, expected) => {
+        module = await Test.createTestingModule({
+          imports: [PuppeteerModule.forRoot({ provider })],
+        }).compile();
+
+        expect(module.get(PDF_RENDERER)).toBeInstanceOf(expected);
+      },
+    );
+
+    it('should build the renderer from an async configuration', async () => {
+      module = await Test.createTestingModule({
+        imports: [
+          PuppeteerModule.forRootAsync({
+            useFactory: () => ({
+              provider: { type: 'gotenberg', url: 'http://gotenberg:3000' },
+            }),
+          }),
+        ],
+      }).compile();
+
+      expect(module.get(PDF_RENDERER)).toBeInstanceOf(GotenbergRenderer);
+    });
+
+    it('should fail fast on an invalid provider configuration', async () => {
+      await expect(
+        Test.createTestingModule({
+          imports: [
+            PuppeteerModule.forRoot({
+              provider: { type: 'api2pdf', apiKey: '' },
+            }),
+          ],
+        }).compile(),
+      ).rejects.toBeInstanceOf(RendererConfigurationException);
     });
   });
 
