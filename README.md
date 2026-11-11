@@ -6,6 +6,7 @@
 [![CI](https://github.com/Shadowz11/nestjs-pdf/actions/workflows/ci.yml/badge.svg)](https://github.com/Shadowz11/nestjs-pdf/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/github/ShadowZ11/nestjs-pdf/graph/badge.svg?token=K0MNB1ZKYK)](https://codecov.io/github/ShadowZ11/nestjs-pdf)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![XERJ Corpus Hub contributor](https://hub.xerj.org/contributors/ShadowZ11/badge.svg)](https://hub.xerj.org/contributors/ShadowZ11)
 
 A NestJS library to generate and manipulate PDFs from multiple template engines (Handlebars, EJS, Pug, MJML, Nunjucks, Eta, Mustache and Liquid), printed by a local Puppeteer browser, a [Gotenberg](https://gotenberg.dev) server or the [Api2Pdf](https://www.api2pdf.com) API.
 
