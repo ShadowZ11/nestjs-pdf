@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Report a security vulnerability
+    url: https://github.com/ShadowZ11/nestjs-pdf/security/advisories/new
+    about: Please report security issues privately, not in a public issue.
+  - name: 📖 Documentation
+    url: https://github.com/ShadowZ11/nestjs-pdf#readme
+    about: Check the README and the docs/ folder before opening an issue.

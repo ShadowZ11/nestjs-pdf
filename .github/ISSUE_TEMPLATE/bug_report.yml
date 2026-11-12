@@ -1,0 +1,119 @@
+name: 🐛 Bug report
+description: Something doesn't work as expected
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please search [existing issues](https://github.com/ShadowZ11/nestjs-pdf/issues) first to avoid duplicates.
+        ⚠️ **Security issues must not be reported here** — use [private vulnerability reporting](https://github.com/ShadowZ11/nestjs-pdf/security/advisories/new) instead.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: |
+        Module configuration, template and calling code needed to reproduce the issue.
+        A link to a minimal repository is even better.
+      render: typescript
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior / error output
+      description: Paste the full error and stack trace if any.
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Provider
+      options:
+        - Puppeteer
+        - Gotenberg
+        - Api2Pdf
+        - Not provider-related
+    validations:
+      required: true
+
+  - type: dropdown
+    id: engine
+    attributes:
+      label: Template engine
+      multiple: true
+      options:
+        - Handlebars
+        - Nunjucks
+        - EJS
+        - Pug
+        - MJML
+        - Eta
+        - Mustache
+        - Liquid
+        - Raw HTML / none
+        - Not engine-related
+
+  - type: input
+    id: lib-version
+    attributes:
+      label: "@shad0wz7/nestjs-pdf version"
+      placeholder: "5.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: nest-version
+    attributes:
+      label: NestJS version
+      placeholder: "12.x"
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      placeholder: "22.x"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module-system
+    attributes:
+      label: Module system
+      options:
+        - ESM
+        - CommonJS
+        - Don't know
+
+  - type: input
+    id: os
+    attributes:
+      label: OS / runtime environment
+      description: e.g. Windows 11, Ubuntu 24.04, Docker (node:22-slim), AWS Lambda…
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Puppeteer/Chromium version, Gotenberg version, screenshots of the PDF output, etc.
