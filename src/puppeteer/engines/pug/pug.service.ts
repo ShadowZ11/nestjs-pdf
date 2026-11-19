@@ -8,6 +8,11 @@ import {
   EngineNotAvailableException,
   TemplateRenderException,
 } from '../../../exceptions';
+import {
+  COMPILED_TEMPLATES_PER_SCOPE,
+  LruCache,
+  OptionsScopedCache,
+} from '../../../helpers/template-cache.helper';
 import { resolveTemplatePath } from '../../../helpers/template-path.helper';
 import { loadEngine } from '../../libs/loadEngine.utils';
 
@@ -23,6 +28,7 @@ export interface PugOptions extends Options {
 @Injectable()
 export class PugService {
   #pug?: typeof pug;
+  readonly #scopes = new OptionsScopedCache<LruCache<pug.compileTemplate>>();
 
   get #engine(): typeof pug {
     return (this.#pug ??= loadEngine<typeof pug>('pug', 'Pug'));
@@ -37,7 +43,11 @@ export class PugService {
     try {
       const { templateDirectory: _templateDirectory, ...pugOptions } =
         options ?? {};
-      const compiledFn = engine.compile(template, pugOptions);
+      // Scoped on the caller's object, not the stripped copy: options holding
+      // functions are compared by reference.
+      const compiledFn = this.#scopes
+        .get(options, () => new LruCache(COMPILED_TEMPLATES_PER_SCOPE))
+        .getOrCreate(template, () => engine.compile(template, pugOptions));
       return compiledFn(data);
     } catch (error) {
       throw new TemplateRenderException(
