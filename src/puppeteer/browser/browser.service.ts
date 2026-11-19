@@ -127,7 +127,6 @@ export class BrowserService implements OnModuleDestroy {
     }
   }
 
-  /** Wait until no PDF job is in flight, or until the timeout elapses. */
   async #waitForIdle(timeoutMs: number): Promise<void> {
     const start = Date.now();
     while (this.activeJobs > 0 && Date.now() - start < timeoutMs) {

@@ -6,7 +6,6 @@ import type { PuppeteerParameters } from '../puppeteer/puppeteer-parameters.inte
 
 const MAX_ERROR_BODY_LENGTH = 500;
 
-/** Builds a `PdfGenerationException` from a failed HTTP response, body included. */
 export async function httpError(
   provider: string,
   response: Response,

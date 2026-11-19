@@ -70,8 +70,7 @@ export class PugService {
     const { templateDirectory, ...pugOptions } = options ?? {};
     if (filename === undefined || templateDirectory === undefined) {
       try {
-        // Scoped on the caller's object, not the stripped copy: options
-        // holding functions are compared by reference.
+        // The caller's object, not the stripped copy: compared by reference when it holds functions.
         const compiledFn = this.#compile(
           this.#scopes.get(
             options,

@@ -192,9 +192,6 @@ async function buildMark(
   };
 }
 
-/**
- * Stamps a text or image watermark on the pages of an existing PDF.
- */
 export async function addWatermark(
   pdf: Uint8Array | Buffer,
   options: WatermarkOptions,

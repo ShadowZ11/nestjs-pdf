@@ -6,7 +6,6 @@ import { GotenbergRenderer } from './gotenberg.renderer';
 import type { PdfRenderer } from './pdf-renderer.interface';
 import { PuppeteerRenderer } from './puppeteer.renderer';
 
-/** True when the PDFs are printed by the local Chromium (the default). */
 export function usesPuppeteer(params: PuppeteerParameters): boolean {
   return (params.provider?.type ?? 'puppeteer') === 'puppeteer';
 }

@@ -35,13 +35,6 @@ export class MustacheService {
     ));
   }
 
-  /**
-   * Render a Mustache template from a string
-   * @param template The template string to render
-   * @param data The data object to use for rendering
-   * @param options Optional Mustache rendering options
-   * @returns The rendered HTML string
-   */
   render(
     template: string,
     data: Record<string, unknown> = {},
@@ -63,13 +56,6 @@ export class MustacheService {
     }
   }
 
-  /**
-   * Render a Mustache template from a file
-   * @param filePath The path to the template file
-   * @param data The data object to use for rendering
-   * @param options Optional Mustache rendering options
-   * @returns The rendered HTML string
-   */
   renderFile(
     filePath: string,
     data: Record<string, unknown> = {},
@@ -104,17 +90,12 @@ export class MustacheService {
     }
   }
 
-  /**
-   * Clear the template cache
-   */
+  /** Forgets the files read by `renderFile`: edited files are read again. */
   clearCache(): void {
     this.#templateCache.clear();
   }
 
-  /**
-   * Get the current cache size
-   * @returns The number of cached templates
-   */
+  /** Number of files kept by `renderFile`. */
   getCacheSize(): number {
     return this.#templateCache.size;
   }
