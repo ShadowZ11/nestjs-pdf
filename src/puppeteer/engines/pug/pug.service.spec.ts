@@ -14,6 +14,7 @@ vi.mock('node:fs', () => ({
 }));
 
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { Test, type TestingModule } from '@nestjs/testing';
 import pug from 'pug';
@@ -131,7 +132,7 @@ describe('PugService', () => {
 
       const result = service.renderFile(filePath, data, { pretty: true });
 
-      expect(readFileSync).toHaveBeenCalledWith(filePath, 'utf-8');
+      expect(readFileSync).toHaveBeenCalledWith(resolve(filePath), 'utf-8');
       expect(renderSpy).toHaveBeenCalledWith('h1= title', data, {
         pretty: true,
       });

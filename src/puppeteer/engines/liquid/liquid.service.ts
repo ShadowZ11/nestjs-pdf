@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 
 import { Injectable } from '@nestjs/common';
 import type * as LiquidModule from 'liquidjs';
@@ -9,9 +8,17 @@ import {
   EngineNotAvailableException,
   TemplateRenderException,
 } from '../../../exceptions';
+import { resolveTemplatePath } from '../../../helpers/template-path.helper';
 import { loadEngine } from '../../libs/loadEngine.utils';
 
-export type LiquidOptions = LiquidJsOptions;
+export interface LiquidOptions extends LiquidJsOptions {
+  /**
+   * Base directory (absolute, or relative to `process.cwd()`) for files passed to `renderFile`.
+   * When set, the file is resolved from it and may not leave it (symbolic links
+   * included). Recommended when the file name can come from user input.
+   */
+  templateDirectory?: string;
+}
 
 @Injectable()
 export class LiquidService {
@@ -40,10 +47,12 @@ export class LiquidService {
     options?: LiquidOptions,
   ): string {
     const { Liquid } = this.#engine;
+    const { templateDirectory: _templateDirectory, ...liquidOptions } =
+      options ?? {};
     try {
       const liquid =
-        options && Object.keys(options).length > 0
-          ? new Liquid(options)
+        Object.keys(liquidOptions).length > 0
+          ? new Liquid(liquidOptions)
           : (this.#liquid ??= new Liquid());
 
       return liquid.parseAndRenderSync(template, data) as string;
@@ -68,8 +77,12 @@ export class LiquidService {
     data: Record<string, unknown> = {},
     options?: LiquidOptions,
   ): string {
+    const resolvedPath = resolveTemplatePath(
+      'Liquid',
+      filePath,
+      options?.templateDirectory,
+    );
     try {
-      const resolvedPath = resolve(filePath);
       const useCache = options?.cache !== false;
       let template = useCache
         ? this.#templateCache.get(resolvedPath)

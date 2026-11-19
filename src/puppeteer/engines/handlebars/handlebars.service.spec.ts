@@ -5,7 +5,7 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 import {
   NestjsPdfErrorCode,
@@ -146,6 +146,18 @@ describe('HandlebarsService', () => {
           code: NestjsPdfErrorCode.TEMPLATE_CONFIGURATION_ERROR,
         });
       }
+    });
+
+    it('should accept an absolute partialDirectory', () => {
+      writeFileSync(join(tempDir, 'header.hbs'), '<h1>{{title}}</h1>');
+
+      expect(
+        service.render(
+          '{{> header}}',
+          { title: 'Doc' },
+          { partialDirectory: resolve(tempDir) },
+        ),
+      ).toBe('<h1>Doc</h1>');
     });
 
     it('should skip entries in partialDirectory that are not files', () => {

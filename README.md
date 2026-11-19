@@ -251,6 +251,24 @@ Good to know:
 - `window.open` pop-ups are blocked: the library no longer passes `--disable-popup-blocking` to Chrome. If you set `extraPuppeteerArgs`, do not add it back.
 - Per-call arrays are appended to the `forRoot` ones by default, so a per-call `allowedHosts` adds hosts to the module list. Pass `arrayMerge: 'replace'` to restrict it instead (see the `arrayMerge` option).
 
+### Restricting which template files can be read
+
+Every `*File` method (`generatePdfFromTemplateHbsFile`, `generatePdfFromLiquidFile`, …) accepts a `templateDirectory` in its engine options (`liquidOptions`, `etaOptions`, `ejsOptions`, …), per call or in `forRoot`. When it is set, the file name is resolved from that directory (absolute, or relative to `process.cwd()`) and cannot leave it: `../`, absolute paths and symbolic links pointing outside are refused with a `TemplateConfigurationException`.
+
+```ts
+NestjsPdfModule.forRoot({
+  liquidOptions: { templateDirectory: 'templates' },
+  // or, next to the module: { templateDirectory: join(__dirname, 'templates') }
+});
+
+// renders templates/invoice.liquid
+await pdfService.generatePdfFromLiquidFile('invoice.liquid', data);
+// throws TemplateConfigurationException
+await pdfService.generatePdfFromLiquidFile('../.env', data);
+```
+
+Set it whenever the file name can come from a request. Handlebars already requires it; for the other engines, a file name without `templateDirectory` is resolved from `process.cwd()` and is not restricted. This may become required in a future major version.
+
 ## PDF providers
 
 Templates, watermarks and signatures always run in your application; the provider only turns the rendered HTML into a PDF. Choose it with `provider` in `forRoot` / `forRootAsync` (it is ignored in per-call options):
