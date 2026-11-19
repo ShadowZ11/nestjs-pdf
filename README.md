@@ -282,6 +282,15 @@ A refused include throws a `TemplateConfigurationException`. Exception: MJML ren
 
 Set it whenever the file name can come from a request. Handlebars already requires it; for the other engines, a file name without `templateDirectory` is resolved from `process.cwd()` and is not restricted. This may become required in a future major version.
 
+### Template compilation cache
+
+Templates are compiled once and reused (Handlebars, EJS, Eta, Liquid, Nunjucks and Pug; the HTML produced by MJML is reused too), so only the first render of a template pays for its compilation. The cache is kept per set of engine options and bounded (least recently used templates are dropped):
+
+- options made of plain values (`{ trimBlocks: false }`, `{ templateDirectory: 'templates' }`, …) are compared by value, so a fresh object on every call still hits the cache;
+- options holding functions (Handlebars `helpers`, Eta `plugins`, Pug `filters`, …) are compared by reference: define them once (in `forRoot` or in a constant) rather than inline in each call.
+
+Nunjucks renders with its own environments and never calls the global `nunjucks.configure()`. Its `noCache` option still defaults to `true`, so `renderFile` re-reads the file on each call; set `noCache: false` to also keep compiled files in production.
+
 ## PDF providers
 
 Templates, watermarks and signatures always run in your application; the provider only turns the rendered HTML into a PDF. Choose it with `provider` in `forRoot` / `forRootAsync` (it is ignored in per-call options):

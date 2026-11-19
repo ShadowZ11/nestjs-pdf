@@ -10,6 +10,11 @@ import {
   TemplateRenderException,
 } from '../../../exceptions';
 import {
+  COMPILED_TEMPLATES_PER_SCOPE,
+  LruCache,
+  OptionsScopedCache,
+} from '../../../helpers/template-cache.helper';
+import {
   resolveTemplatePath,
   TemplateDirectoryGuard,
 } from '../../../helpers/template-path.helper';
@@ -29,6 +34,8 @@ export interface MjmlOptions extends MJMLParsingOptions {
 @Injectable()
 export class MjmlService {
   #mjml?: typeof mjml;
+  /** MJML output depends only on the template and the options: cache the HTML. */
+  readonly #scopes = new OptionsScopedCache<LruCache<string>>();
 
   get #engine(): typeof mjml {
     return (this.#mjml ??= loadEngine<typeof mjml>('mjml', 'MJML'));
@@ -39,7 +46,18 @@ export class MjmlService {
     const { templateDirectory: _templateDirectory, ...mjmlOptions } =
       options ?? {};
     try {
+      // Scoped on the caller's object, not the stripped copy: options holding
+      // functions are compared by reference.
+      const cache = this.#scopes.get(
+        options,
+        () => new LruCache(COMPILED_TEMPLATES_PER_SCOPE),
+      );
+      const cached = cache.get(template);
+      if (cached !== undefined) {
+        return cached;
+      }
       const { html } = await engine(template, mjmlOptions);
+      cache.set(template, html);
       return html;
     } catch (error) {
       throw new TemplateRenderException(

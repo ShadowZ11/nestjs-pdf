@@ -1,24 +1,14 @@
-import { type Mock, vi } from 'vitest';
-
-vi.mock('../../libs/loadEngine.utils', async () => {
-  const { default: engine } = await import('nunjucks');
-  return { loadEngine: () => engine };
-});
-
-vi.mock('nunjucks', () => ({
-  default: {
-    configure: vi.fn(),
-    render: vi.fn(),
-    renderString: vi.fn(),
-  },
-}));
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { Test, type TestingModule } from '@nestjs/testing';
 import nunjucks from 'nunjucks';
 
+import { TemplateRenderException } from '../../../exceptions';
 import { NunjucksService } from './nunjucks.service';
 
-const { configure, render, renderString } = nunjucks;
+// `_compile` runs once per actual compilation of a template.
+type TemplateInternals = { _compile(): void };
 
 describe('NunjucksService', () => {
   let service: NunjucksService;
@@ -31,191 +21,194 @@ describe('NunjucksService', () => {
     service = module.get<NunjucksService>(NunjucksService);
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  it('should load and configure the engine only once', () => {
-    (configure as Mock).mockClear();
+  it('should never configure the global nunjucks environment', () => {
+    const configure = vi.spyOn(nunjucks, 'configure');
 
-    service.render('first');
-    service.render('second');
+    service.render('{{ a }}', { a: 1 });
+    service.render('{{ a }}', { a: 1 }, { trimBlocks: false });
 
-    expect(configure).toHaveBeenCalledTimes(1);
-    expect(configure).toHaveBeenCalledWith({
-      noCache: true,
-      trimBlocks: true,
-      lstripBlocks: true,
-    });
+    expect(configure).not.toHaveBeenCalled();
   });
 
   describe('render', () => {
     it('should render a simple Nunjucks template', () => {
-      (renderString as Mock).mockReturnValue('<h1>Hello World</h1>');
-      const template = '<h1>{{ title }}</h1>';
-      const data = { title: 'Hello World' };
-
-      const result = service.render(template, data);
-
-      expect(renderString).toHaveBeenCalledWith(template, data);
-      expect(result).toBe('<h1>Hello World</h1>');
+      expect(
+        service.render('<h1>{{ title }}</h1>', { title: 'Hello World' }),
+      ).toBe('<h1>Hello World</h1>');
     });
 
     it('should render with conditional logic', () => {
-      (renderString as Mock).mockReturnValue('<p>Visible</p>');
-      const template = '{% if show %}<p>Visible</p>{% endif %}';
-      const data = { show: true };
-
-      const result = service.render(template, data);
-
-      expect(result).toBe('<p>Visible</p>');
+      expect(
+        service.render('{% if show %}<p>Visible</p>{% endif %}', {
+          show: true,
+        }),
+      ).toBe('<p>Visible</p>');
     });
 
     it('should render with loop', () => {
-      (renderString as Mock).mockReturnValue('<li>Item 1</li>');
-      const template = `
-        <ul>
-        {% for item in items %}
-          <li>{{ item }}</li>
-        {% endfor %}
-        </ul>
-      `;
-      const data = { items: ['Item 1', 'Item 2', 'Item 3'] };
-
-      const result = service.render(template, data);
-
-      expect(result).toBe('<li>Item 1</li>');
+      expect(
+        service.render(
+          '{% for item in items %}<li>{{ item }}</li>{% endfor %}',
+          {
+            items: ['Item 1', 'Item 2'],
+          },
+        ),
+      ).toBe('<li>Item 1</li><li>Item 2</li>');
     });
 
     it('should handle empty data', () => {
-      (renderString as Mock).mockReturnValue('<h1>Static Content</h1>');
-      const template = '<h1>Static Content</h1>';
-
-      const result = service.render(template);
-
-      expect(renderString).toHaveBeenCalledWith(template, {});
-      expect(result).toBe('<h1>Static Content</h1>');
-    });
-
-    it('should throw error on invalid template', () => {
-      (renderString as Mock).mockImplementation(() => {
-        throw new Error('bad template');
-      });
-      const template = '{% if invalid %}';
-
-      expect(() => service.render(template, {})).toThrow(
-        'Nunjucks rendering failed: Error: bad template',
+      expect(service.render('<h1>Static {{ missing }}</h1>')).toBe(
+        '<h1>Static </h1>',
       );
     });
 
     it('should render with filters', () => {
-      (renderString as Mock).mockReturnValue('<h1>HELLO WORLD</h1>');
-      const template = '<h1>{{ title | upper }}</h1>';
-      const data = { title: 'hello world' };
-
-      const result = service.render(template, data);
-
-      expect(result).toBe('<h1>HELLO WORLD</h1>');
+      expect(
+        service.render('<h1>{{ title | upper }}</h1>', {
+          title: 'hello world',
+        }),
+      ).toBe('<h1>HELLO WORLD</h1>');
     });
 
-    it('should render with options', () => {
-      (renderString as Mock).mockReturnValue('<h1>Test</h1>');
-      const template = '<h1>{{ title }}</h1>';
-      const data = { title: 'Test' };
+    it('should escape output by default, and honor autoescape: false', () => {
+      const data = { html: '<b>' };
 
-      const result = service.render(template, data, {
-        noCache: true,
-      });
-
-      expect(configure).toHaveBeenCalledWith({
-        noCache: true,
-        watch: false,
-        throwOnUndefined: false,
-        trimBlocks: true,
-        lstripBlocks: true,
-      });
-      expect(result).toBe('<h1>Test</h1>');
+      expect(service.render('{{ html }}', data)).toBe('&lt;b&gt;');
+      expect(service.render('{{ html }}', data, { autoescape: false })).toBe(
+        '<b>',
+      );
     });
 
-    it('should honor explicit falsy config option values', () => {
-      (renderString as Mock).mockReturnValue('<h1>Test</h1>');
-      const template = '<h1>{{ title }}</h1>';
-      const data = { title: 'Test' };
+    it('should trim blocks by default, and honor explicit falsy options', () => {
+      const template = '{% if a %}\nX{% endif %}';
 
-      const result = service.render(template, data, {
-        watch: true,
-        throwOnUndefined: true,
-        trimBlocks: false,
-        lstripBlocks: false,
-      });
+      expect(service.render(template, { a: true })).toBe('X');
+      expect(service.render(template, { a: true }, { trimBlocks: false })).toBe(
+        '\nX',
+      );
+    });
 
-      expect(configure).toHaveBeenCalledWith({
-        noCache: true,
-        watch: true,
-        throwOnUndefined: true,
-        trimBlocks: false,
-        lstripBlocks: false,
-      });
-      expect(result).toBe('<h1>Test</h1>');
+    it('should honor throwOnUndefined', () => {
+      expect(service.render('{{ missing }}')).toBe('');
+      expect(() =>
+        service.render('{{ missing }}', {}, { throwOnUndefined: true }),
+      ).toThrow(TemplateRenderException);
+    });
+
+    it('should wrap errors of an invalid template', () => {
+      expect(() => service.render('{% if invalid %}', {})).toThrow(
+        /^Nunjucks rendering failed: /,
+      );
+      expect(() => service.render('{% if invalid %}', {})).toThrow(
+        TemplateRenderException,
+      );
+    });
+
+    it('should compile a template once, even with fresh equal options', () => {
+      const compile = vi.spyOn(
+        nunjucks.Template.prototype as unknown as TemplateInternals,
+        '_compile',
+      );
+
+      service.render('<p>{{ n }}</p>', { n: 1 }, { trimBlocks: true });
+      service.render('<p>{{ n }}</p>', { n: 2 }, { trimBlocks: true });
+      const result = service.render(
+        '<p>{{ n }}</p>',
+        { n: 3 },
+        { trimBlocks: true },
+      );
+
+      expect(result).toBe('<p>3</p>');
+      expect(compile).toHaveBeenCalledTimes(1);
+    });
+
+    it('should compile separately for different options', () => {
+      const compile = vi.spyOn(
+        nunjucks.Template.prototype as unknown as TemplateInternals,
+        '_compile',
+      );
+
+      service.render('{{ n }}', { n: 1 });
+      service.render('{{ n }}', { n: 1 }, { autoescape: false });
+
+      expect(compile).toHaveBeenCalledTimes(2);
     });
   });
 
   describe('renderFile', () => {
-    it('should render a file template', () => {
-      (render as Mock).mockReturnValue('<h1>File</h1>');
-      const filePath = './examples/sample-template.njk';
-      const data = {
-        invoiceNumber: '2024-001',
-        customerName: 'John Doe',
-        items: [{ name: 'Service A', quantity: 1, price: 100, total: 100 }],
-        totalAmount: 100,
-      };
+    let tempDir: string;
 
-      const result = service.renderFile(filePath, data, { watch: true });
-
-      expect(configure).toHaveBeenCalledWith({
-        noCache: true,
-        watch: true,
-        throwOnUndefined: false,
-        trimBlocks: true,
-        lstripBlocks: true,
-      });
-      expect(render).toHaveBeenCalledWith(filePath, data);
-      expect(result).toBe('<h1>File</h1>');
+    beforeEach(() => {
+      // Under the project cwd: files are resolved against it.
+      tempDir = mkdtempSync('nunjucks-service-');
     });
 
-    it('should throw a wrapped error when rendering fails', () => {
-      (render as Mock).mockImplementation(() => {
-        throw new Error('render boom');
-      });
+    afterEach(() => {
+      rmSync(tempDir, { recursive: true, force: true });
+    });
 
-      expect(() => service.renderFile('./missing.njk')).toThrow(
-        'Nunjucks file rendering failed: Error: render boom',
+    it('should render a file resolved from process.cwd()', () => {
+      writeFileSync(join(tempDir, 'page.njk'), '<h1>{{ title }}</h1>');
+
+      expect(
+        service.renderFile(join(tempDir, 'page.njk'), { title: 'File' }),
+      ).toBe('<h1>File</h1>');
+    });
+
+    it('should resolve includes through the same loader', () => {
+      writeFileSync(join(tempDir, 'header.njk'), '<h1>{{ title }}</h1>');
+      writeFileSync(
+        join(tempDir, 'page.njk'),
+        `{% include "${tempDir}/header.njk" %}<p>body</p>`,
       );
+
+      expect(
+        service.renderFile(join(tempDir, 'page.njk'), { title: 'Inc' }),
+      ).toBe('<h1>Inc</h1><p>body</p>');
     });
 
     it('should honor explicit falsy config option values', () => {
-      (render as Mock).mockReturnValue('<h1>File</h1>');
-      const filePath = './examples/sample-template.njk';
+      writeFileSync(join(tempDir, 'page.njk'), '{% if a %}\nX{% endif %}');
 
-      const result = service.renderFile(
-        filePath,
-        {},
-        {
-          throwOnUndefined: true,
-          trimBlocks: false,
-          lstripBlocks: false,
-        },
+      expect(
+        service.renderFile(
+          join(tempDir, 'page.njk'),
+          { a: true },
+          { trimBlocks: false },
+        ),
+      ).toBe('\nX');
+    });
+
+    it('should re-read an edited file by default (noCache: true)', () => {
+      const file = join(tempDir, 'page.njk');
+      writeFileSync(file, 'v1');
+      expect(service.renderFile(file)).toBe('v1');
+
+      writeFileSync(file, 'v2');
+      expect(service.renderFile(file)).toBe('v2');
+    });
+
+    it('should keep the compiled file with noCache: false', () => {
+      const file = join(tempDir, 'page.njk');
+      writeFileSync(file, 'v1');
+      expect(service.renderFile(file, {}, { noCache: false })).toBe('v1');
+
+      writeFileSync(file, 'v2');
+      expect(service.renderFile(file, {}, { noCache: false })).toBe('v1');
+    });
+
+    it('should throw a wrapped error when the file is missing', () => {
+      expect(() => service.renderFile(join(tempDir, 'missing.njk'))).toThrow(
+        /^Nunjucks file rendering failed: /,
       );
-
-      expect(configure).toHaveBeenCalledWith({
-        noCache: true,
-        watch: false,
-        throwOnUndefined: true,
-        trimBlocks: false,
-        lstripBlocks: false,
-      });
-      expect(result).toBe('<h1>File</h1>');
     });
   });
 });

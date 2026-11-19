@@ -2,13 +2,18 @@ import { readFileSync } from 'node:fs';
 
 import { Injectable } from '@nestjs/common';
 import type * as EtaModule from 'eta';
-import type { Eta, EtaConfig } from 'eta';
+import type { Eta, EtaConfig, TemplateFunction } from 'eta';
 
 import {
   EngineNotAvailableException,
   TemplateConfigurationException,
   TemplateRenderException,
 } from '../../../exceptions';
+import {
+  COMPILED_TEMPLATES_PER_SCOPE,
+  LruCache,
+  OptionsScopedCache,
+} from '../../../helpers/template-cache.helper';
 import {
   resolveTemplatePath,
   TemplateDirectoryGuard,
@@ -31,10 +36,20 @@ export interface EtaOptions extends Partial<EtaConfig> {
   templateDirectory?: string;
 }
 
+interface EtaScope {
+  eta: Eta;
+  compiled: LruCache<TemplateFunction>;
+  /** Set for a scope whose includes and layouts are confined. */
+  guard?: TemplateDirectoryGuard;
+}
+
 @Injectable()
 export class EtaService {
   #etaModule?: typeof EtaModule;
-  #eta?: Eta;
+  /** One Eta instance, and its compiled templates, per set of options. */
+  readonly #scopes = new OptionsScopedCache<EtaScope>();
+  /** For `renderFile` with `templateDirectory`. */
+  readonly #confinedScopes = new OptionsScopedCache<EtaScope>();
   readonly #templateCache: Map<string, string> = new Map();
   readonly #maxCacheSize = 100;
 
@@ -54,46 +69,56 @@ export class EtaService {
     data: Record<string, unknown> = {},
     options?: EtaOptions,
   ): string {
-    return this.#render(template, data, options);
+    return this.#render(template, data, options, false);
   }
 
+  /** With `confined`, includes and layouts may not leave `templateDirectory`. */
   #render(
     template: string,
     data: Record<string, unknown>,
     options: EtaOptions | undefined,
-    guard?: TemplateDirectoryGuard,
+    confined: boolean,
   ): string {
     const { Eta } = this.#engine;
-    const { templateDirectory: _templateDirectory, ...etaOptions } =
-      options ?? {};
-    try {
-      const eta = guard
-        ? this.#confinedEta(guard, etaOptions)
-        : Object.keys(etaOptions).length > 0
-          ? new Eta({
+    const { templateDirectory, ...etaOptions } = options ?? {};
+    // Scoped on the caller's object, not the stripped copy: options holding
+    // functions are compared by reference.
+    const scope =
+      confined && templateDirectory !== undefined
+        ? this.#confinedScopes.get(options, () =>
+            this.#confinedScope(templateDirectory, etaOptions),
+          )
+        : this.#scopes.get(options, () => ({
+            eta: new Eta({
               cache: true,
               autoEscape: true,
               useWith: true,
               ...etaOptions,
               varName: etaOptions.varName ?? 'it',
-            })
-          : (this.#eta ??= new Eta({
-              cache: true,
-              autoEscape: true,
-              useWith: true,
-            }));
-
-      return eta.renderString(template, data);
-    } catch (error) {
-      if (guard?.refused) {
-        throw guard.refused;
+            }),
+            compiled: new LruCache(COMPILED_TEMPLATES_PER_SCOPE),
+          }));
+    const { eta, compiled, guard } = scope;
+    const render = () => {
+      try {
+        // Same as eta.renderString, without compiling the template every time.
+        const templateFn = compiled.getOrCreate(template, () =>
+          eta.compile(template, { async: false }),
+        );
+        return eta.render(templateFn, data);
+      } catch (error) {
+        if (guard?.refused) {
+          throw guard.refused;
+        }
+        throw new TemplateRenderException(
+          'Eta',
+          `Eta rendering failed: ${String(error)}`,
+          { cause: error },
+        );
       }
-      throw new TemplateRenderException(
-        'Eta',
-        `Eta rendering failed: ${String(error)}`,
-        { cause: error },
-      );
-    }
+    };
+    // The guard is shared by every render of the scope.
+    return guard ? guard.track(render) : render();
   }
 
   /**
@@ -126,14 +151,7 @@ export class EtaService {
           this.#templateCache.set(resolvedPath, template);
         }
       }
-      return this.#render(
-        template,
-        data,
-        options,
-        options?.templateDirectory === undefined
-          ? undefined
-          : new TemplateDirectoryGuard('Eta', options.templateDirectory),
-      );
+      return this.#render(template, data, options, true);
     } catch (error) {
       if (
         error instanceof EngineNotAvailableException ||
@@ -153,11 +171,12 @@ export class EtaService {
    * An Eta instance whose includes and layouts (resolved from `views`, by
    * default `templateDirectory`) may not leave `templateDirectory`.
    */
-  #confinedEta(
-    guard: TemplateDirectoryGuard,
+  #confinedScope(
+    templateDirectory: string,
     etaOptions: Omit<EtaOptions, 'templateDirectory'>,
-  ): Eta {
+  ): EtaScope {
     const { Eta } = this.#engine;
+    const guard = new TemplateDirectoryGuard('Eta', templateDirectory);
     const eta = new Eta({
       cache: true,
       autoEscape: true,
@@ -167,7 +186,11 @@ export class EtaService {
       varName: etaOptions.varName ?? 'it',
     });
     eta.readFile = (path: string) => readFileSync(guard.check(path), 'utf8');
-    return eta;
+    return {
+      eta,
+      compiled: new LruCache(COMPILED_TEMPLATES_PER_SCOPE),
+      guard,
+    };
   }
 
   /**

@@ -9,6 +9,11 @@ import {
   TemplateConfigurationException,
   TemplateRenderException,
 } from '../../../exceptions';
+import {
+  COMPILED_TEMPLATES_PER_SCOPE,
+  LruCache,
+  OptionsScopedCache,
+} from '../../../helpers/template-cache.helper';
 import { resolveTemplatePath } from '../../../helpers/template-path.helper';
 import { loadEngine } from '../../libs/loadEngine.utils';
 
@@ -37,8 +42,11 @@ export interface HandlebarsOptions {
 @Injectable()
 export class HandlebarsService {
   #handlebars?: typeof Handlebars;
-  #cachedOptions?: HandlebarsOptions;
-  #cachedEnv?: typeof Handlebars;
+  /** One isolated environment, and its compiled templates, per set of options. */
+  readonly #scopes = new OptionsScopedCache<{
+    env: typeof Handlebars;
+    compiled: LruCache<Handlebars.TemplateDelegate>;
+  }>();
 
   get #engine(): typeof Handlebars {
     return (this.#handlebars ??= loadEngine<typeof Handlebars>(
@@ -53,9 +61,12 @@ export class HandlebarsService {
     options: HandlebarsOptions = {},
   ): string {
     try {
-      const compiled = this.#getEnv(options).compile(
-        template,
-        options.compileOptions,
+      const scope = this.#scopes.get(options, () => ({
+        env: this.#createEnv(options),
+        compiled: new LruCache(COMPILED_TEMPLATES_PER_SCOPE),
+      }));
+      const compiled = scope.compiled.getOrCreate(template, () =>
+        scope.env.compile(template, options.compileOptions),
       );
       return compiled(parameters, options.templateOptions);
     } catch (error) {
@@ -103,23 +114,16 @@ export class HandlebarsService {
 
   /**
    * Build an isolated Handlebars environment with the given helpers/partials so
-   * nothing leaks into the global Handlebars. Memoised for the common case where
-   * the same options object is reused across calls (e.g. the module `hbsOptions`).
+   * nothing leaks into the global Handlebars. Built once per set of options:
+   * partials are read when the environment is created.
    */
-  #getEnv(options: HandlebarsOptions): typeof Handlebars {
-    if (this.#cachedEnv && this.#cachedOptions === options) {
-      return this.#cachedEnv;
-    }
-
+  #createEnv(options: HandlebarsOptions): typeof Handlebars {
     const env = this.#engine.create();
 
     for (const helper of options.helpers ?? []) {
       env.registerHelper(helper.name, helper.fn);
     }
     this.#registerPartials(env, options.partialDirectory);
-
-    this.#cachedOptions = options;
-    this.#cachedEnv = env;
     return env;
   }
 

@@ -444,3 +444,146 @@ describe('EJS includer with templateDirectory', () => {
     );
   });
 });
+
+type CachedRenderFile = (
+  file: string,
+  templateDirectory: string,
+  options?: object,
+) => unknown;
+
+// One service for every render: confined engines and their guard are cached.
+const cachedEngines: Array<{
+  name: string;
+  ext: string;
+  including: (path: string) => string;
+  broken: string;
+  /** Include path and options reaching the guard (default: a parent include). */
+  escape?: { path: string; options: (root: string) => object };
+  renderer: () => CachedRenderFile;
+}> = [
+  {
+    name: 'Nunjucks',
+    ext: '.njk',
+    including: (path) => `{% include "${path}" %}`,
+    broken: '{% if %}',
+    renderer: () => {
+      const service = new NunjucksService();
+      return (file, templateDirectory, options) =>
+        service.renderFile(file, {}, { ...options, templateDirectory });
+    },
+  },
+  {
+    name: 'EJS',
+    ext: '.ejs',
+    including: (path) => `<%- await include('${path}') %>`,
+    broken: '<% if ( %>',
+    renderer: () => {
+      const service = new EjsService();
+      return (file, templateDirectory, options) =>
+        service.renderFile(file, {}, { ...options, templateDirectory });
+    },
+  },
+  {
+    name: 'Eta',
+    ext: '.eta',
+    including: (path) => `<%~ include('${path}') %>`,
+    broken: '<% if ( %>',
+    // Eta itself refuses `../` outside `views`: widen it to reach the guard.
+    escape: { path: 'secret.eta', options: (root) => ({ views: root }) },
+    renderer: () => {
+      const service = new EtaService();
+      return (file, templateDirectory, options) =>
+        service.renderFile(
+          file,
+          {},
+          { ...options, templateDirectory, cache: false },
+        );
+    },
+  },
+  {
+    name: 'Liquid',
+    ext: '.liquid',
+    including: (path) => `{% include '${path}' %}`,
+    broken: '{% if %}',
+    // Liquid itself refuses `../` outside `root`: widen it to reach the guard.
+    escape: { path: 'secret.liquid', options: (root) => ({ root: [root] }) },
+    renderer: () => {
+      const service = new LiquidService();
+      return (file, templateDirectory, options) =>
+        service.renderFile(
+          file,
+          {},
+          { ...options, templateDirectory, cache: false },
+        );
+    },
+  },
+  {
+    name: 'Pug',
+    ext: '.pug',
+    including: (path) => `include ${path}`,
+    broken: 'div(',
+    renderer: () => {
+      const service = new PugService();
+      return (file, templateDirectory, options) =>
+        service.renderFile(file, {}, { ...options, templateDirectory });
+    },
+  },
+];
+
+describe.each(cachedEngines)(
+  '$name renders sharing a cached templateDirectory guard',
+  (engine) => {
+    let root: string;
+    let templateDirectory: string;
+    let options: object | undefined;
+    let renderFile: CachedRenderFile;
+    const write = (name: string, content: string) =>
+      writeFileSync(join(templateDirectory, `${name}${engine.ext}`), content);
+    const outcome = async (name: string) => {
+      try {
+        return await renderFile(
+          `${name}${engine.ext}`,
+          templateDirectory,
+          options,
+        );
+      } catch (error) {
+        return error;
+      }
+    };
+
+    beforeEach(() => {
+      root = mkdtempSync('template-directory-cache-');
+      templateDirectory = join(root, 'templates');
+      mkdirSync(templateDirectory);
+      writeFileSync(join(root, `secret${engine.ext}`), 'TOP SECRET');
+      write(
+        'escape',
+        engine.including(engine.escape?.path ?? `../secret${engine.ext}`),
+      );
+      write('broken', engine.broken);
+      options = engine.escape?.options(resolve(root));
+      renderFile = engine.renderer();
+    });
+
+    afterEach(() => {
+      rmSync(root, { recursive: true, force: true });
+    });
+
+    it('should refuse the same include on every render', async () => {
+      expect(await outcome('escape')).toBeInstanceOf(
+        TemplateConfigurationException,
+      );
+      expect(await outcome('escape')).toBeInstanceOf(
+        TemplateConfigurationException,
+      );
+    });
+
+    it('should not report an earlier refusal for another failure', async () => {
+      await outcome('escape');
+
+      const error = await outcome('broken');
+      expect(error).toBeInstanceOf(Error);
+      expect(error).not.toBeInstanceOf(TemplateConfigurationException);
+    });
+  },
+);
