@@ -14,6 +14,7 @@ vi.mock('node:fs', () => ({
 }));
 
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { Test, type TestingModule } from '@nestjs/testing';
 import mjml from 'mjml';
@@ -77,14 +78,12 @@ describe('MjmlService', () => {
       html: '<html lang="en">file</html>',
     });
 
-    const result = await service.renderFile('e:\\templates\\invoice.mjml', {
+    const filePath = resolve('templates', 'invoice.mjml');
+    const result = await service.renderFile(filePath, {
       minify: false,
     });
 
-    expect(readFileSync).toHaveBeenCalledWith(
-      'e:\\templates\\invoice.mjml',
-      'utf-8',
-    );
+    expect(readFileSync).toHaveBeenCalledWith(filePath, 'utf-8');
     expect(mjml).toHaveBeenCalledWith('<mjml>file</mjml>', { minify: false });
     expect(result).toBe('<html lang="en">file</html>');
   });
@@ -114,12 +113,12 @@ describe('MjmlService', () => {
     });
 
     await expect(
-      service.renderFile('e:\\templates\\missing.mjml'),
+      service.renderFile(resolve('templates', 'missing.mjml')),
     ).rejects.toBeInstanceOf(TemplateRenderException);
 
     let caught: unknown;
     try {
-      await service.renderFile('e:\\templates\\missing.mjml');
+      await service.renderFile(resolve('templates', 'missing.mjml'));
     } catch (error) {
       caught = error;
     }
