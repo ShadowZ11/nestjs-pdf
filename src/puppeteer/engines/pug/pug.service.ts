@@ -43,8 +43,7 @@ export class PugService {
     try {
       const { templateDirectory: _templateDirectory, ...pugOptions } =
         options ?? {};
-      // Scoped on the caller's object, not the stripped copy: options holding
-      // functions are compared by reference.
+      // The caller's object, not the stripped copy: compared by reference when it holds functions.
       const compiledFn = this.#scopes
         .get(options, () => new LruCache(COMPILED_TEMPLATES_PER_SCOPE))
         .getOrCreate(template, () => engine.compile(template, pugOptions));

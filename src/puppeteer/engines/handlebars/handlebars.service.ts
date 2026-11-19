@@ -113,9 +113,8 @@ export class HandlebarsService {
   }
 
   /**
-   * Build an isolated Handlebars environment with the given helpers/partials so
-   * nothing leaks into the global Handlebars. Built once per set of options:
-   * partials are read when the environment is created.
+   * Isolated environment, so helpers and partials never leak into the global
+   * Handlebars. Partials are read once, when it is created.
    */
   #createEnv(options: HandlebarsOptions): typeof Handlebars {
     const env = this.#engine.create();

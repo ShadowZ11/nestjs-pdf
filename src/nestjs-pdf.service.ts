@@ -19,22 +19,15 @@ export class NestjsPdfService {
   }
 
   /**
+   * Converts an HTML string to a PDF.
    * @param html HTML string to convert to PDF
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the provided HTML
-   * @description This method uses the Puppeteer service to generate a PDF from an HTML string. Generation options can be customized by passing a `PuppeteerParameters` object as the second argument. This allows you to control various aspects of PDF rendering, such as page size, margins, background display, etc. If no options are provided, the default parameters defined in the Puppeteer service will be used.
+   * @param options Merged over the module options for this call.
    */
   generatePdfFromHtml(html: string, options?: PuppeteerParameters) {
     return this.#puppeteerService.generatePdfFromHtml(html, options);
   }
 
-  /**
-   * @param template Handlebars template string
-   * @param parameters Data parameters to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the provided Handlebars template with parameters applied
-   * @description This method generates a PDF from a Handlebars template provided as a string. The parameters to inject into the template are passed in the `parameters` object, which is used to render the template before converting it to PDF. PDF generation options can also be customized by passing a `PuppeteerParameters` object as the third argument. This allows you to control various aspects of PDF rendering, such as page size, margins, background display, etc. If no options are provided, the default parameters defined in the Puppeteer service will be used.
-   */
+  /** Renders a Handlebars template string, then converts it to a PDF. */
   generatePdfFromTemplateHbsString(
     template: string,
     parameters: any = {},
@@ -48,11 +41,8 @@ export class NestjsPdfService {
   }
 
   /**
-   * @param file Path to the Handlebars template file
-   * @param parameters Data parameters to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the Handlebars template at the provided file path with parameters applied
-   * @description This method generates a PDF from a Handlebars template located at the specified file path. The file path is passed as a string in the `file` parameter. The parameters to inject into the template are passed in the `parameters` object, which is used to render the template before converting it to PDF. PDF generation options can also be customized by passing a `PuppeteerParameters` object as the third argument. This allows you to control various aspects of PDF rendering, such as page size, margins, background display, etc. If no options are provided, the default parameters defined in the Puppeteer service will be used.
+   * Renders a Handlebars template file, then converts it to a PDF.
+   * @param file Resolved from `hbsOptions.templateDirectory`, which is required.
    */
   generatePdfFromTemplateHbsFile(
     file: string,
@@ -66,33 +56,20 @@ export class NestjsPdfService {
     );
   }
 
-  /**
-   * @param template MJML template string
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the provided MJML template
-   * @description This method generates a PDF from an MJML template provided as a string. MJML (MJML Markup Language) is a markup language designed to reduce the pain of coding a responsive email. The template is first rendered to HTML using the MJML renderer, then converted to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the second argument.
-   */
+  /** Converts an MJML template string to HTML, then to a PDF. */
   generatePdfFromMjmlString(template: string, options?: PuppeteerParameters) {
     return this.#puppeteerService.generatePdfFromMjmlString(template, options);
   }
 
   /**
-   * @param file Path to the MJML template file
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the MJML template at the provided file path
-   * @description This method generates a PDF from an MJML template located at the specified file path. The file path is passed as a string in the `file` parameter. The template is first rendered to HTML using the MJML renderer, then converted to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the second argument.
+   * Converts an MJML template file to HTML, then to a PDF.
+   * @param file Resolved from `mjmlOptions.templateDirectory` when set, otherwise from `process.cwd()`.
    */
   generatePdfFromMjmlFile(file: string, options?: PuppeteerParameters) {
     return this.#puppeteerService.generatePdfFromMjmlFile(file, options);
   }
 
-  /**
-   * @param template EJS template string
-   * @param data Data to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the provided EJS template with data applied
-   * @description This method generates a PDF from an EJS (Embedded JavaScript) template provided as a string. EJS is a templating language with a simple, straightforward syntax. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
-   */
+  /** Renders a EJS template string, then converts it to a PDF. */
   generatePdfFromEjsString(
     template: string,
     data: Data = {},
@@ -106,11 +83,8 @@ export class NestjsPdfService {
   }
 
   /**
-   * @param file Path to the EJS template file
-   * @param data Data to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the EJS template at the provided file path with data applied
-   * @description This method generates a PDF from an EJS template located at the specified file path. The file path is passed as a string in the `file` parameter. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   * Renders a EJS template file, then converts it to a PDF.
+   * @param file Resolved from `ejsOptions.templateDirectory` when set, otherwise from `process.cwd()`.
    */
   generatePdfFromEjsFile(
     file: string,
@@ -120,13 +94,7 @@ export class NestjsPdfService {
     return this.#puppeteerService.generatePdfFromEjsFile(file, data, options);
   }
 
-  /**
-   * @param template Pug template string
-   * @param data Data to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the provided Pug template with data applied
-   * @description This method generates a PDF from a Pug template provided as a string. Pug is a clean, whitespace-sensitive syntax for writing HTML. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
-   */
+  /** Renders a Pug template string, then converts it to a PDF. */
   generatePdfFromPugString(
     template: string,
     data: LocalsObject = {},
@@ -140,11 +108,8 @@ export class NestjsPdfService {
   }
 
   /**
-   * @param file Path to the Pug template file
-   * @param data Data to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the Pug template at the provided file path with data applied
-   * @description This method generates a PDF from a Pug template located at the specified file path. The file path is passed as a string in the `file` parameter. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   * Renders a Pug template file, then converts it to a PDF.
+   * @param file Resolved from `pugOptions.templateDirectory` when set, otherwise from `process.cwd()`.
    */
   generatePdfFromPugFile(
     file: string,
@@ -154,13 +119,7 @@ export class NestjsPdfService {
     return this.#puppeteerService.generatePdfFromPugFile(file, data, options);
   }
 
-  /**
-   * @param template Nunjucks template string
-   * @param data Data to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the provided Nunjucks template with data applied
-   * @description This method generates a PDF from a Nunjucks template provided as a string. Nunjucks is a powerful templating language with support for inheritance, macros, and filters. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
-   */
+  /** Renders a Nunjucks template string, then converts it to a PDF. */
   generatePdfFromNunjucksString(
     template: string,
     data: Record<string, unknown> = {},
@@ -174,11 +133,8 @@ export class NestjsPdfService {
   }
 
   /**
-   * @param file Path to the Nunjucks template file
-   * @param data Data to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the Nunjucks template at the provided file path with data applied
-   * @description This method generates a PDF from a Nunjucks template located at the specified file path. The file path is passed as a string in the `file` parameter. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   * Renders a Nunjucks template file, then converts it to a PDF.
+   * @param file Resolved from `nunjucksOptions.templateDirectory` when set, otherwise from `process.cwd()`.
    */
   generatePdfFromNunjucksFile(
     file: string,
@@ -192,13 +148,7 @@ export class NestjsPdfService {
     );
   }
 
-  /**
-   * @param template Eta template string
-   * @param data Data to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the provided Eta template with data applied
-   * @description This method generates a PDF from an Eta template provided as a string. Eta is a fast and lightweight embedded templating language with a syntax similar to EJS but with better performance. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
-   */
+  /** Renders a Eta template string, then converts it to a PDF. */
   generatePdfFromEtaString(
     template: string,
     data: Record<string, unknown> = {},
@@ -212,11 +162,8 @@ export class NestjsPdfService {
   }
 
   /**
-   * @param file Path to the Eta template file
-   * @param data Data to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the Eta template at the provided file path with data applied
-   * @description This method generates a PDF from an Eta template located at the specified file path. The file path is passed as a string in the `file` parameter. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   * Renders a Eta template file, then converts it to a PDF.
+   * @param file Resolved from `etaOptions.templateDirectory` when set, otherwise from `process.cwd()`.
    */
   generatePdfFromEtaFile(
     file: string,
@@ -226,13 +173,7 @@ export class NestjsPdfService {
     return this.#puppeteerService.generatePdfFromEtaFile(file, data, options);
   }
 
-  /**
-   * @param template Mustache template string
-   * @param data Data to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the provided Mustache template with data applied
-   * @description This method generates a PDF from a Mustache template provided as a string. Mustache is a logic-less template language that emphasizes readable and simple templates. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
-   */
+  /** Renders a Mustache template string, then converts it to a PDF. */
   generatePdfFromMustacheString(
     template: string,
     data: Record<string, unknown> = {},
@@ -246,11 +187,8 @@ export class NestjsPdfService {
   }
 
   /**
-   * @param file Path to the Mustache template file
-   * @param data Data to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the Mustache template at the provided file path with data applied
-   * @description This method generates a PDF from a Mustache template located at the specified file path. The file path is passed as a string in the `file` parameter. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   * Renders a Mustache template file, then converts it to a PDF.
+   * @param file Resolved from `mustacheOptions.templateDirectory` when set, otherwise from `process.cwd()`.
    */
   generatePdfFromMustacheFile(
     file: string,
@@ -264,13 +202,7 @@ export class NestjsPdfService {
     );
   }
 
-  /**
-   * @param template Liquid template string
-   * @param data Data to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the provided Liquid template with data applied
-   * @description This method generates a PDF from a Liquid template provided as a string. Liquid is a safe, Shopify-compatible template language with filters, tags, partials and layouts. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
-   */
+  /** Renders a Liquid template string, then converts it to a PDF. */
   generatePdfFromLiquidString(
     template: string,
     data: Record<string, unknown> = {},
@@ -284,11 +216,8 @@ export class NestjsPdfService {
   }
 
   /**
-   * @param file Path to the Liquid template file
-   * @param data Data to inject into the template
-   * @param options PDF generation options (optional)
-   * @returns PDF generated from the Liquid template at the provided file path with data applied
-   * @description This method generates a PDF from a Liquid template located at the specified file path. The file path is passed as a string in the `file` parameter. The data to inject into the template is passed in the `data` object, which is used to render the template before converting it to PDF. PDF generation options can be customized by passing a `PuppeteerParameters` object as the third argument.
+   * Renders a Liquid template file, then converts it to a PDF.
+   * @param file Resolved from `liquidOptions.templateDirectory` when set, otherwise from `process.cwd()`.
    */
   generatePdfFromLiquidFile(
     file: string,
@@ -303,26 +232,9 @@ export class NestjsPdfService {
   }
 
   /**
-   * @param pdf The PDF bytes to modify
-   * @param fieldName The name of the signature field to add (default: 'SignatureDebtor')
-   * @param anchorText The text anchor to locate the signature field position (default: '__SIG_DEBTOR_ANCHOR__')
-   * @returns Modified PDF with a signature field added at the anchor position
-   * @description This method adds a signature field to a PDF using a text anchor as a reference for the field position. It uses the `addSignatureFieldUsingAnchor` function which finds the anchor in the PDF and inserts a signature field at that location. The signature field is named according to the `fieldName` parameter and the anchor is defined by `anchorText`.
-   *
-   * Usage example:
-   * ```typescript
-   * const modifiedPdf = await pdfService.addSignatureFieldSignatureDebtorRaw(
-   *   originalPdfBytes,
-   *   'SignatureDebtor',
-   *   '__SIG_DEBTOR_ANCHOR__'
-   * );
-   * ```
-   *
-   * In this example, `originalPdfBytes` is a byte array representing the original PDF, `SignatureDebtor` is the name of the signature field to add, and `__SIG_DEBTOR_ANCHOR__` is the anchor text used to position the signature field in the PDF.
-   *
-   * If the anchor is not found, the signature field will be added at a default position (centered at the bottom of the last page).
-   *
-   * Note: Ensure that the input PDF contains the anchor defined by `anchorText` for the signature field to be positioned correctly. Otherwise, it will be added at a default position.
+   * Adds an empty signature field to an existing PDF, centered on the first
+   * occurrence of `anchorText`, or at the bottom center of the last page when
+   * the anchor is not found.
    */
   async addSignatureFieldSignatureDebtorRaw(
     pdf: Uint8Array | Buffer,
@@ -333,20 +245,11 @@ export class NestjsPdfService {
   }
 
   /**
-   * @param pdf The PDF bytes to modify
-   * @param options Watermark options (`text` or `image` is required)
-   * @returns Modified PDF with the watermark stamped on the selected pages
-   * @description Stamps a text or image watermark on an existing PDF. By default the mark is centered, rotated by 45° at 15% opacity on every page. Use `position: 'tile'` to repeat it across the page and `pages` to target specific pages (1-based). To watermark a PDF while generating it, pass the same options as `watermark` in the `PuppeteerParameters`.
+   * Stamps a text or image watermark on an existing PDF. To watermark while
+   * generating, pass the same options as `watermark` instead.
    *
-   * ```typescript
-   * const watermarked = await pdfService.addWatermark(pdf, {
-   *   text: 'CONFIDENTIAL',
-   *   color: '#ff0000',
-   *   opacity: 0.2,
-   * });
-   * ```
-   *
-   * Text uses the PDF standard fonts, which only support WinAnsi characters; use an `image` for anything else.
+   * Text only supports WinAnsi characters (PDF standard fonts); use an `image`
+   * for anything else.
    * @throws WatermarkException when the options are invalid or the PDF cannot be processed
    */
   async addWatermark(pdf: Uint8Array | Buffer, options: WatermarkOptions) {

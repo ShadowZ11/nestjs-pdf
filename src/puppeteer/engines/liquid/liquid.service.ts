@@ -47,13 +47,6 @@ export class LiquidService {
     ));
   }
 
-  /**
-   * Render a Liquid template from a string
-   * @param template The template string to render
-   * @param data The data object to use for rendering
-   * @param options Optional Liquid engine options
-   * @returns The rendered HTML string
-   */
   render(
     template: string,
     data: Record<string, unknown> = {},
@@ -63,8 +56,7 @@ export class LiquidService {
     const { templateDirectory: _templateDirectory, ...liquidOptions } =
       options ?? {};
     try {
-      // Scoped on the caller's object, not the stripped copy: options holding
-      // functions are compared by reference.
+      // The caller's object, not the stripped copy: compared by reference when it holds functions.
       const { liquid, parsed } = this.#scopes.get(options, () => ({
         liquid:
           Object.keys(liquidOptions).length > 0
@@ -87,13 +79,6 @@ export class LiquidService {
     }
   }
 
-  /**
-   * Render a Liquid template from a file
-   * @param filePath The path to the template file
-   * @param data The data object to use for rendering
-   * @param options Optional Liquid engine options
-   * @returns The rendered HTML string
-   */
   renderFile(
     filePath: string,
     data: Record<string, unknown> = {},
@@ -130,17 +115,12 @@ export class LiquidService {
     }
   }
 
-  /**
-   * Clear the template cache
-   */
+  /** Forgets the files read by `renderFile`: edited files are read again. */
   clearCache(): void {
     this.#templateCache.clear();
   }
 
-  /**
-   * Get the current cache size
-   * @returns The number of cached templates
-   */
+  /** Number of files kept by `renderFile`. */
   getCacheSize(): number {
     return this.#templateCache.size;
   }

@@ -117,5 +117,4 @@ export class OptionsScopedCache<V> {
   }
 }
 
-/** Maximum number of compiled templates kept per engine configuration. */
 export const COMPILED_TEMPLATES_PER_SCOPE = 100;

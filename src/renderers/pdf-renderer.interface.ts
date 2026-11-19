@@ -5,8 +5,7 @@ export const PDF_RENDERER = 'PDF_RENDERER' as const;
 /** Turns an HTML document into a PDF. One implementation per provider. */
 export interface PdfRenderer {
   /**
-   * @param html the HTML document to print
-   * @param options the generation options, already merged with the module defaults
+   * @param options already merged with the module defaults
    * @param signal aborts the rendering; the promise then rejects
    */
   render(

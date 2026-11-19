@@ -38,7 +38,6 @@ export interface PuppeteerModuleAsyncOptions extends Pick<
   ) => Promise<PuppeteerParameters> | PuppeteerParameters;
 }
 
-/** Builds the renderer of the configured provider, once the parameters are known. */
 const pdfRendererProvider: Provider = {
   provide: PDF_RENDERER,
   inject: [PDF_PARAMETERS, BrowserService],

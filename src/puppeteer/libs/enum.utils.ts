@@ -1,12 +1,6 @@
 import { RendererConfigurationException } from '../../exceptions';
 
-/**
- * Converts a string value to an enum member, throwing a RendererConfigurationException if the value is not a valid member of the enum.
- * @param enumObject
- * @param value
- * @param label
- * @throws RendererConfigurationException
- */
+/** @throws RendererConfigurationException when `value` is not a member of `enumObject`. */
 export function toEnumMember<E extends Record<string, string>>(
   enumObject: E,
   value: string,

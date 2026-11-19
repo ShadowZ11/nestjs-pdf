@@ -80,7 +80,7 @@ export class EjsService {
   #compile(
     engine: typeof ejs,
     template: string,
-    /** The caller's object: options holding functions are compared by reference. */
+    /** The caller's object, not the stripped copy: compared by reference when it holds functions. */
     scope: EjsOptions | undefined,
     options: Omit<EjsOptions, 'templateDirectory'>,
     filename?: string,

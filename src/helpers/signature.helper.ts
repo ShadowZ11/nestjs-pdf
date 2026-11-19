@@ -223,8 +223,7 @@ export async function addSignatureFieldUsingAnchor(
   return await pdfDoc.save();
 }
 
-// Test helper to inject a mocked pdfjs implementation and avoid dynamic import in tests
-// This helper throws outside of tests to avoid exposing a test-only API in production.
+// Lets tests inject a mocked pdfjs instead of the dynamic import.
 export function __setPdfjsForTests(p: any) {
   if (process.env.NODE_ENV !== 'test') {
     throw new Error('__setPdfjsForTests is only available in test environment');
