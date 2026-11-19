@@ -70,6 +70,8 @@ export class BrowserService implements OnModuleDestroy {
   readonly #options?: PuppeteerParameters;
 
   #browserInstance: Browser | null = null;
+  /** In-flight launch, shared so concurrent first jobs start a single browser. */
+  #launching: Promise<Browser> | null = null;
   #browser: PdfBrowser;
 
   public activeJobs = 0;
@@ -99,6 +101,10 @@ export class BrowserService implements OnModuleDestroy {
   async onModuleDestroy() {
     this.#shuttingDown = true;
     await this.#waitForIdle(this.shutdownDrainTimeoutMs);
+
+    if (this.#launching) {
+      await this.#launching.catch(() => undefined);
+    }
 
     if (this.#browserInstance?.connected) {
       try {
@@ -140,15 +146,20 @@ export class BrowserService implements OnModuleDestroy {
     headless: boolean | 'shell' | undefined,
     executablePathBin: string | undefined,
   ) {
-    if (!this.#browserInstance?.connected) {
-      this.#browserInstance = await this.#launchBrowser(
-        args,
-        headless,
-        executablePathBin,
-      );
+    if (this.#browserInstance?.connected) {
+      return this.#browserInstance;
     }
 
-    return this.#browserInstance;
+    this.#launching ??= this.#launchBrowser(args, headless, executablePathBin)
+      .then((browser) => {
+        this.#browserInstance = browser;
+        return browser;
+      })
+      .finally(() => {
+        this.#launching = null;
+      });
+
+    return this.#launching;
   }
 
   async createContext(
@@ -172,7 +183,12 @@ export class BrowserService implements OnModuleDestroy {
         'Puppeteer browser closed while creating a context, retrying once',
       );
 
-      this.#browserInstance = null;
+      // Only forget the browser that failed: another job may already have
+      // replaced it with a fresh one.
+      if (this.#browserInstance === browser) {
+        this.#browserInstance = null;
+      }
+      void browser.close().catch(() => undefined);
       const freshBrowser = await this.getBrowserInstance(
         args,
         headless,
@@ -210,17 +226,26 @@ export class BrowserService implements OnModuleDestroy {
 
     this.#recycling = true;
 
-    try {
-      if (this.#browserInstance.connected) {
-        await this.#browserInstance.close();
-      }
+    // Detach the old browser before closing it: a job starting while it closes
+    // launches a fresh browser instead of using (or losing) a dying one.
+    const browser = this.#browserInstance;
+    this.#browserInstance = null;
+    this.totalJobs = 0;
+    this.#recycleRequested = false;
 
-      this.#browserInstance = null;
-      this.totalJobs = 0;
-      this.#recycleRequested = false;
+    try {
+      if (browser.connected) {
+        await browser.close();
+      }
 
       Logger.log('Puppeteer browser recycled successfully');
     } catch (error) {
+      // The browser is already detached: make sure its process does not linger.
+      try {
+        browser.process()?.kill('SIGKILL');
+      } catch {
+        // Nothing more can be done.
+      }
       Logger.warn(
         `Failed to recycle browser: ${
           error instanceof Error ? error.message : String(error)
