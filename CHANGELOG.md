@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.0.1](https://github.com/ShadowZ11/nestjs-pdf/compare/v5.0.0...v5.0.1) (2026-11-20)
+
+
+### 🐛 Bug Fixes
+
+* **puppeteer:** share in-flight browser launch and harden recycling ([d74ece6](https://github.com/ShadowZ11/nestjs-pdf/commit/d74ece67d72bcadd896776a16432bc81ea931148))
+
 ## [5.0.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v4.0.0...v5.0.0) (2026-11-07)
 
 
