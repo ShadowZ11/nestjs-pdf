@@ -2,12 +2,17 @@ import { readFileSync } from 'node:fs';
 
 import { Injectable } from '@nestjs/common';
 import type * as EtaModule from 'eta';
-import type { Eta, EtaConfig } from 'eta';
+import type { Eta, EtaConfig, TemplateFunction } from 'eta';
 
 import {
   EngineNotAvailableException,
   TemplateRenderException,
 } from '../../../exceptions';
+import {
+  COMPILED_TEMPLATES_PER_SCOPE,
+  LruCache,
+  OptionsScopedCache,
+} from '../../../helpers/template-cache.helper';
 import { resolveTemplatePath } from '../../../helpers/template-path.helper';
 import { loadEngine } from '../../libs/loadEngine.utils';
 
@@ -29,7 +34,11 @@ export interface EtaOptions extends Partial<EtaConfig> {
 @Injectable()
 export class EtaService {
   #etaModule?: typeof EtaModule;
-  #eta?: Eta;
+  /** One Eta instance, and its compiled templates, per set of options. */
+  readonly #scopes = new OptionsScopedCache<{
+    eta: Eta;
+    compiled: LruCache<TemplateFunction>;
+  }>();
   readonly #templateCache: Map<string, string> = new Map();
   readonly #maxCacheSize = 100;
 
@@ -53,22 +62,24 @@ export class EtaService {
     const { templateDirectory: _templateDirectory, ...etaOptions } =
       options ?? {};
     try {
-      const eta =
-        Object.keys(etaOptions).length > 0
-          ? new Eta({
-              cache: true,
-              autoEscape: true,
-              useWith: true,
-              ...etaOptions,
-              varName: etaOptions.varName ?? 'it',
-            })
-          : (this.#eta ??= new Eta({
-              cache: true,
-              autoEscape: true,
-              useWith: true,
-            }));
+      // Scoped on the caller's object, not the stripped copy: options holding
+      // functions are compared by reference.
+      const { eta, compiled } = this.#scopes.get(options, () => ({
+        eta: new Eta({
+          cache: true,
+          autoEscape: true,
+          useWith: true,
+          ...etaOptions,
+          varName: etaOptions.varName ?? 'it',
+        }),
+        compiled: new LruCache(COMPILED_TEMPLATES_PER_SCOPE),
+      }));
 
-      return eta.renderString(template, data);
+      // Same as eta.renderString, without compiling the template every time.
+      const templateFn = compiled.getOrCreate(template, () =>
+        eta.compile(template, { async: false }),
+      );
+      return eta.render(templateFn, data);
     } catch (error) {
       throw new TemplateRenderException(
         'Eta',

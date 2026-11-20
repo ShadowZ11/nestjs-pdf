@@ -2,12 +2,21 @@ import { readFileSync } from 'node:fs';
 
 import { Injectable } from '@nestjs/common';
 import type * as LiquidModule from 'liquidjs';
-import type { Liquid, LiquidOptions as LiquidJsOptions } from 'liquidjs';
+import type {
+  Liquid,
+  LiquidOptions as LiquidJsOptions,
+  Template,
+} from 'liquidjs';
 
 import {
   EngineNotAvailableException,
   TemplateRenderException,
 } from '../../../exceptions';
+import {
+  COMPILED_TEMPLATES_PER_SCOPE,
+  LruCache,
+  OptionsScopedCache,
+} from '../../../helpers/template-cache.helper';
 import { resolveTemplatePath } from '../../../helpers/template-path.helper';
 import { loadEngine } from '../../libs/loadEngine.utils';
 
@@ -23,7 +32,11 @@ export interface LiquidOptions extends LiquidJsOptions {
 @Injectable()
 export class LiquidService {
   #liquidModule?: typeof LiquidModule;
-  #liquid?: Liquid;
+  /** One Liquid instance, and its parsed templates, per set of options. */
+  readonly #scopes = new OptionsScopedCache<{
+    liquid: Liquid;
+    parsed: LruCache<Array<Template>>;
+  }>();
   readonly #templateCache: Map<string, string> = new Map();
   readonly #maxCacheSize = 100;
 
@@ -50,12 +63,21 @@ export class LiquidService {
     const { templateDirectory: _templateDirectory, ...liquidOptions } =
       options ?? {};
     try {
-      const liquid =
-        Object.keys(liquidOptions).length > 0
-          ? new Liquid(liquidOptions)
-          : (this.#liquid ??= new Liquid());
+      // Scoped on the caller's object, not the stripped copy: options holding
+      // functions are compared by reference.
+      const { liquid, parsed } = this.#scopes.get(options, () => ({
+        liquid:
+          Object.keys(liquidOptions).length > 0
+            ? new Liquid(liquidOptions)
+            : new Liquid(),
+        parsed: new LruCache(COMPILED_TEMPLATES_PER_SCOPE),
+      }));
 
-      return liquid.parseAndRenderSync(template, data) as string;
+      // Same as liquid.parseAndRenderSync, without parsing every time.
+      const templates = parsed.getOrCreate(template, () =>
+        liquid.parse(template),
+      );
+      return liquid.renderSync(templates, data) as string;
     } catch (error) {
       throw new TemplateRenderException(
         'Liquid',

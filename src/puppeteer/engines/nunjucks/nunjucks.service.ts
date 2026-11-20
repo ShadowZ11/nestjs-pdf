@@ -8,6 +8,11 @@ import {
   NestjsPdfException,
   TemplateRenderException,
 } from '../../../exceptions';
+import {
+  COMPILED_TEMPLATES_PER_SCOPE,
+  LruCache,
+  OptionsScopedCache,
+} from '../../../helpers/template-cache.helper';
 import { resolveTemplatePath } from '../../../helpers/template-path.helper';
 import { loadEngine } from '../../libs/loadEngine.utils';
 
@@ -26,21 +31,36 @@ export interface NunjucksOptions extends Partial<ConfigureOptions> {
   templateDirectory?: string;
 }
 
+/** What an environment depends on, defaults applied. */
+interface EnvironmentConfig {
+  /** Loader root; `.` is resolved from `process.cwd()` at each lookup. */
+  searchPath: string;
+  noCache: boolean;
+  watch: boolean;
+  autoescape: boolean;
+  throwOnUndefined: boolean;
+  trimBlocks: boolean;
+  lstripBlocks: boolean;
+}
+
 @Injectable()
 export class NunjucksService {
   #nunjucks?: typeof nunjucks;
+  /**
+   * One environment, and its compiled string templates, per configuration.
+   * Environments are private: the global `nunjucks.configure()` is never
+   * touched, so concurrent renders with different options do not interfere.
+   */
+  readonly #scopes = new OptionsScopedCache<{
+    env: nunjucks.Environment;
+    compiled: LruCache<nunjucks.Template>;
+  }>();
 
   get #engine(): typeof nunjucks {
-    if (!this.#nunjucks) {
-      this.#nunjucks = loadEngine<typeof nunjucks>('nunjucks', 'Nunjucks');
-      // Configure default Nunjucks environment
-      this.#nunjucks.configure({
-        noCache: true,
-        trimBlocks: true,
-        lstripBlocks: true,
-      });
-    }
-    return this.#nunjucks;
+    return (this.#nunjucks ??= loadEngine<typeof nunjucks>(
+      'nunjucks',
+      'Nunjucks',
+    ));
   }
 
   render(
@@ -48,19 +68,14 @@ export class NunjucksService {
     data: Record<string, unknown> = {},
     options?: NunjucksOptions,
   ) {
-    const nunjucks = this.#engine;
+    const engine = this.#engine;
     try {
-      if (options) {
-        const configOptions: Record<string, unknown> = {
-          noCache: options.noCache ?? true,
-          watch: options.watch ?? false,
-          throwOnUndefined: options.throwOnUndefined ?? false,
-          trimBlocks: options.trimBlocks ?? true,
-          lstripBlocks: options.lstripBlocks ?? true,
-        };
-        nunjucks.configure(configOptions as ConfigureOptions);
-      }
-      return nunjucks.renderString(template, data);
+      const { env, compiled } = this.#scope(engine, options, '.');
+      const nunjucksTemplate = compiled.getOrCreate(
+        template,
+        () => new engine.Template(template, env),
+      );
+      return nunjucksTemplate.render(data);
     } catch (error) {
       throw new TemplateRenderException(
         'Nunjucks',
@@ -75,7 +90,7 @@ export class NunjucksService {
     data: Record<string, unknown> = {},
     options?: NunjucksOptions,
   ) {
-    const nunjucks = this.#engine;
+    const engine = this.#engine;
     try {
       if (options?.templateDirectory !== undefined) {
         const templatePath = resolveTemplatePath(
@@ -84,31 +99,12 @@ export class NunjucksService {
           options.templateDirectory,
         );
         const baseDir = resolve(process.cwd(), options.templateDirectory);
-        const env = new nunjucks.Environment(
-          new nunjucks.FileSystemLoader(baseDir, {
-            noCache: options.noCache ?? true,
-            watch: options.watch ?? false,
-          }),
-          {
-            autoescape: options.autoescape ?? true,
-            throwOnUndefined: options.throwOnUndefined ?? false,
-            trimBlocks: options.trimBlocks ?? true,
-            lstripBlocks: options.lstripBlocks ?? true,
-          },
+        return this.#scope(engine, options, baseDir).env.render(
+          relative(baseDir, templatePath),
+          data,
         );
-        return env.render(relative(baseDir, templatePath), data);
       }
-      if (options) {
-        const configOptions: Record<string, unknown> = {
-          noCache: options.noCache ?? true,
-          watch: options.watch ?? false,
-          throwOnUndefined: options.throwOnUndefined ?? false,
-          trimBlocks: options.trimBlocks ?? true,
-          lstripBlocks: options.lstripBlocks ?? true,
-        };
-        nunjucks.configure(configOptions as ConfigureOptions);
-      }
-      return nunjucks.render(filePath, data);
+      return this.#scope(engine, options, '.').env.render(filePath, data);
     } catch (error) {
       if (error instanceof NestjsPdfException) {
         throw error;
@@ -119,5 +115,39 @@ export class NunjucksService {
         { cause: error },
       );
     }
+  }
+
+  #scope(
+    engine: typeof nunjucks,
+    options: NunjucksOptions | undefined,
+    searchPath: string,
+  ) {
+    const config: EnvironmentConfig = {
+      searchPath,
+      noCache: options?.noCache ?? true,
+      watch: options?.watch ?? false,
+      autoescape: options?.autoescape ?? true,
+      throwOnUndefined: options?.throwOnUndefined ?? false,
+      trimBlocks: options?.trimBlocks ?? true,
+      lstripBlocks: options?.lstripBlocks ?? true,
+    };
+    return this.#scopes.get(config, () => {
+      const { Environment, FileSystemLoader } = engine;
+      return {
+        env: new Environment(
+          new FileSystemLoader(config.searchPath, {
+            noCache: config.noCache,
+            watch: config.watch,
+          }),
+          {
+            autoescape: config.autoescape,
+            throwOnUndefined: config.throwOnUndefined,
+            trimBlocks: config.trimBlocks,
+            lstripBlocks: config.lstripBlocks,
+          },
+        ),
+        compiled: new LruCache(COMPILED_TEMPLATES_PER_SCOPE),
+      };
+    });
   }
 }
