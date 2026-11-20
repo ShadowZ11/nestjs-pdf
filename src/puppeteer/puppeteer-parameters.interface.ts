@@ -44,6 +44,16 @@ export interface PuppeteerParameters {
   watermark?: WatermarkOptions;
   /** Request filter (SSRF protection). Puppeteer provider only. */
   security?: PdfSecurityOptions;
+  /**
+   * How arrays in per-call options combine with the module ones:
+   * - `'concat'` (default): appended to the module array.
+   * - `'replace'`: the per-call array is used as is. Use it when a per-call
+   *   list must restrict the module one, e.g. `security.allowedHosts`.
+   *
+   * A per-call value takes precedence over the module one.
+   * The default may become `'replace'` in a future major version.
+   */
+  arrayMerge?: 'concat' | 'replace';
   hbsOptions?: HandlebarsOptions;
   mjmlOptions?: MJMLParsingOptions;
   pugOptions?: PugOptions;

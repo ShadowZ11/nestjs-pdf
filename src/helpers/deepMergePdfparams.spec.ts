@@ -99,7 +99,7 @@ describe('mergePuppeteerParameters', () => {
   });
 
   describe('array handling', () => {
-    it('should merge arrays (deepmerge behavior)', () => {
+    it('should concatenate arrays by default', () => {
       const defaults: PuppeteerParameters = {
         extraPuppeteerArgs: ['--disable-gpu', '--no-sandbox'],
       };
@@ -110,9 +110,62 @@ describe('mergePuppeteerParameters', () => {
 
       const result = mergePuppeteerParameters(defaults, overrides);
 
-      expect(result.extraPuppeteerArgs).toContain('--disable-gpu');
-      expect(result.extraPuppeteerArgs).toContain('--no-sandbox');
-      expect(result.extraPuppeteerArgs).toContain('--headless=chrome');
+      expect(result.extraPuppeteerArgs).toEqual([
+        '--disable-gpu',
+        '--no-sandbox',
+        '--headless=chrome',
+      ]);
+    });
+
+    it("should replace arrays when the call sets arrayMerge: 'replace'", () => {
+      const defaults: PuppeteerParameters = {
+        security: {
+          allowedHosts: ['a.example.com', 'b.example.com'],
+          javascriptEnabled: false,
+        },
+      };
+
+      const overrides: PuppeteerParameters = {
+        arrayMerge: 'replace',
+        security: { allowedHosts: ['a.example.com'] },
+      };
+
+      const result = mergePuppeteerParameters(defaults, overrides);
+
+      expect(result.security).toEqual({
+        allowedHosts: ['a.example.com'],
+        javascriptEnabled: false,
+      });
+    });
+
+    it("should replace arrays when the module sets arrayMerge: 'replace'", () => {
+      const defaults: PuppeteerParameters = {
+        arrayMerge: 'replace',
+        extraPuppeteerArgs: ['--disable-gpu'],
+      };
+
+      const result = mergePuppeteerParameters(defaults, {
+        extraPuppeteerArgs: ['--headless=chrome'],
+      });
+
+      expect(result.extraPuppeteerArgs).toEqual(['--headless=chrome']);
+    });
+
+    it('should let the per-call arrayMerge win over the module one', () => {
+      const defaults: PuppeteerParameters = {
+        arrayMerge: 'replace',
+        extraPuppeteerArgs: ['--disable-gpu'],
+      };
+
+      const result = mergePuppeteerParameters(defaults, {
+        arrayMerge: 'concat',
+        extraPuppeteerArgs: ['--headless=chrome'],
+      });
+
+      expect(result.extraPuppeteerArgs).toEqual([
+        '--disable-gpu',
+        '--headless=chrome',
+      ]);
     });
 
     it('should preserve array from defaults if no override', () => {
