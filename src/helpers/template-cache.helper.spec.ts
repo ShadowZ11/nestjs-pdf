@@ -64,11 +64,22 @@ describe('optionsKey', () => {
     expect(optionsKey(undefined)).toBe('undefined');
   });
 
+  it('should rethrow unexpected errors', () => {
+    const boom = new Error('boom');
+    const options = {
+      get a() {
+        throw boom;
+      },
+    };
+    expect(() => optionsKey(options)).toThrow(boom);
+  });
+
   it.each([
     ['a function', { fn: () => undefined }],
     ['a nested function', { helpers: [{ fn: () => undefined }] }],
     ['a class instance', { pattern: /x/ }],
     ['a symbol', { s: Symbol('x') }],
+    ['a Date', { at: new Date() }],
   ])('should refuse options holding %s', (_label, options) => {
     expect(optionsKey(options)).toBeUndefined();
   });
