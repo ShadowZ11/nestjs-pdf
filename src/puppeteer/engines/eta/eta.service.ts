@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 
 import { Injectable } from '@nestjs/common';
 import type * as EtaModule from 'eta';
@@ -9,6 +8,7 @@ import {
   EngineNotAvailableException,
   TemplateRenderException,
 } from '../../../exceptions';
+import { resolveTemplatePath } from '../../../helpers/template-path.helper';
 import { loadEngine } from '../../libs/loadEngine.utils';
 
 export interface EtaOptions extends Partial<EtaConfig> {
@@ -18,6 +18,12 @@ export interface EtaOptions extends Partial<EtaConfig> {
   views?: string;
   useWith?: boolean;
   plugins?: Array<any>;
+  /**
+   * Base directory (absolute, or relative to `process.cwd()`) for files passed to `renderFile`.
+   * When set, the file is resolved from it and may not leave it (symbolic links
+   * included). Recommended when the file name can come from user input.
+   */
+  templateDirectory?: string;
 }
 
 @Injectable()
@@ -44,15 +50,17 @@ export class EtaService {
     options?: EtaOptions,
   ): string {
     const { Eta } = this.#engine;
+    const { templateDirectory: _templateDirectory, ...etaOptions } =
+      options ?? {};
     try {
       const eta =
-        options && Object.keys(options).length > 0
+        Object.keys(etaOptions).length > 0
           ? new Eta({
               cache: true,
               autoEscape: true,
               useWith: true,
-              ...options,
-              varName: options.varName ?? 'it',
+              ...etaOptions,
+              varName: etaOptions.varName ?? 'it',
             })
           : (this.#eta ??= new Eta({
               cache: true,
@@ -82,8 +90,12 @@ export class EtaService {
     data: Record<string, unknown> = {},
     options?: EtaOptions,
   ): string {
+    const resolvedPath = resolveTemplatePath(
+      'Eta',
+      filePath,
+      options?.templateDirectory,
+    );
     try {
-      const resolvedPath = resolve(filePath);
       const useCache = options?.cache ?? true;
       let template = useCache
         ? this.#templateCache.get(resolvedPath)

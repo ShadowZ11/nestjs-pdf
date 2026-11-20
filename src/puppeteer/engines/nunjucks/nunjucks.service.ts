@@ -1,8 +1,14 @@
+import { relative, resolve } from 'node:path';
+
 import { Injectable } from '@nestjs/common';
 import type nunjucks from 'nunjucks';
 import type { ConfigureOptions } from 'nunjucks';
 
-import { TemplateRenderException } from '../../../exceptions';
+import {
+  NestjsPdfException,
+  TemplateRenderException,
+} from '../../../exceptions';
+import { resolveTemplatePath } from '../../../helpers/template-path.helper';
 import { loadEngine } from '../../libs/loadEngine.utils';
 
 export interface NunjucksOptions extends Partial<ConfigureOptions> {
@@ -11,6 +17,13 @@ export interface NunjucksOptions extends Partial<ConfigureOptions> {
   throwOnUndefined?: boolean;
   trimBlocks?: boolean;
   lstripBlocks?: boolean;
+  /**
+   * Base directory (absolute, or relative to `process.cwd()`) for files passed to `renderFile`.
+   * When set, the file (and its includes) is resolved from it and may not leave
+   * it (symbolic links included). Recommended when the file name can come from
+   * user input.
+   */
+  templateDirectory?: string;
 }
 
 @Injectable()
@@ -64,6 +77,27 @@ export class NunjucksService {
   ) {
     const nunjucks = this.#engine;
     try {
+      if (options?.templateDirectory !== undefined) {
+        const templatePath = resolveTemplatePath(
+          'Nunjucks',
+          filePath,
+          options.templateDirectory,
+        );
+        const baseDir = resolve(process.cwd(), options.templateDirectory);
+        const env = new nunjucks.Environment(
+          new nunjucks.FileSystemLoader(baseDir, {
+            noCache: options.noCache ?? true,
+            watch: options.watch ?? false,
+          }),
+          {
+            autoescape: options.autoescape ?? true,
+            throwOnUndefined: options.throwOnUndefined ?? false,
+            trimBlocks: options.trimBlocks ?? true,
+            lstripBlocks: options.lstripBlocks ?? true,
+          },
+        );
+        return env.render(relative(baseDir, templatePath), data);
+      }
       if (options) {
         const configOptions: Record<string, unknown> = {
           noCache: options.noCache ?? true,
@@ -76,6 +110,9 @@ export class NunjucksService {
       }
       return nunjucks.render(filePath, data);
     } catch (error) {
+      if (error instanceof NestjsPdfException) {
+        throw error;
+      }
       throw new TemplateRenderException(
         'Nunjucks',
         `Nunjucks file rendering failed: ${String(error)}`,

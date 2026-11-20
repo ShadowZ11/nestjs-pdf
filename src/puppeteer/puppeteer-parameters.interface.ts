@@ -1,5 +1,3 @@
-import { type MJMLParsingOptions } from 'mjml-core';
-
 import { type PdfSecurityOptions } from '../helpers/request-guard.helper';
 import { type WatermarkOptions } from '../helpers/watermark.helper';
 import {
@@ -16,6 +14,7 @@ import { type EjsOptions } from './engines/ejs/ejs.service';
 import { type EtaOptions } from './engines/eta/eta.service';
 import { type HandlebarsOptions } from './engines/handlebars/handlebars.service';
 import { type LiquidOptions } from './engines/liquid/liquid.service';
+import { type MjmlOptions } from './engines/mjml/mjml.service';
 import { type MustacheOptions } from './engines/mustache/mustache.service';
 import { type NunjucksOptions } from './engines/nunjucks/nunjucks.service';
 import { type PugOptions } from './engines/pug/pug.service';
@@ -55,7 +54,7 @@ export interface PuppeteerParameters {
    */
   arrayMerge?: 'concat' | 'replace';
   hbsOptions?: HandlebarsOptions;
-  mjmlOptions?: MJMLParsingOptions;
+  mjmlOptions?: MjmlOptions;
   pugOptions?: PugOptions;
   ejsOptions?: EjsOptions;
   nunjucksOptions?: NunjucksOptions;

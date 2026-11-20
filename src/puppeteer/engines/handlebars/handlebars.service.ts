@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { basename, extname, join, resolve, sep } from 'node:path';
+import { basename, extname, join, resolve } from 'node:path';
 
 import { Injectable } from '@nestjs/common';
 import type Handlebars from 'handlebars';
@@ -9,6 +9,7 @@ import {
   TemplateConfigurationException,
   TemplateRenderException,
 } from '../../../exceptions';
+import { resolveTemplatePath } from '../../../helpers/template-path.helper';
 import { loadEngine } from '../../libs/loadEngine.utils';
 
 export type HandlebarsHelper = {
@@ -17,9 +18,9 @@ export type HandlebarsHelper = {
 };
 
 export interface HandlebarsOptions {
-  /** Base directory (relative to `process.cwd()`) used to resolve files passed to `renderFile`. */
+  /** Base directory (absolute, or relative to `process.cwd()`) used to resolve files passed to `renderFile`. */
   templateDirectory?: string;
-  /** Directory (relative to `process.cwd()`) whose files are each registered as a partial. */
+  /** Directory (absolute, or relative to `process.cwd()`) whose files are each registered as a partial. */
   partialDirectory?: string;
   /**
    * Runtime options forwarded to the compiled template function.
@@ -80,13 +81,11 @@ export class HandlebarsService {
       );
     }
 
-    const baseDir = resolve(process.cwd(), options.templateDirectory);
-    const templatePath = resolve(baseDir, file);
-    if (templatePath !== baseDir && !templatePath.startsWith(baseDir + sep)) {
-      throw new TemplateConfigurationException(
-        `Handlebars file rendering failed: ’${file}’ resolves outside \`templateDirectory\``,
-      );
-    }
+    const templatePath = resolveTemplatePath(
+      'Handlebars',
+      file,
+      options.templateDirectory,
+    );
 
     let template: string;
     try {
@@ -130,7 +129,8 @@ export class HandlebarsService {
   ): void {
     if (partialDirectory === undefined) return;
 
-    const partialPath = join(process.cwd(), partialDirectory);
+    // resolve, not join: an absolute directory must be used as is.
+    const partialPath = resolve(process.cwd(), partialDirectory);
     if (!existsSync(partialPath)) {
       throw new TemplateConfigurationException(
         `Handlebars partial directory does not exist: ${partialPath}`,
