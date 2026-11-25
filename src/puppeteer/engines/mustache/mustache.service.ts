@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 
 import { Injectable } from '@nestjs/common';
 import type mustache from 'mustache';
@@ -9,11 +8,18 @@ import {
   EngineNotAvailableException,
   TemplateRenderException,
 } from '../../../exceptions';
+import { resolveTemplatePath } from '../../../helpers/template-path.helper';
 import { loadEngine } from '../../libs/loadEngine.utils';
 
 export interface MustacheOptions {
   tags?: [string, string];
   escape?: EscapeFunction;
+  /**
+   * Base directory (absolute, or relative to `process.cwd()`) for files passed to `renderFile`.
+   * When set, the file is resolved from it and may not leave it (symbolic links
+   * included). Recommended when the file name can come from user input.
+   */
+  templateDirectory?: string;
 }
 
 @Injectable()
@@ -69,8 +75,12 @@ export class MustacheService {
     data: Record<string, unknown> = {},
     options?: MustacheOptions,
   ): string {
+    const resolvedPath = resolveTemplatePath(
+      'Mustache',
+      filePath,
+      options?.templateDirectory,
+    );
     try {
-      const resolvedPath = resolve(filePath);
       let template = this.#templateCache.get(resolvedPath);
 
       if (!template) {

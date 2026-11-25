@@ -14,6 +14,7 @@ vi.mock('node:fs', () => ({
 }));
 
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { Test, type TestingModule } from '@nestjs/testing';
 import pug from 'pug';
@@ -116,9 +117,8 @@ describe('PugService', () => {
 
   describe('renderFile', () => {
     it('should render a file template', () => {
-      const renderSpy = vi
-        .spyOn(service, 'render')
-        .mockReturnValue('<h1>File</h1>');
+      const compiledFn = vi.fn().mockReturnValue('<h1>File</h1>');
+      (compile as Mock).mockReturnValue(compiledFn);
       const filePath = './examples/sample-template.pug';
       const data = {
         invoiceNumber: '2024-001',
@@ -131,10 +131,9 @@ describe('PugService', () => {
 
       const result = service.renderFile(filePath, data, { pretty: true });
 
-      expect(readFileSync).toHaveBeenCalledWith(filePath, 'utf-8');
-      expect(renderSpy).toHaveBeenCalledWith('h1= title', data, {
-        pretty: true,
-      });
+      expect(readFileSync).toHaveBeenCalledWith(resolve(filePath), 'utf-8');
+      expect(compile).toHaveBeenCalledWith('h1= title', { pretty: true });
+      expect(compiledFn).toHaveBeenCalledWith(data);
       expect(result).toBe('<h1>File</h1>');
     });
 

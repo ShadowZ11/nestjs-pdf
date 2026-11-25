@@ -8,6 +8,9 @@ import { relative, resolve } from 'node:path';
  * @example
  * getRelativePathToValue(__dirname, './templates/my-template.hbs');
  * // returns 'context/pdf/templates/my-template.hbs' if the current working directory is '/
+ * @deprecated Every path option (`templateDirectory`, `partialDirectory`, the
+ * files passed to `*File` methods) accepts an absolute path: pass
+ * `join(__dirname, './templates')` instead. Will be removed in the next major version.
  */
 export function getRelativePathToValue(
   moduleDir: string,

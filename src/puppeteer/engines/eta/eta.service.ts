@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 
 import { Injectable } from '@nestjs/common';
 import type * as EtaModule from 'eta';
@@ -7,8 +6,13 @@ import type { Eta, EtaConfig } from 'eta';
 
 import {
   EngineNotAvailableException,
+  TemplateConfigurationException,
   TemplateRenderException,
 } from '../../../exceptions';
+import {
+  resolveTemplatePath,
+  TemplateDirectoryGuard,
+} from '../../../helpers/template-path.helper';
 import { loadEngine } from '../../libs/loadEngine.utils';
 
 export interface EtaOptions extends Partial<EtaConfig> {
@@ -18,6 +22,13 @@ export interface EtaOptions extends Partial<EtaConfig> {
   views?: string;
   useWith?: boolean;
   plugins?: Array<any>;
+  /**
+   * Base directory (absolute, or relative to `process.cwd()`) for files passed to `renderFile`.
+   * When set, the file is resolved from it and neither it nor its includes may
+   * leave it (symbolic links included); `views` then defaults to it.
+   * Recommended when the file name can come from user input.
+   */
+  templateDirectory?: string;
 }
 
 @Injectable()
@@ -43,16 +54,28 @@ export class EtaService {
     data: Record<string, unknown> = {},
     options?: EtaOptions,
   ): string {
+    return this.#render(template, data, options);
+  }
+
+  #render(
+    template: string,
+    data: Record<string, unknown>,
+    options: EtaOptions | undefined,
+    guard?: TemplateDirectoryGuard,
+  ): string {
     const { Eta } = this.#engine;
+    const { templateDirectory: _templateDirectory, ...etaOptions } =
+      options ?? {};
     try {
-      const eta =
-        options && Object.keys(options).length > 0
+      const eta = guard
+        ? this.#confinedEta(guard, etaOptions)
+        : Object.keys(etaOptions).length > 0
           ? new Eta({
               cache: true,
               autoEscape: true,
               useWith: true,
-              ...options,
-              varName: options.varName ?? 'it',
+              ...etaOptions,
+              varName: etaOptions.varName ?? 'it',
             })
           : (this.#eta ??= new Eta({
               cache: true,
@@ -62,6 +85,9 @@ export class EtaService {
 
       return eta.renderString(template, data);
     } catch (error) {
+      if (guard?.refused) {
+        throw guard.refused;
+      }
       throw new TemplateRenderException(
         'Eta',
         `Eta rendering failed: ${String(error)}`,
@@ -82,8 +108,12 @@ export class EtaService {
     data: Record<string, unknown> = {},
     options?: EtaOptions,
   ): string {
+    const resolvedPath = resolveTemplatePath(
+      'Eta',
+      filePath,
+      options?.templateDirectory,
+    );
     try {
-      const resolvedPath = resolve(filePath);
       const useCache = options?.cache ?? true;
       let template = useCache
         ? this.#templateCache.get(resolvedPath)
@@ -96,9 +126,19 @@ export class EtaService {
           this.#templateCache.set(resolvedPath, template);
         }
       }
-      return this.render(template, data, options);
+      return this.#render(
+        template,
+        data,
+        options,
+        options?.templateDirectory === undefined
+          ? undefined
+          : new TemplateDirectoryGuard('Eta', options.templateDirectory),
+      );
     } catch (error) {
-      if (error instanceof EngineNotAvailableException) {
+      if (
+        error instanceof EngineNotAvailableException ||
+        error instanceof TemplateConfigurationException
+      ) {
         throw error;
       }
       throw new TemplateRenderException(
@@ -107,6 +147,27 @@ export class EtaService {
         { cause: error },
       );
     }
+  }
+
+  /**
+   * An Eta instance whose includes and layouts (resolved from `views`, by
+   * default `templateDirectory`) may not leave `templateDirectory`.
+   */
+  #confinedEta(
+    guard: TemplateDirectoryGuard,
+    etaOptions: Omit<EtaOptions, 'templateDirectory'>,
+  ): Eta {
+    const { Eta } = this.#engine;
+    const eta = new Eta({
+      cache: true,
+      autoEscape: true,
+      useWith: true,
+      ...etaOptions,
+      views: etaOptions.views ?? guard.baseDir,
+      varName: etaOptions.varName ?? 'it',
+    });
+    eta.readFile = (path: string) => readFileSync(guard.check(path), 'utf8');
+    return eta;
   }
 
   /**

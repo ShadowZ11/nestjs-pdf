@@ -1,9 +1,19 @@
+import { relative } from 'node:path';
+
 import { Injectable } from '@nestjs/common';
 import type nunjucks from 'nunjucks';
 import type { ConfigureOptions } from 'nunjucks';
 
-import { TemplateRenderException } from '../../../exceptions';
+import {
+  NestjsPdfException,
+  TemplateRenderException,
+} from '../../../exceptions';
+import {
+  resolveTemplatePath,
+  TemplateDirectoryGuard,
+} from '../../../helpers/template-path.helper';
 import { loadEngine } from '../../libs/loadEngine.utils';
+import { ConfinedLoader } from './confined-loader';
 
 export interface NunjucksOptions extends Partial<ConfigureOptions> {
   noCache?: boolean;
@@ -11,6 +21,13 @@ export interface NunjucksOptions extends Partial<ConfigureOptions> {
   throwOnUndefined?: boolean;
   trimBlocks?: boolean;
   lstripBlocks?: boolean;
+  /**
+   * Base directory (absolute, or relative to `process.cwd()`) for files passed to `renderFile`.
+   * When set, the file is resolved from it and neither it nor its includes,
+   * extends and imports may leave it (symbolic links included). Recommended when the file name can come from
+   * user input.
+   */
+  templateDirectory?: string;
 }
 
 @Injectable()
@@ -64,6 +81,37 @@ export class NunjucksService {
   ) {
     const nunjucks = this.#engine;
     try {
+      if (options?.templateDirectory !== undefined) {
+        const templatePath = resolveTemplatePath(
+          'Nunjucks',
+          filePath,
+          options.templateDirectory,
+        );
+        const guard = new TemplateDirectoryGuard(
+          'Nunjucks',
+          options.templateDirectory,
+        );
+        const env = new nunjucks.Environment(
+          new ConfinedLoader(
+            new nunjucks.FileSystemLoader(guard.baseDir, {
+              noCache: options.noCache ?? true,
+              watch: options.watch ?? false,
+            }),
+            guard,
+          ),
+          {
+            autoescape: options.autoescape ?? true,
+            throwOnUndefined: options.throwOnUndefined ?? false,
+            trimBlocks: options.trimBlocks ?? true,
+            lstripBlocks: options.lstripBlocks ?? true,
+          },
+        );
+        try {
+          return env.render(relative(guard.baseDir, templatePath), data);
+        } catch (error) {
+          throw guard.refused ?? error;
+        }
+      }
       if (options) {
         const configOptions: Record<string, unknown> = {
           noCache: options.noCache ?? true,
@@ -76,6 +124,9 @@ export class NunjucksService {
       }
       return nunjucks.render(filePath, data);
     } catch (error) {
+      if (error instanceof NestjsPdfException) {
+        throw error;
+      }
       throw new TemplateRenderException(
         'Nunjucks',
         `Nunjucks file rendering failed: ${String(error)}`,
