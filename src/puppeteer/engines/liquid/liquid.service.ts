@@ -6,16 +6,22 @@ import type { Liquid, LiquidOptions as LiquidJsOptions } from 'liquidjs';
 
 import {
   EngineNotAvailableException,
+  TemplateConfigurationException,
   TemplateRenderException,
 } from '../../../exceptions';
-import { resolveTemplatePath } from '../../../helpers/template-path.helper';
+import {
+  resolveTemplatePath,
+  TemplateDirectoryGuard,
+} from '../../../helpers/template-path.helper';
 import { loadEngine } from '../../libs/loadEngine.utils';
+import { ConfinedFs } from './confined-fs';
 
 export interface LiquidOptions extends LiquidJsOptions {
   /**
    * Base directory (absolute, or relative to `process.cwd()`) for files passed to `renderFile`.
-   * When set, the file is resolved from it and may not leave it (symbolic links
-   * included). Recommended when the file name can come from user input.
+   * When set, the file is resolved from it and neither it nor its partials and
+   * layouts may leave it (symbolic links included); `root` then defaults to it.
+   * Recommended when the file name can come from user input.
    */
   templateDirectory?: string;
 }
@@ -46,17 +52,30 @@ export class LiquidService {
     data: Record<string, unknown> = {},
     options?: LiquidOptions,
   ): string {
+    return this.#render(template, data, options);
+  }
+
+  #render(
+    template: string,
+    data: Record<string, unknown>,
+    options: LiquidOptions | undefined,
+    guard?: TemplateDirectoryGuard,
+  ): string {
     const { Liquid } = this.#engine;
     const { templateDirectory: _templateDirectory, ...liquidOptions } =
       options ?? {};
     try {
-      const liquid =
-        Object.keys(liquidOptions).length > 0
+      const liquid = guard
+        ? this.#confinedLiquid(guard, liquidOptions)
+        : Object.keys(liquidOptions).length > 0
           ? new Liquid(liquidOptions)
           : (this.#liquid ??= new Liquid());
 
       return liquid.parseAndRenderSync(template, data) as string;
     } catch (error) {
+      if (guard?.refused) {
+        throw guard.refused;
+      }
       throw new TemplateRenderException(
         'Liquid',
         `Liquid rendering failed: ${String(error)}`,
@@ -95,9 +114,19 @@ export class LiquidService {
           this.#templateCache.set(resolvedPath, template);
         }
       }
-      return this.render(template, data, options);
+      return this.#render(
+        template,
+        data,
+        options,
+        options?.templateDirectory === undefined
+          ? undefined
+          : new TemplateDirectoryGuard('Liquid', options.templateDirectory),
+      );
     } catch (error) {
-      if (error instanceof EngineNotAvailableException) {
+      if (
+        error instanceof EngineNotAvailableException ||
+        error instanceof TemplateConfigurationException
+      ) {
         throw error;
       }
       throw new TemplateRenderException(
@@ -106,6 +135,23 @@ export class LiquidService {
         { cause: error },
       );
     }
+  }
+
+  /**
+   * A Liquid instance whose partials and layouts (looked up from `root`, by
+   * default `templateDirectory`) may not leave `templateDirectory`: LiquidJS
+   * only confines them to `root`, which defaults to `process.cwd()`.
+   */
+  #confinedLiquid(
+    guard: TemplateDirectoryGuard,
+    liquidOptions: Omit<LiquidOptions, 'templateDirectory'>,
+  ): Liquid {
+    const { Liquid } = this.#engine;
+    return new Liquid({
+      ...liquidOptions,
+      root: liquidOptions.root ?? guard.baseDir,
+      fs: new ConfinedFs(liquidOptions.fs ?? new Liquid().options.fs, guard),
+    });
   }
 
   /**

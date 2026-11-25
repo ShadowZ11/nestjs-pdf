@@ -1,18 +1,27 @@
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { Injectable } from '@nestjs/common';
 import type mjml from 'mjml';
 import type { MJMLParsingOptions } from 'mjml-core';
 
-import { TemplateRenderException } from '../../../exceptions';
-import { resolveTemplatePath } from '../../../helpers/template-path.helper';
+import {
+  TemplateConfigurationException,
+  TemplateRenderException,
+} from '../../../exceptions';
+import {
+  resolveTemplatePath,
+  TemplateDirectoryGuard,
+} from '../../../helpers/template-path.helper';
 import { loadEngine } from '../../libs/loadEngine.utils';
 
 export interface MjmlOptions extends MJMLParsingOptions {
   /**
    * Base directory (absolute, or relative to `process.cwd()`) for files passed to `renderFile`.
    * When set, the file is resolved from it and may not leave it (symbolic links
-   * included). Recommended when the file name can come from user input.
+   * included). Its `mj-include`s (when `ignoreIncludes` is `false`) resolve from
+   * the file and are confined to `includePath`, which defaults to it and must
+   * lie inside it. Recommended when the file name can come from user input.
    */
   templateDirectory?: string;
 }
@@ -42,10 +51,11 @@ export class MjmlService {
   }
 
   async renderFile(filePath: string, options?: MjmlOptions): Promise<string> {
+    const templateDirectory = options?.templateDirectory;
     const templatePath = resolveTemplatePath(
       'MJML',
       filePath,
-      options?.templateDirectory,
+      templateDirectory,
     );
     let template: string;
     try {
@@ -57,6 +67,42 @@ export class MjmlService {
         { cause: error },
       );
     }
-    return await this.render(template, options);
+    return await this.render(
+      template,
+      templateDirectory === undefined
+        ? options
+        : this.#confineIncludes(options, templateDirectory, templatePath),
+    );
+  }
+
+  /**
+   * MJML resolves `mj-include` from `filePath` and allows only files below it
+   * or below `includePath`, symbolic links included. For a rendered string,
+   * `filePath` defaults to `process.cwd()`: pin it to the rendered file and
+   * keep `includePath` inside `templateDirectory`.
+   */
+  #confineIncludes(
+    options: MjmlOptions | undefined,
+    templateDirectory: string,
+    templatePath: string,
+  ): MjmlOptions {
+    const guard = new TemplateDirectoryGuard('MJML', templateDirectory);
+    const includePath =
+      options?.includePath === undefined
+        ? [guard.baseDir]
+        : [options.includePath].flat();
+    for (const path of includePath) {
+      if (!guard.contains(path)) {
+        throw new TemplateConfigurationException(
+          `MJML file rendering failed: \`includePath\` '${path}' is outside \`templateDirectory\``,
+        );
+      }
+    }
+    return {
+      ...options,
+      filePath: templatePath,
+      actualPath: templatePath,
+      includePath: includePath.map((path) => resolve(guard.baseDir, path)),
+    };
   }
 }

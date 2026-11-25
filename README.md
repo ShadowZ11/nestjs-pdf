@@ -267,6 +267,19 @@ await pdfService.generatePdfFromLiquidFile('invoice.liquid', data);
 await pdfService.generatePdfFromLiquidFile('../.env', data);
 ```
 
+The same restriction applies to the files a template loads itself:
+
+| Engine   | Files loaded by templates                   | With `templateDirectory`                                                                                                                                         |
+| -------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nunjucks | `include`, `extends`, `import`              | Resolved from `templateDirectory`.                                                                                                                               |
+| EJS      | `include()`                                 | Resolved by EJS (from the file, `root`, `views`, or your `includer`), then refused if outside.                                                                   |
+| Eta      | `include()`, layouts                        | `views` defaults to `templateDirectory`; files outside it are refused.                                                                                           |
+| Liquid   | `include`, `render`, `layout`               | `root` defaults to `templateDirectory`; files outside it are refused.                                                                                            |
+| Pug      | `include`, `extends`                        | Resolved from the file (`basedir`, for `/` paths, defaults to `templateDirectory`); files outside it are refused. A `read` plugin of yours is kept and confined. |
+| MJML     | `mj-include` (when `ignoreIncludes: false`) | Resolved from the file; `includePath` defaults to `templateDirectory` and must lie inside it.                                                                    |
+
+A refused include throws a `TemplateConfigurationException`. Exception: MJML renders an `<!-- mj-include denied -->` comment in its place, even with `validationLevel: 'strict'`, and Eta and Liquid may refuse a path through their own checks first, with a `TemplateRenderException`. Handlebars (partials from `partialDirectory`) and Mustache (no partials) load no files from templates.
+
 Set it whenever the file name can come from a request. Handlebars already requires it; for the other engines, a file name without `templateDirectory` is resolved from `process.cwd()` and is not restricted. This may become required in a future major version.
 
 ## PDF providers

@@ -1,8 +1,14 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { join, resolve } from 'node:path';
 
 import { TemplateConfigurationException } from '../../exceptions';
-import { EjsService } from './ejs/ejs.service';
+import { type EjsOptions, EjsService } from './ejs/ejs.service';
 import { EtaService } from './eta/eta.service';
 import { HandlebarsService } from './handlebars/handlebars.service';
 import { LiquidService } from './liquid/liquid.service';
@@ -144,5 +150,297 @@ describe.each(engines)('$name renderFile with templateDirectory', (engine) => {
     await expect(
       (async () => engine.renderFile(path, templateDirectory))(),
     ).rejects.toThrow(TemplateConfigurationException);
+  });
+});
+
+type RenderWithOptions = (
+  file: string,
+  templateDirectory: string,
+  options?: Record<string, unknown>,
+) => Promise<string> | string;
+
+const MJML_SECTION = (text: string) =>
+  `<mj-section><mj-column><mj-text>${text}</mj-text></mj-column></mj-section>`;
+
+// Every engine whose templates can load other files, with the real library.
+const nestedEngines: Array<{
+  name: string;
+  ext: string;
+  /** A partial's content, rendering `text`. */
+  partial: (text: string) => string;
+  /** A template including each of `paths`. */
+  including: (...paths: Array<string>) => string;
+  renderFile: RenderWithOptions;
+  /**
+   * Options moving the library's own lookup base (`views`, `root`...) to the
+   * parent of `templateDirectory` (`..`, from it), and an include then
+   * reaching the secret through it.
+   */
+  escape?: { options: Record<string, unknown>; path: string };
+}> = [
+  {
+    name: 'Nunjucks',
+    ext: '.njk',
+    partial: (text) => text,
+    including: (...paths) =>
+      paths.map((path) => `{% include "${path}" %}`).join(''),
+    renderFile: (file, templateDirectory, options) =>
+      new NunjucksService().renderFile(
+        file,
+        {},
+        { ...options, templateDirectory },
+      ),
+  },
+  {
+    name: 'EJS',
+    ext: '.ejs',
+    partial: (text) => text,
+    including: (...paths) =>
+      // The service renders with `async: true`.
+      paths.map((path) => `<%- await include('${path}') %>`).join(''),
+    renderFile: (file, templateDirectory, options) =>
+      new EjsService().renderFile(file, {}, { ...options, templateDirectory }),
+    escape: { options: { views: ['..'] }, path: 'secret.ejs' },
+  },
+  {
+    name: 'Eta',
+    ext: '.eta',
+    partial: (text) => text,
+    including: (...paths) =>
+      paths.map((path) => `<%~ include('${path}') %>`).join(''),
+    renderFile: (file, templateDirectory, options) =>
+      new EtaService().renderFile(file, {}, { ...options, templateDirectory }),
+    escape: { options: { views: '..' }, path: 'secret.eta' },
+  },
+  {
+    name: 'Liquid',
+    ext: '.liquid',
+    partial: (text) => text,
+    including: (...paths) =>
+      paths.map((path) => `{% include '${path}' %}`).join(''),
+    renderFile: (file, templateDirectory, options) =>
+      new LiquidService().renderFile(
+        file,
+        {},
+        { ...options, templateDirectory },
+      ),
+    escape: { options: { root: ['..'] }, path: 'secret.liquid' },
+  },
+  {
+    name: 'Pug',
+    ext: '.pug',
+    partial: (text) => `| ${text}`,
+    including: (...paths) => paths.map((path) => `include ${path}`).join('\n'),
+    renderFile: (file, templateDirectory, options) =>
+      new PugService().renderFile(file, {}, { ...options, templateDirectory }),
+    escape: { options: { basedir: '..' }, path: '/secret.pug' },
+  },
+  {
+    name: 'MJML',
+    ext: '.mjml',
+    partial: MJML_SECTION,
+    including: (...paths) =>
+      `<mjml><mj-body>${paths
+        .map((path) => `<mj-include path="${path}" />`)
+        .join('')}</mj-body></mjml>`,
+    renderFile: (file, templateDirectory, options) =>
+      new MjmlService().renderFile(file, {
+        ignoreIncludes: false,
+        ...options,
+        templateDirectory,
+      }),
+    escape: { options: { includePath: '..' }, path: '../secret.mjml' },
+  },
+];
+
+describe.each(nestedEngines)(
+  '$name nested loads with templateDirectory',
+  (engine) => {
+    let root: string;
+    let templateDirectory: string;
+    const file = (name: string) => `${name}${engine.ext}`;
+    // Option paths are given from `templateDirectory`: make them absolute.
+    const fromTemplateDirectory = (value: unknown): unknown =>
+      Array.isArray(value)
+        ? value.map(fromTemplateDirectory)
+        : value === '..'
+          ? resolve(templateDirectory, value)
+          : value;
+    const render = async (
+      template: string,
+      options: Record<string, unknown> = {},
+    ) => {
+      writeFileSync(join(templateDirectory, file('main')), template);
+      return engine.renderFile(
+        file('main'),
+        templateDirectory,
+        Object.fromEntries(
+          Object.entries(options).map(([key, value]) => [
+            key,
+            fromTemplateDirectory(value),
+          ]),
+        ),
+      );
+    };
+    /** Renders `template`: it either fails or does not output the secret. */
+    const expectNoSecret = async (
+      template: string,
+      options?: Record<string, unknown>,
+    ) => {
+      const outcome = await render(template, options).then(
+        (html) => html,
+        (error: unknown) => error,
+      );
+      expect(String(outcome)).not.toContain('TOP SECRET');
+      return outcome;
+    };
+
+    beforeEach(() => {
+      root = mkdtempSync('template-directory-');
+      templateDirectory = join(root, 'templates');
+      mkdirSync(join(templateDirectory, 'partials'), { recursive: true });
+      writeFileSync(
+        join(templateDirectory, 'partials', file('part')),
+        engine.partial('PART'),
+      );
+      writeFileSync(
+        join(templateDirectory, 'partials', file('wrap')),
+        engine.including(`./${file('part')}`),
+      );
+      // Shares the `templates` prefix: a bare prefix test accepts it.
+      mkdirSync(join(root, 'templates-2'));
+      writeFileSync(
+        join(root, 'templates-2', file('secret')),
+        engine.partial('TOP SECRET'),
+      );
+      writeFileSync(join(root, file('secret')), engine.partial('TOP SECRET'));
+    });
+
+    afterEach(() => {
+      rmSync(root, { recursive: true, force: true });
+    });
+
+    it('should render includes inside templateDirectory, relative ones included', async () => {
+      const html = await render(
+        engine.including(
+          `partials/${file('part')}`,
+          `partials/${file('wrap')}`,
+        ),
+      );
+
+      expect(html.match(/PART/g)).toHaveLength(2);
+    }, 30_000);
+
+    it.each([
+      ['a parent include', () => `../${file('secret')}`],
+      [
+        'a sibling directory sharing the prefix',
+        () => `../templates-2/${file('secret')}`,
+      ],
+      [
+        'an absolute include',
+        () => resolve(root, file('secret')).replaceAll('\\', '/'),
+      ],
+    ])('should not read %s', async (_label, path) => {
+      await expectNoSecret(engine.including(path()));
+    });
+
+    it('should not read through a symbolic link leaving templateDirectory', async (ctx) => {
+      try {
+        symlinkSync(
+          resolve(root, file('secret')),
+          join(templateDirectory, file('link')),
+        );
+      } catch {
+        // Symbolic links need extra privileges on Windows.
+        ctx.skip();
+      }
+
+      await expectNoSecret(engine.including(file('link')));
+    });
+
+    it.runIf(engine.escape)(
+      'should refuse a lookup option leading outside templateDirectory',
+      async () => {
+        const { options, path } = engine.escape!;
+
+        const outcome = await expectNoSecret(engine.including(path), options);
+        expect(outcome).toBeInstanceOf(TemplateConfigurationException);
+      },
+    );
+  },
+);
+
+describe('Nunjucks extends and imports with templateDirectory', () => {
+  let root: string;
+  let templateDirectory: string;
+
+  beforeEach(() => {
+    root = mkdtempSync('template-directory-');
+    templateDirectory = join(root, 'templates');
+    mkdirSync(templateDirectory);
+    writeFileSync(join(root, 'secret.njk'), 'TOP SECRET');
+  });
+
+  afterEach(() => {
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  it.each([
+    ['extends', '{% extends "../secret.njk" %}'],
+    ['import', '{% import "../secret.njk" as s %}'],
+  ])('should refuse a parent %s', (_label, template) => {
+    writeFileSync(join(templateDirectory, 'main.njk'), template);
+
+    expect(() =>
+      new NunjucksService().renderFile('main.njk', {}, { templateDirectory }),
+    ).toThrow(TemplateConfigurationException);
+  });
+});
+
+describe('EJS includer with templateDirectory', () => {
+  let root: string;
+  let templateDirectory: string;
+  const render = (template: string, includer?: EjsOptions['includer']) => {
+    writeFileSync(join(templateDirectory, 'main.ejs'), template);
+    return new EjsService().renderFile(
+      'main.ejs',
+      {},
+      { templateDirectory, includer },
+    );
+  };
+
+  beforeEach(() => {
+    root = mkdtempSync('template-directory-');
+    templateDirectory = join(root, 'templates');
+    mkdirSync(templateDirectory);
+    writeFileSync(join(templateDirectory, 'part.ejs'), 'PART');
+    writeFileSync(join(root, 'secret.ejs'), 'TOP SECRET');
+  });
+
+  afterEach(() => {
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  it('should use a template returned by the caller includer', async () => {
+    await expect(
+      render("<%- await include('virtual') %>", () => ({
+        template: 'VIRTUAL',
+      })),
+    ).resolves.toBe('VIRTUAL');
+  });
+
+  it('should confine a file returned by the caller includer', async () => {
+    await expect(
+      render("<%- await include('part.ejs') %>", () => ({
+        filename: resolve(root, 'secret.ejs'),
+      })),
+    ).rejects.toThrow(TemplateConfigurationException);
+  });
+
+  it('should report an include it cannot find', async () => {
+    await expect(render("<%- await include('missing.ejs') %>")).rejects.toThrow(
+      'Could not find the include file "missing.ejs"',
+    );
   });
 });
