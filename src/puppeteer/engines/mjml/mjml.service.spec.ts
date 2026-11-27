@@ -72,6 +72,46 @@ describe('MjmlService', () => {
     expect(mjml).toHaveBeenCalledWith('<mjml />', { minify: true });
   });
 
+  it('should convert a template once per options and reuse the HTML', async () => {
+    (mjml as Mock).mockClear();
+    (mjml as Mock).mockResolvedValue({ html: '<html>cached</html>' });
+
+    await service.render('<mjml>same</mjml>', { minify: true });
+    const second = await service.render('<mjml>same</mjml>', { minify: true });
+    await service.render('<mjml>same</mjml>', { minify: false });
+
+    expect(second).toBe('<html>cached</html>');
+    expect(mjml).toHaveBeenCalledTimes(2);
+  });
+
+  it('should not reuse the HTML of a template with mj-include', async () => {
+    (mjml as Mock).mockClear();
+    (mjml as Mock).mockResolvedValue({ html: '<html>included</html>' });
+    const template = '<mjml><mj-include path="header.mjml" /></mjml>';
+
+    await service.render(template, { ignoreIncludes: false });
+    await service.render(template, { ignoreIncludes: false });
+    // Includes are not resolved by default: the HTML is reused.
+    await service.render(template);
+    await service.render(template);
+
+    expect(mjml).toHaveBeenCalledTimes(3);
+  });
+
+  it('should not cache a failed conversion', async () => {
+    (mjml as Mock).mockClear();
+    (mjml as Mock)
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValueOnce({ html: '<html>ok</html>' });
+
+    await expect(service.render('<mjml>flaky</mjml>')).rejects.toThrow(
+      TemplateRenderException,
+    );
+    await expect(service.render('<mjml>flaky</mjml>')).resolves.toBe(
+      '<html>ok</html>',
+    );
+  });
+
   it('should render a file by reading its contents first', async () => {
     (readFileSync as Mock).mockReturnValue('<mjml>file</mjml>');
     (mjml as Mock).mockResolvedValue({

@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { realpathSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
@@ -63,10 +64,17 @@ export function resolveTemplatePath(
  * Engines wrap, rewrite or replace the errors thrown by their loaders: `check`
  * hands the engine a copy and keeps the original refusal, which the service
  * rethrows from `refused` once rendering has failed.
+ *
+ * A guard can be kept with a cached engine instance and shared by renders,
+ * concurrent ones included: run each render in `track` so that `refused` only
+ * reports that render's refusal.
  */
 export class TemplateDirectoryGuard {
   readonly baseDir: string;
   readonly #engineName: string;
+  readonly #renders = new AsyncLocalStorage<{
+    refused?: TemplateConfigurationException;
+  }>();
   #refused?: TemplateConfigurationException;
 
   constructor(engineName: string, templateDirectory: string) {
@@ -74,9 +82,15 @@ export class TemplateDirectoryGuard {
     this.baseDir = resolve(process.cwd(), templateDirectory);
   }
 
-  /** The first refusal, if any. */
+  /** The first refusal of the current `track`ed render (or of any, outside one). */
   get refused(): TemplateConfigurationException | undefined {
-    return this.#refused;
+    const render = this.#renders.getStore();
+    return render ? render.refused : this.#refused;
+  }
+
+  /** Runs one render, with its own `refused`. */
+  track<T>(render: () => T): T {
+    return this.#renders.run({}, render);
   }
 
   /** Resolves `file` from `baseDir`, or throws when it leaves it. */
@@ -85,7 +99,12 @@ export class TemplateDirectoryGuard {
       return resolveTemplatePath(this.#engineName, file, this.baseDir);
     } catch (error) {
       if (!(error instanceof TemplateConfigurationException)) throw error;
-      this.#refused ??= error;
+      const render = this.#renders.getStore();
+      if (render) {
+        render.refused ??= error;
+      } else {
+        this.#refused ??= error;
+      }
       throw new Error(error.message, { cause: error });
     }
   }
