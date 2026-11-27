@@ -39,7 +39,6 @@ export interface EtaOptions extends Partial<EtaConfig> {
 interface EtaScope {
   eta: Eta;
   compiled: LruCache<TemplateFunction>;
-  /** Set for a scope whose includes and layouts are confined. */
   guard?: TemplateDirectoryGuard;
 }
 
@@ -48,7 +47,7 @@ export class EtaService {
   #etaModule?: typeof EtaModule;
   /** One Eta instance, and its compiled templates, per set of options. */
   readonly #scopes = new OptionsScopedCache<EtaScope>();
-  /** For `renderFile` with `templateDirectory`. */
+  /** For `renderFile` with `templateDirectory`: includes are confined. */
   readonly #confinedScopes = new OptionsScopedCache<EtaScope>();
   readonly #templateCache: Map<string, string> = new Map();
   readonly #maxCacheSize = 100;
@@ -57,13 +56,6 @@ export class EtaService {
     return (this.#etaModule ??= loadEngine<typeof EtaModule>('eta', 'Eta'));
   }
 
-  /**
-   * Render an Eta template from a string
-   * @param template The template string to render
-   * @param data The data object to use for rendering
-   * @param options Optional Eta rendering options
-   * @returns The rendered HTML string
-   */
   render(
     template: string,
     data: Record<string, unknown> = {},
@@ -81,8 +73,7 @@ export class EtaService {
   ): string {
     const { Eta } = this.#engine;
     const { templateDirectory, ...etaOptions } = options ?? {};
-    // Scoped on the caller's object, not the stripped copy: options holding
-    // functions are compared by reference.
+    // The caller's object, not the stripped copy: compared by reference when it holds functions.
     const scope =
       confined && templateDirectory !== undefined
         ? this.#confinedScopes.get(options, () =>
@@ -121,13 +112,6 @@ export class EtaService {
     return guard ? guard.track(render) : render();
   }
 
-  /**
-   * Render an Eta template from a file
-   * @param filePath The path to the template file
-   * @param data The data object to use for rendering
-   * @param options Optional Eta rendering options
-   * @returns The rendered HTML string
-   */
   renderFile(
     filePath: string,
     data: Record<string, unknown> = {},
@@ -193,17 +177,12 @@ export class EtaService {
     };
   }
 
-  /**
-   * Clear the template cache
-   */
+  /** Forgets the files read by `renderFile`: edited files are read again. */
   clearCache(): void {
     this.#templateCache.clear();
   }
 
-  /**
-   * Get the current cache size
-   * @returns The number of cached templates
-   */
+  /** Number of files kept by `renderFile`. */
   getCacheSize(): number {
     return this.#templateCache.size;
   }

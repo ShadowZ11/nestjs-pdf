@@ -38,7 +38,6 @@ export interface LiquidOptions extends LiquidJsOptions {
 interface LiquidScope {
   liquid: Liquid;
   parsed: LruCache<Array<Template>>;
-  /** Set for a scope whose partials and layouts are confined. */
   guard?: TemplateDirectoryGuard;
 }
 
@@ -47,7 +46,7 @@ export class LiquidService {
   #liquidModule?: typeof LiquidModule;
   /** One Liquid instance, and its parsed templates, per set of options. */
   readonly #scopes = new OptionsScopedCache<LiquidScope>();
-  /** For `renderFile` with `templateDirectory`. */
+  /** For `renderFile` with `templateDirectory`: partials are confined. */
   readonly #confinedScopes = new OptionsScopedCache<LiquidScope>();
   readonly #templateCache: Map<string, string> = new Map();
   readonly #maxCacheSize = 100;
@@ -59,13 +58,6 @@ export class LiquidService {
     ));
   }
 
-  /**
-   * Render a Liquid template from a string
-   * @param template The template string to render
-   * @param data The data object to use for rendering
-   * @param options Optional Liquid engine options
-   * @returns The rendered HTML string
-   */
   render(
     template: string,
     data: Record<string, unknown> = {},
@@ -85,8 +77,7 @@ export class LiquidService {
     const { templateDirectory, ...liquidOptions } = options ?? {};
     let scope: LiquidScope;
     try {
-      // Scoped on the caller's object, not the stripped copy: options holding
-      // functions are compared by reference.
+      // The caller's object, not the stripped copy: compared by reference when it holds functions.
       scope =
         confined && templateDirectory !== undefined
           ? this.#confinedScopes.get(options, () =>
@@ -126,13 +117,6 @@ export class LiquidService {
     );
   }
 
-  /**
-   * Render a Liquid template from a file
-   * @param filePath The path to the template file
-   * @param data The data object to use for rendering
-   * @param options Optional Liquid engine options
-   * @returns The rendered HTML string
-   */
   renderFile(
     filePath: string,
     data: Record<string, unknown> = {},
@@ -194,17 +178,12 @@ export class LiquidService {
     };
   }
 
-  /**
-   * Clear the template cache
-   */
+  /** Forgets the files read by `renderFile`: edited files are read again. */
   clearCache(): void {
     this.#templateCache.clear();
   }
 
-  /**
-   * Get the current cache size
-   * @returns The number of cached templates
-   */
+  /** Number of files kept by `renderFile`. */
   getCacheSize(): number {
     return this.#templateCache.size;
   }

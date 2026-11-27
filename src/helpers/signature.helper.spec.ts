@@ -48,7 +48,6 @@ describe('signature.helper', () => {
     // ensure transform returns a position (e,f)
     pdfjsMock.Util.transform = vi.fn(() => [1, 0, 0, 1, 150, 100]);
 
-    // inject mocked pdfjs to avoid dynamic import at runtime
     __setPdfjsForTests(pdfjsMock);
 
     const result = await addSignatureFieldUsingAnchor(bytes);
@@ -84,7 +83,6 @@ describe('signature.helper', () => {
       destroy: vi.fn(),
     } as never);
 
-    // inject mocked pdfjs to avoid dynamic import at runtime
     __setPdfjsForTests(pdfjsMock);
 
     const result = await addSignatureFieldUsingAnchor(bytes);

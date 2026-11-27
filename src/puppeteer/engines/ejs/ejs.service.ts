@@ -48,8 +48,7 @@ export class EjsService {
     const { templateDirectory: _templateDirectory, ...ejsOptions } =
       options ?? {};
     try {
-      // Scoped on the caller's object, not the stripped copy: options holding
-      // functions are compared by reference.
+      // The caller's object, not the stripped copy: compared by reference when it holds functions.
       const compiled = this.#scopes.get(
         options,
         () => new LruCache(COMPILED_TEMPLATES_PER_SCOPE),
