@@ -86,6 +86,26 @@ describe('compiled template cache', () => {
     expect(compile).toHaveBeenCalledTimes(2);
   });
 
+  it('Pug: recompiles a file with includes, so that edits to them are picked up', () => {
+    const tempDir = mkdtempSync('pug-cache-');
+    try {
+      const service = new PugService();
+      writeFileSync(join(tempDir, 'header.pug'), 'h1 v1');
+      writeFileSync(join(tempDir, 'page.pug'), 'include header.pug\np= who');
+      const options = { templateDirectory: tempDir };
+
+      expect(service.renderFile('page.pug', { who: 'a' }, options)).toBe(
+        '<h1>v1</h1><p>a</p>',
+      );
+      writeFileSync(join(tempDir, 'header.pug'), 'h1 v2');
+      expect(service.renderFile('page.pug', { who: 'b' }, options)).toBe(
+        '<h1>v2</h1><p>b</p>',
+      );
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
   it('Liquid: parses once per template and options', () => {
     const parse = vi.spyOn(Liquid.prototype, 'parse');
     const service = new LiquidService();

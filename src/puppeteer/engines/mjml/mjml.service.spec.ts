@@ -84,6 +84,20 @@ describe('MjmlService', () => {
     expect(mjml).toHaveBeenCalledTimes(2);
   });
 
+  it('should not reuse the HTML of a template with mj-include', async () => {
+    (mjml as Mock).mockClear();
+    (mjml as Mock).mockResolvedValue({ html: '<html>included</html>' });
+    const template = '<mjml><mj-include path="header.mjml" /></mjml>';
+
+    await service.render(template, { ignoreIncludes: false });
+    await service.render(template, { ignoreIncludes: false });
+    // Includes are not resolved by default: the HTML is reused.
+    await service.render(template);
+    await service.render(template);
+
+    expect(mjml).toHaveBeenCalledTimes(3);
+  });
+
   it('should not cache a failed conversion', async () => {
     (mjml as Mock).mockClear();
     (mjml as Mock)

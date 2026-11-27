@@ -72,9 +72,14 @@ export class PugService {
       try {
         // Scoped on the caller's object, not the stripped copy: options
         // holding functions are compared by reference.
-        const compiledFn = this.#scopes
-          .get(options, () => new LruCache(COMPILED_TEMPLATES_PER_SCOPE))
-          .getOrCreate(template, () => engine.compile(template, pugOptions));
+        const compiledFn = this.#compile(
+          this.#scopes.get(
+            options,
+            () => new LruCache(COMPILED_TEMPLATES_PER_SCOPE),
+          ),
+          template,
+          () => engine.compile(template, pugOptions),
+        );
         return compiledFn(data);
       } catch (error) {
         throw this.#renderError(error);
@@ -85,24 +90,46 @@ export class PugService {
       guard: new TemplateDirectoryGuard('Pug', templateDirectory),
       compiled: new LruCache(COMPILED_TEMPLATES_PER_SCOPE),
     }));
-    // Includes are read while compiling: a cached function was confined then.
+    const compileOptions: PugOptions = {
+      ...pugOptions,
+      filename,
+      basedir: pugOptions.basedir ?? guard.baseDir,
+      plugins: confineReads(pugOptions.plugins, guard),
+    };
+    // Includes are read while compiling: the guard must see that compilation.
     return guard.track(() => {
       try {
-        const compiledFn = compiled.getOrCreate(
+        const compiledFn = this.#compile(
+          compiled,
           `${filename}\0${template}`,
-          () =>
-            engine.compile(template, {
-              ...pugOptions,
-              filename,
-              basedir: pugOptions.basedir ?? guard.baseDir,
-              plugins: confineReads(pugOptions.plugins, guard),
-            }),
+          () => engine.compile(template, compileOptions),
         );
         return compiledFn(data);
       } catch (error) {
         throw guard.refused ?? this.#renderError(error);
       }
     });
+  }
+
+  /**
+   * Pug inlines includes and extends when compiling: a function that has any
+   * is not kept, so that edits to them are picked up.
+   */
+  #compile(
+    compiled: LruCache<pug.compileTemplate>,
+    key: string,
+    compile: () => pug.compileTemplate,
+  ): pug.compileTemplate {
+    const cached = compiled.get(key);
+    if (cached) {
+      return cached;
+    }
+    const compiledFn: pug.compileTemplate & { dependencies?: Array<string> } =
+      compile();
+    if (!compiledFn.dependencies?.length) {
+      compiled.set(key, compiledFn);
+    }
+    return compiledFn;
   }
 
   #renderError(error: unknown): TemplateRenderException {

@@ -34,7 +34,7 @@ export interface MjmlOptions extends MJMLParsingOptions {
 @Injectable()
 export class MjmlService {
   #mjml?: typeof mjml;
-  /** MJML output depends only on the template and the options: cache the HTML. */
+  /** The HTML, for templates without `mj-include` (included files may change). */
   readonly #scopes = new OptionsScopedCache<LruCache<string>>();
 
   get #engine(): typeof mjml {
@@ -52,12 +52,17 @@ export class MjmlService {
         options,
         () => new LruCache(COMPILED_TEMPLATES_PER_SCOPE),
       );
-      const cached = cache.get(template);
+      const cacheable =
+        mjmlOptions.ignoreIncludes !== false ||
+        !template.includes('<mj-include');
+      const cached = cacheable ? cache.get(template) : undefined;
       if (cached !== undefined) {
         return cached;
       }
       const { html } = await engine(template, mjmlOptions);
-      cache.set(template, html);
+      if (cacheable) {
+        cache.set(template, html);
+      }
       return html;
     } catch (error) {
       throw new TemplateRenderException(
