@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.1.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v5.0.0...v5.1.0) (2026-11-27)
+
+
+### 🐛 Bug Fixes
+
+* confine template file reads to templateDirectory ([3a5526f](https://github.com/ShadowZ11/nestjs-pdf/commit/3a5526ff466e9ef778d3cc5a6ed11911a1aab52d))
+* confine template file reads to templateDirectory ([5104d03](https://github.com/ShadowZ11/nestjs-pdf/commit/5104d0354c0bae0d7d44502a53a0821ce0442ee9))
+* **puppeteer:** share in-flight browser launch and harden recycling ([d74ece6](https://github.com/ShadowZ11/nestjs-pdf/commit/d74ece67d72bcadd896776a16432bc81ea931148))
+
+
+### 🧹 Maintenance
+
+* release 5.1.0 ([d506b60](https://github.com/ShadowZ11/nestjs-pdf/commit/d506b60febfdc54dbde8433067bd82f9d02ed7e2))
+
 ## [5.0.0](https://github.com/ShadowZ11/nestjs-pdf/compare/v4.0.0...v5.0.0) (2026-11-07)
 
 
